@@ -30,7 +30,7 @@ namespace Snapdragon
 
         /// <summary>
         /// The <see cref="Card"/> has been discarded from the <see cref="Player"/>'s hand.
-        /// 
+        ///
         /// It's not immediately clear to me if this is distinct from "Destroyed" in a meaningful way,
         /// although the transitional event is handled differently by some cards.
         /// </summary>

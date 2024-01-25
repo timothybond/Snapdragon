@@ -11,12 +11,8 @@ namespace Snapdragon
     /// </summary>
     public class NullLogger : IGameLogger
     {
-        public void LogEvent(Event e)
-        {
-        }
+        public void LogEvent(Event e) { }
 
-        public void LogGameState(GameState game)
-        {
-        }
+        public void LogGameState(GameState game) { }
     }
 }

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Snapdragon
+namespace Snapdragon.Events
 {
-    public abstract record Event(EventType Type) { }
+    public record CardRevealedEvent(int Turn, Card Card) : Event(EventType.CardRevealed) { }
 }

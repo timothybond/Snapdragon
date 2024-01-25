@@ -6,7 +6,5 @@ using System.Threading.Tasks;
 
 namespace Snapdragon.Events
 {
-    public record StartTurnEvent(int Turn) : Event(EventType.StartTurn)
-    {
-    }
+    public record CardPlayedEvent(int Turn, Card Card) : Event(EventType.CardPlayed) { }
 }

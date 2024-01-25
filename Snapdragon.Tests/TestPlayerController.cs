@@ -18,7 +18,10 @@ namespace Snapdragon.Tests
 
         public IReadOnlyList<IPlayerAction> Actions { get; set; }
 
-        public IReadOnlyList<IPlayerAction> GetActions(GameState gameState, Side firstPlayerToResolve)
+        public IReadOnlyList<IPlayerAction> GetActions(
+            GameState gameState,
+            Side firstPlayerToResolve
+        )
         {
             return this.Actions;
         }

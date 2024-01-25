@@ -11,7 +11,10 @@ namespace Snapdragon.Tests
     /// </summary>
     public class NullPlayerController : IPlayerController
     {
-        public IReadOnlyList<IPlayerAction> GetActions(GameState gameState, Side firstPlayerToResolve)
+        public IReadOnlyList<IPlayerAction> GetActions(
+            GameState gameState,
+            Side firstPlayerToResolve
+        )
         {
             return new List<IPlayerAction>();
         }
