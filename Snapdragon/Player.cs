@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Immutable;
 
 namespace Snapdragon
 {
-    public record Player(string Name)
+    public record Player(PlayerConfiguration Configuration, Side Side, int Energy, Library Deck, ImmutableList<Card> Hand)
     {
+        public IPlayerController Controller => this.Configuration.Controller;
     }
 }

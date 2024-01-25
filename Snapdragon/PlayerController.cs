@@ -1,13 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Snapdragon
+﻿namespace Snapdragon
 {
     public interface IPlayerController
     {
-        IReadOnlyList<IPlayerAction> GetActions(GameState gameState);
+        IReadOnlyList<IPlayerAction> GetActions(GameState gameState, Side firstPlayerToResolve);
     }
 }

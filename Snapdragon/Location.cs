@@ -1,13 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Immutable;
 
 namespace Snapdragon
 {
-    public record Location(ImmutableList<Card> TopPlayerCards, ImmutableList<Card> BottomPlayerCards)
+    public record Location(string Name, Column Column, ImmutableList<Card> TopPlayerCards, ImmutableList<Card> BottomPlayerCards)
     {
+        public Location(string Name, Column Column) : this(Name, Column, [], [])
+        {
+        }
     }
 }

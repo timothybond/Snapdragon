@@ -10,8 +10,13 @@ namespace Snapdragon
     {
         DrawCard = 0,
         PlayCard = 1,
-        MoveCard = 2,
-        DiscardCard = 3,
-        DestroyCard = 4,
+        RevealCard = 2,
+        MoveCard = 3,
+        DiscardCard = 4,
+        DestroyCardInPlay = 5,
+        DestroyCardInHand = 6,
+        DestroyCardInDeck = 7,
+        StartTurn = 8,
+        EndTurn = 9
     }
 }

@@ -1,12 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Immutable;
 
 namespace Snapdragon
 {
-    public record Deck
+    /// <summary>
+    /// A <see cref="Player"/>'s Deck, as defined outside of the context of a specific game.
+    /// </summary>
+    public record Deck(ImmutableList<CardDefinition> Cards)
     {
+        public Library ToLibrary(Side side, bool shuffle = true)
+        {
+            var cards = Cards.Select(c => new Card(c, side));
+            if (shuffle)
+            {
+                cards = cards.OrderBy(card => Random.Next());
+            }
+
+            return new Library(cards.ToImmutableList());
+        }
     }
 }
