@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Snapdragon
+﻿namespace Snapdragon
 {
     public enum EventType
     {
@@ -17,6 +11,7 @@ namespace Snapdragon
         CardDestroyedFromHand = 6,
         CardDestroyedFromLibrary = 7,
         TurnStarted = 8,
-        TurnEnded = 9
+        TurnEnded = 9,
+        GameEnded = 10
     }
 }

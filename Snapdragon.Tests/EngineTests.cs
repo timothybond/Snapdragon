@@ -1,3 +1,4 @@
+using System.Data.Common;
 using Snapdragon.Events;
 using Snapdragon.PlayerActions;
 
@@ -234,6 +235,32 @@ namespace Snapdragon.Tests
             );
 
             Assert.That(cardRevealedEvent, Is.Not.Null);
+        }
+
+        #endregion
+
+        #region PlayGame
+
+        [Test]
+        public void PlayGame_PlaysSixTurnsByDefault()
+        {
+            var engine = new Engine(new NullLogger());
+            var game = GetInitialGameState(engine);
+
+            game = engine.PlayGame(game);
+
+            Assert.That(game.Turn, Is.EqualTo(6));
+        }
+
+        [Test]
+        public void PlayGame_GameOverIsTrue()
+        {
+            var engine = new Engine(new NullLogger());
+            var game = GetInitialGameState(engine);
+
+            game = engine.PlayGame(game);
+
+            Assert.That(game.GameOver, Is.True);
         }
 
         #endregion

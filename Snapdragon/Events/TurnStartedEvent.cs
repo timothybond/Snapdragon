@@ -1,10 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Snapdragon.Events
+﻿namespace Snapdragon.Events
 {
-    public record TurnStartedEvent(int Turn) : Event(EventType.TurnStarted) { }
+    public record TurnStartedEvent(int Turn) : Event(EventType.TurnStarted)
+    {
+        public override string ToString()
+        {
+            return $"Turn {Turn} started.";
+        }
+    }
 }

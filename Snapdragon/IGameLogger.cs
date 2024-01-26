@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Snapdragon
+﻿namespace Snapdragon
 {
     /// <summary>
     /// Anything that writes a record of what's happening in a Game.

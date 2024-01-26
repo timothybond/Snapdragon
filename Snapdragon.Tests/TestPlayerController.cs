@@ -8,6 +8,8 @@ namespace Snapdragon.Tests
 {
     /// <summary>
     /// An implementation of <see cref="IPlayerController"/> that performs whatever actions are passed into it.
+    ///
+    /// After each turn, <see cref="TestPlayerController.Actions"/> is reset to nothing.
     /// </summary>
     public class TestPlayerController : IPlayerController
     {
@@ -20,10 +22,14 @@ namespace Snapdragon.Tests
 
         public IReadOnlyList<IPlayerAction> GetActions(
             GameState gameState,
+            Side player,
             Side firstPlayerToResolve
         )
         {
-            return this.Actions;
+            var actions = this.Actions;
+            this.Actions = new List<IPlayerAction>();
+
+            return actions;
         }
     }
 }

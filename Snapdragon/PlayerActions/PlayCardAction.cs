@@ -1,5 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using Snapdragon.Events;
+﻿using Snapdragon.Events;
 
 namespace Snapdragon.PlayerActions
 {

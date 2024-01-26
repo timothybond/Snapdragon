@@ -13,6 +13,7 @@ namespace Snapdragon.Tests
     {
         public IReadOnlyList<IPlayerAction> GetActions(
             GameState gameState,
+            Side player,
             Side firstPlayerToResolve
         )
         {

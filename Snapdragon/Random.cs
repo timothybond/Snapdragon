@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Snapdragon
+﻿namespace Snapdragon
 {
     static class Random
     {
@@ -15,9 +9,29 @@ namespace Snapdragon
             return random.Next(2) == 0 ? Snapdragon.Side.Top : Snapdragon.Side.Bottom;
         }
 
+        public static Column Column()
+        {
+            switch (random.Next(3))
+            {
+                case 0:
+                    return Snapdragon.Column.Left;
+                case 1:
+                    return Snapdragon.Column.Middle;
+                case 2:
+                    return Snapdragon.Column.Right;
+                default:
+                    throw new NotImplementedException();
+            }
+        }
+
         public static int Next(int maxValue = int.MaxValue)
         {
             return random.Next(maxValue);
+        }
+
+        public static bool NextBool()
+        {
+            return random.Next() % 2 == 0;
         }
     }
 }

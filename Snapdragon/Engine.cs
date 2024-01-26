@@ -61,6 +61,19 @@ namespace Snapdragon
         }
 
         /// <summary>
+        /// Plays the game until it finishes.
+        /// </summary>
+        public GameState PlayGame(GameState game)
+        {
+            while (!game.GameOver)
+            {
+                game = PlaySingleTurn(game);
+            }
+
+            return game;
+        }
+
+        /// <summary>
         /// Processes a single Turn, including all <see cref="Player"/> actions and any triggered effects.
         /// </summary>
         /// <param name="game">The <see cref="GameState"/> at the end of the previous Turn.</param>
@@ -83,8 +96,16 @@ namespace Snapdragon
             var firstPlayerToResolve = game.GetLeader() ?? Random.Side();
 
             // Get player actions
-            var topPlayerActions = game.Top.Controller.GetActions(game, firstPlayerToResolve);
-            var bottomPlayerActions = game.Bottom.Controller.GetActions(game, firstPlayerToResolve);
+            var topPlayerActions = game.Top.Controller.GetActions(
+                game,
+                Side.Top,
+                firstPlayerToResolve
+            );
+            var bottomPlayerActions = game.Bottom.Controller.GetActions(
+                game,
+                Side.Bottom,
+                firstPlayerToResolve
+            );
 
             // Resolve player actions
             game = this.ProcessPlayerActions(game, topPlayerActions, bottomPlayerActions);
@@ -93,6 +114,12 @@ namespace Snapdragon
             game = this.RevealCards(game, firstPlayerToResolve);
 
             this.logger.LogGameState(game);
+
+            // TODO: Allow for abilities that alter the number of turns
+            if (game.Turn >= 6)
+            {
+                game = game with { GameOver = true };
+            }
 
             return game;
         }

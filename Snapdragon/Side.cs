@@ -1,6 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-
-namespace Snapdragon
+﻿namespace Snapdragon
 {
     public enum Side
     {

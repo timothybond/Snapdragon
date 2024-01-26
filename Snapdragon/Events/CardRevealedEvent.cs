@@ -1,10 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Snapdragon.Events
+﻿namespace Snapdragon.Events
 {
-    public record CardRevealedEvent(int Turn, Card Card) : Event(EventType.CardRevealed) { }
+    public record CardRevealedEvent(int Turn, Card Card) : Event(EventType.CardRevealed)
+    {
+        public override string ToString()
+        {
+            return $"Card Revealed: {Card.Name} ({Card.Id}), Side {Card.Side}, Location {Card.Column}.";
+        }
+    }
 }
