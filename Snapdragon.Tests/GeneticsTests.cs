@@ -25,16 +25,33 @@ namespace Snapdragon.Tests
         [Test]
         public void PopulationTest()
         {
+            // This is just a basic sanity check of the genetic algorithm.
+            //
+            // The only assertion is that the population size is correct.
+            //
+            // It also logs the output population.
+            // We should expect cards that are strictly better than one another
+            // (in our example population, which is just ability-less cards
+            // with a mix of costs and powers) to outcompete inferior ones.
+            //
+            // Depending on the mutation rate, some inferior cards will still exist.
+            //
+            // Note also that because this test can take a long time to run if you do
+            // a lot of generations, by default it is set to only run a few.
             var g = new Genetics();
+            var cards = g.GetInitialCardDefinitions();
 
-            var decks = g.GetRandomDecks(g.GetInitialCardDefinitions(), 32);
+            const int DeckCount = 32;
+            const int Generations = 10;
+
+            var decks = g.GetRandomDecks(cards, DeckCount);
 
             var engine = new Engine(new NullLogger());
 
-            for (var i = 0; i < 100; i++)
+            for (var i = 0; i < Generations; i++)
             {
                 var wins = g.RunPopulationGames(decks, engine, 2);
-                decks = g.ReproducePopulation(decks, wins);
+                decks = g.ReproducePopulation(decks, wins, cards, 1000, c => Random.Next());
             }
 
             var cardCounts = new Dictionary<string, int>();
@@ -64,6 +81,7 @@ namespace Snapdragon.Tests
                 results.AppendLine($"Card {key}: {cardCounts[key]}");
             }
 
+            Assert.That(decks.Count, Is.EqualTo(DeckCount));
             Assert.Pass(results.ToString());
         }
     }

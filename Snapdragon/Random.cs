@@ -1,6 +1,6 @@
 ﻿namespace Snapdragon
 {
-    static class Random
+    public static class Random
     {
         private static System.Random random = new System.Random();
 
@@ -32,6 +32,12 @@
         public static bool NextBool()
         {
             return random.Next() % 2 == 0;
+        }
+
+        public static T Of<T>(IReadOnlyList<T> items)
+        {
+            var index = random.Next(items.Count);
+            return items[index];
         }
     }
 }
