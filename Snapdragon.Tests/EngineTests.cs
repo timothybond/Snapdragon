@@ -1,4 +1,5 @@
 using System.Data.Common;
+using System.Numerics;
 using Snapdragon.Events;
 using Snapdragon.PlayerActions;
 
@@ -102,6 +103,57 @@ namespace Snapdragon.Tests
 
             Assert.That(game.Top.Energy, Is.EqualTo(turn));
             Assert.That(game.Bottom.Energy, Is.EqualTo(turn));
+        }
+
+        [Test]
+        [TestCase(1, true, false, false)]
+        [TestCase(2, true, true, false)]
+        [TestCase(3, true, true, true)]
+        [TestCase(4, true, true, true)]
+        [TestCase(5, true, true, true)]
+        [TestCase(6, true, true, true)]
+        [TestCase(7, true, true, true)]
+        public void StartTurn_RevealsLocationForTurn(
+            int turn,
+            bool leftRevealed,
+            bool middleRevealed,
+            bool rightRevealed
+        )
+        {
+            var engine = new Engine(new NullLogger());
+            var game = GetInitialGameState(engine);
+
+            for (var i = 0; i < turn - 1; i++)
+            {
+                game = engine.PlaySingleTurn(game);
+            }
+
+            game = engine.StartNextTurn(game);
+
+            Assert.That(game.Left.Revealed, Is.EqualTo(leftRevealed));
+            Assert.That(game.Middle.Revealed, Is.EqualTo(middleRevealed));
+            Assert.That(game.Right.Revealed, Is.EqualTo(rightRevealed));
+        }
+
+        [Test]
+        [TestCase(1, Column.Left)]
+        [TestCase(2, Column.Middle)]
+        [TestCase(3, Column.Right)]
+        public void StartTurn_RaisesRevealLocationEvent(int turn, Column column)
+        {
+            var engine = new Engine(new NullLogger());
+            var game = GetInitialGameState(engine);
+
+            for (var i = 0; i < turn - 1; i++)
+            {
+                game = engine.PlaySingleTurn(game);
+            }
+
+            game = engine.StartNextTurn(game);
+
+            var lastReveal = game.PastEvents.OfType<LocationRevealedEvent>().Last();
+
+            Assert.That(lastReveal.Location.Column, Is.EqualTo(column));
         }
 
         [Test]

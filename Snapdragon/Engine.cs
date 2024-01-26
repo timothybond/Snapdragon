@@ -42,22 +42,48 @@ namespace Snapdragon
         public GameState StartNextTurn(GameState game)
         {
             // Note the check for Games going over is in PlaySingleTurn
-            var currentTurn = game.Turn + 1;
+            game = game with
+            {
+                Turn = game.Turn + 1
+            };
+            game = RevealLocation(game);
+            game = ProcessEvents(game);
 
             // Each Player draws a card, and gets an amount of energy equal to the turn count
             var topPlayer = game.Top.DrawCard() with
             {
-                Energy = currentTurn
+                Energy = game.Turn
             };
-            var bottomPlayer = game.Bottom.DrawCard() with { Energy = currentTurn };
+            var bottomPlayer = game.Bottom.DrawCard() with { Energy = game.Turn };
 
-            game = game with { Top = topPlayer, Bottom = bottomPlayer, Turn = currentTurn };
+            game = game with { Top = topPlayer, Bottom = bottomPlayer };
 
             // Raise an event for the start of the turn
-            game = game.WithEvent(new TurnStartedEvent(currentTurn));
+            game = game.WithEvent(new TurnStartedEvent(game.Turn));
             game = this.ProcessEvents(game);
 
             return game;
+        }
+
+        /// <summary>
+        /// Helper that reveals the <see cref="Location"/> for the given turn, assuming it's turn 1-3.
+        ///
+        /// For all other turns, just returns the input <see cref="GameState"/>.
+        /// </summary>
+        private GameState RevealLocation(GameState game)
+        {
+            // TODO: Handle any effects that alter the reveal (are there any?)
+            switch (game.Turn)
+            {
+                case 1:
+                    return game.RevealLocation(Column.Left);
+                case 2:
+                    return game.RevealLocation(Column.Middle);
+                case 3:
+                    return game.RevealLocation(Column.Right);
+                default:
+                    return game;
+            }
         }
 
         /// <summary>

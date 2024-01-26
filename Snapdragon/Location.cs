@@ -6,7 +6,8 @@ namespace Snapdragon
         string Name,
         Column Column,
         ImmutableList<Card> TopPlayerCards,
-        ImmutableList<Card> BottomPlayerCards
+        ImmutableList<Card> BottomPlayerCards,
+        bool Revealed = false
     )
     {
         public Location(string Name, Column Column)

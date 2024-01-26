@@ -11,7 +11,8 @@
         CardDestroyedFromHand = 6,
         CardDestroyedFromLibrary = 7,
         TurnStarted = 8,
-        TurnEnded = 9,
-        GameEnded = 10
+        LocationRevealed = 9,
+        TurnEnded = 10,
+        GameEnded = 11
     }
 }

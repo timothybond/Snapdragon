@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using Snapdragon.Events;
 
 namespace Snapdragon
 {
@@ -100,6 +101,14 @@ namespace Snapdragon
                 default:
                     throw new NotImplementedException();
             }
+        }
+
+        public GameState RevealLocation(Column column)
+        {
+            var location = this[column] with { Revealed = true };
+
+            return this.WithLocation(location)
+                .WithEvent(new LocationRevealedEvent(this.Turn, location));
         }
 
         /// <summary>
