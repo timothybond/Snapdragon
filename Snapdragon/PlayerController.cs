@@ -2,10 +2,6 @@
 {
     public interface IPlayerController
     {
-        IReadOnlyList<IPlayerAction> GetActions(
-            GameState gameState,
-            Side player,
-            Side firstPlayerToResolve
-        );
+        IReadOnlyList<IPlayerAction> GetActions(GameState gameState, Side player);
     }
 }

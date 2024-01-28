@@ -252,6 +252,52 @@ namespace Snapdragon.Tests
         }
 
         [Test]
+        [TestCase(Side.Top, Column.Left)]
+        [TestCase(Side.Top, Column.Middle)]
+        [TestCase(Side.Top, Column.Right)]
+        [TestCase(Side.Bottom, Column.Left)]
+        [TestCase(Side.Bottom, Column.Middle)]
+        [TestCase(Side.Bottom, Column.Right)]
+        public void PlaySingleTurn_SetsLeaderAsFirstRevealedForNextTurn(Side side, Column column)
+        {
+            var engine = new Engine(new NullLogger());
+            var topPlayerController = new TestPlayerController();
+            var bottomPlayerController = new TestPlayerController();
+
+            var topPlayerConfig = new PlayerConfiguration(
+                "Top",
+                new Deck([Cards.OneOne, Cards.TwoTwo, Cards.TwoThree]),
+                topPlayerController
+            );
+            var bottomPlayerConfig = new PlayerConfiguration(
+                "Bottom",
+                new Deck([Cards.OneOne, Cards.TwoTwo, Cards.TwoThree]),
+                bottomPlayerController
+            );
+
+            var game = engine.CreateGame(topPlayerConfig, bottomPlayerConfig, false);
+
+            if (side == Side.Top)
+            {
+                topPlayerController.Actions = new List<IPlayerAction>
+                {
+                    new PlayCardAction(Side.Top, game.Top.Hand[0], column)
+                };
+            }
+            else
+            {
+                bottomPlayerController.Actions = new List<IPlayerAction>
+                {
+                    new PlayCardAction(Side.Bottom, game.Bottom.Hand[0], column)
+                };
+            }
+
+            game = engine.PlaySingleTurn(game);
+
+            Assert.That(game.FirstRevealed, Is.EqualTo(side));
+        }
+
+        [Test]
         [TestCase(Column.Left)]
         [TestCase(Column.Middle)]
         [TestCase(Column.Right)]

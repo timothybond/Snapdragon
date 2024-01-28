@@ -10,6 +10,7 @@ namespace Snapdragon
         Location Right,
         Player Top,
         Player Bottom,
+        Side FirstRevealed,
         ImmutableList<Event> PastEvents,
         ImmutableList<Event> NewEvents,
         bool GameOver = false
@@ -141,11 +142,11 @@ namespace Snapdragon
                     bottomPowerLocal += bottomCard.Power;
                 }
 
-                if (topPower > bottomPower)
+                if (topPowerLocal > bottomPowerLocal)
                 {
                     topLocations += 1;
                 }
-                else if (topPower < bottomPower)
+                else if (topPowerLocal < bottomPowerLocal)
                 {
                     bottomLocations += 1;
                 }

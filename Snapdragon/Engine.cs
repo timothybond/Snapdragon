@@ -15,9 +15,12 @@ namespace Snapdragon
         public GameState CreateGame(
             PlayerConfiguration topPlayer,
             PlayerConfiguration bottomPlayer,
-            bool shuffle = true
+            bool shuffle = true,
+            Side? firstRevealed = null
         )
         {
+            var firstRevealedOrRandom = firstRevealed ?? Random.Side();
+
             // TODO: Specify different Locations, with effects
             // TODO: Handle card abilities that put them in a specific draw order
             return new GameState(
@@ -27,6 +30,7 @@ namespace Snapdragon
                 new Location("Right", Column.Right),
                 topPlayer.ToState(Side.Top, shuffle).DrawCard().DrawCard().DrawCard(),
                 bottomPlayer.ToState(Side.Bottom, shuffle).DrawCard().DrawCard().DrawCard(),
+                firstRevealedOrRandom,
                 [],
                 []
             );
@@ -118,26 +122,15 @@ namespace Snapdragon
 
             game = this.StartNextTurn(game);
 
-            // Get which player to resolve first
-            var firstPlayerToResolve = game.GetLeader() ?? Random.Side();
-
             // Get player actions
-            var topPlayerActions = game.Top.Controller.GetActions(
-                game,
-                Side.Top,
-                firstPlayerToResolve
-            );
-            var bottomPlayerActions = game.Bottom.Controller.GetActions(
-                game,
-                Side.Bottom,
-                firstPlayerToResolve
-            );
+            var topPlayerActions = game.Top.Controller.GetActions(game, Side.Top);
+            var bottomPlayerActions = game.Bottom.Controller.GetActions(game, Side.Bottom);
 
             // Resolve player actions
             game = this.ProcessPlayerActions(game, topPlayerActions, bottomPlayerActions);
 
             // Reveal cards
-            game = this.RevealCards(game, firstPlayerToResolve);
+            game = this.RevealCards(game);
 
             this.logger.LogGameState(game);
 
@@ -147,13 +140,15 @@ namespace Snapdragon
                 game = game with { GameOver = true };
             }
 
-            return game;
+            // Get which player to resolve first next turn
+            var firstRevealed = game.GetLeader() ?? Random.Side();
+            return game with { FirstRevealed = firstRevealed };
         }
 
-        GameState RevealCards(GameState game, Side firstPlayerToResolve)
+        GameState RevealCards(GameState game)
         {
-            game = RevealCardsForOneSide(game, firstPlayerToResolve);
-            game = RevealCardsForOneSide(game, firstPlayerToResolve.OtherSide());
+            game = RevealCardsForOneSide(game, game.FirstRevealed);
+            game = RevealCardsForOneSide(game, game.FirstRevealed.OtherSide());
 
             return game;
         }

@@ -8,11 +8,7 @@ namespace Snapdragon
     /// </summary>
     public class RandomPlayerController : IPlayerController
     {
-        public IReadOnlyList<IPlayerAction> GetActions(
-            GameState gameState,
-            Side player,
-            Side firstPlayerToResolve
-        )
+        public IReadOnlyList<IPlayerAction> GetActions(GameState gameState, Side player)
         {
             var cardsToPlay = GetRandomPlayableCards(gameState[player]);
 
