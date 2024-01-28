@@ -80,11 +80,11 @@ namespace Snapdragon
             switch (game.Turn)
             {
                 case 1:
-                    return game.RevealLocation(Column.Left);
+                    return game.WithRevealedLocation(Column.Left);
                 case 2:
-                    return game.RevealLocation(Column.Middle);
+                    return game.WithRevealedLocation(Column.Middle);
                 case 3:
-                    return game.RevealLocation(Column.Right);
+                    return game.WithRevealedLocation(Column.Right);
                 default:
                     return game;
             }
@@ -185,50 +185,19 @@ namespace Snapdragon
         /// </summary>
         private GameState RevealCard(GameState game, Card card)
         {
-            var side = card.Side;
-            var column =
-                card.Column
-                ?? throw new InvalidOperationException(
-                    "Attempted to reveal a card with no location."
-                );
-
-            var currentCardsForSide = game[column][side];
-
-            // Cards still need to be placed in the same order (I think)
-            var newCardsForSide = new List<Card>();
-
-            card = card with { State = CardState.InPlay };
-
-            for (var i = 0; i < currentCardsForSide.Count; i++)
-            {
-                if (currentCardsForSide[i].Id == card.Id)
+            game = game.WithModifiedCard(
+                card,
+                c => c with { State = CardState.InPlay },
+                (g, c) =>
                 {
-                    newCardsForSide.Add(card);
-                }
-                else
-                {
-                    newCardsForSide.Add(currentCardsForSide[i]);
-                }
-            }
-
-            var location = game[column];
-
-            switch (card.Side)
-            {
-                case Side.Top:
-                    location = location with { TopPlayerCards = newCardsForSide.ToImmutableList() };
-                    break;
-                case Side.Bottom:
-                    location = location with
+                    if (c.Ability is ICardRevealAbility revealAbility)
                     {
-                        BottomPlayerCards = newCardsForSide.ToImmutableList()
-                    };
-                    break;
-                default:
-                    throw new NotImplementedException();
-            }
+                        g = revealAbility.Activate(g, c);
+                    }
 
-            game = game.WithLocation(location).WithEvent(new CardRevealedEvent(game.Turn, card));
+                    return g.WithEvent(new CardRevealedEvent(g.Turn, c));
+                }
+            );
 
             return ProcessEvents(game);
         }

@@ -1,4 +1,6 @@
 ﻿using System.Collections.Immutable;
+using System.Drawing;
+using System.Reflection.Metadata.Ecma335;
 using Snapdragon.Events;
 
 namespace Snapdragon
@@ -104,12 +106,84 @@ namespace Snapdragon
             }
         }
 
-        public GameState RevealLocation(Column column)
+        public GameState WithRevealedLocation(Column column)
         {
             var location = this[column] with { Revealed = true };
 
             return this.WithLocation(location)
                 .WithEvent(new LocationRevealedEvent(this.Turn, location));
+        }
+
+        /// <summary>
+        /// Gets a modified state that applies some change to a <see cref="Card"/> (in place).
+        ///
+        /// Moves or side changes need to be handled elsewhere.
+        /// </summary>
+        /// <param name="currentCard">The existing card to be modified.</param>
+        /// <param name="modifier">The modification to perform on the existing card.</param>
+        /// <param name="postModifyTransform">
+        /// Any change to the <see cref="GameState"/> to follow the modification
+        /// (typically, this will be used to raise events, like <see cref="CardRevealedEvent"/>).
+        /// </param>
+        public GameState WithModifiedCard(
+            Card currentCard,
+            Func<Card, Card> modifier,
+            Func<GameState, Card, GameState>? postModifyTransform = null
+        )
+        {
+            if (currentCard.Column == null) { }
+
+            Column column =
+                currentCard.Column
+                ?? throw new InvalidOperationException(
+                    "Tried to modify a card that isn't in play."
+                );
+
+            var location = this[column];
+            var side = currentCard.Side;
+
+            var currentCardsForSide = this[column][side];
+
+            // Cards still need to be placed in the same order (I think)
+            var newCardsForSide = new List<Card>();
+
+            var newCard = modifier(currentCard);
+
+            for (var i = 0; i < currentCardsForSide.Count; i++)
+            {
+                if (currentCardsForSide[i].Id == currentCard.Id)
+                {
+                    newCardsForSide.Add(newCard);
+                }
+                else
+                {
+                    newCardsForSide.Add(currentCardsForSide[i]);
+                }
+            }
+
+            switch (newCard.Side)
+            {
+                case Side.Top:
+                    location = location with { TopPlayerCards = newCardsForSide.ToImmutableList() };
+                    break;
+                case Side.Bottom:
+                    location = location with
+                    {
+                        BottomPlayerCards = newCardsForSide.ToImmutableList()
+                    };
+                    break;
+                default:
+                    throw new NotImplementedException();
+            }
+
+            var newState = this.WithLocation(location);
+
+            if (postModifyTransform != null)
+            {
+                newState = postModifyTransform(newState, newCard);
+            }
+
+            return newState;
         }
 
         /// <summary>

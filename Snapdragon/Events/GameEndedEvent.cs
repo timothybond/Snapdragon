@@ -1,6 +1,6 @@
 ﻿namespace Snapdragon.Events
 {
-    public record GameEndedEvent(int Turn, Side? Winner) : Event(EventType.GameEnded)
+    public record GameEndedEvent(int Turn, Side? Winner) : Event(EventType.GameEnded, Turn)
     {
         public override string ToString()
         {

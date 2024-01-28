@@ -6,6 +6,7 @@
         string Name,
         int Cost,
         int Power,
+        ICardAbility? Ability,
         CardState State,
         Side Side,
         Column? Column
@@ -18,6 +19,7 @@
                 definition.Name,
                 definition.Cost,
                 definition.Power,
+                definition.Ability,
                 state,
                 side,
                 null
