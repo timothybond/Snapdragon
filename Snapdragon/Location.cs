@@ -7,11 +7,12 @@ namespace Snapdragon
         Column Column,
         ImmutableList<Card> TopPlayerCards,
         ImmutableList<Card> BottomPlayerCards,
+        ImmutableList<TemporaryEffect<Card>> TemporaryCardEffects,
         bool Revealed = false
     )
     {
         public Location(string Name, Column Column)
-            : this(Name, Column, [], []) { }
+            : this(Name, Column, [], [], []) { }
 
         public ImmutableList<Card> this[Side side]
         {

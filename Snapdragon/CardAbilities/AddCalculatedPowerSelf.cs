@@ -1,7 +1,7 @@
 ﻿namespace Snapdragon.CardAbilities
 {
     public record AddCalculatedPowerSelf(Func<GameState, Card, int> PowerCalculation)
-        : ICardRevealAbility
+        : IRevealAbility<Card>
     {
         public GameState Activate(GameState game, Card source)
         {

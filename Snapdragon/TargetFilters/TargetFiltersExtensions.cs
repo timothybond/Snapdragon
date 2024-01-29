@@ -2,9 +2,9 @@
 {
     public static class TargetFiltersExtensions
     {
-        public static ICardFilter And(this ICardFilter first, ICardFilter second)
+        public static ICardFilter<T> And<T>(this ICardFilter<T> first, ICardFilter<T> second)
         {
-            return new AndFilter(first, second);
+            return new AndFilter<T>(first, second);
         }
     }
 }

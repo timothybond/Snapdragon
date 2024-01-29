@@ -191,7 +191,7 @@ namespace Snapdragon
                 c => c with { State = CardState.InPlay },
                 (g, c) =>
                 {
-                    if (c.Ability is ICardRevealAbility revealAbility)
+                    if (c.Ability is IRevealAbility<Card> revealAbility)
                     {
                         g = revealAbility.Activate(g, c);
                     }
@@ -283,7 +283,7 @@ namespace Snapdragon
 
         private int? GetPowerAdjustment(
             Card card,
-            IReadOnlyList<(ICardOngoingAbility Ability, Card Source)> ongoingCardAbilities,
+            IReadOnlyList<(IOngoingAbility<Card> Ability, Card Source)> ongoingCardAbilities,
             GameState game
         )
         {
@@ -292,7 +292,7 @@ namespace Snapdragon
 
             foreach (var ongoing in ongoingCardAbilities)
             {
-                if (ongoing.Ability is OngoingAdjustPower adjustPower)
+                if (ongoing.Ability is OngoingAdjustPower<Card> adjustPower)
                 {
                     var adjustment = adjustPower.Apply(card, ongoing.Source, game);
                     if (adjustment.HasValue)

@@ -19,6 +19,7 @@ namespace Snapdragon
                 2,
                 new OnRevealIf(new OpponentPlayedSameTurn(), new AddPowerSelf(2))
             ),
+            new("Medusa", 2, 2, new OnRevealIf(new InLocation(Column.Middle), new AddPowerSelf(3))),
             new("Shocker", 2, 3),
             new(
                 "Star-Lord",
@@ -27,12 +28,17 @@ namespace Snapdragon
                 new OnRevealIf(new OpponentPlayedSameTurn(), new AddPowerSelf(3))
             ),
             new("Gamora", 5, 7, new OnRevealIf(new OpponentPlayedSameTurn(), new AddPowerSelf(5))),
-            new("Ka-Zar", 4, 4, new OngoingAdjustPower(new CardsWithCost(1), new Constant(1))),
+            new(
+                "Ka-Zar",
+                4,
+                4,
+                new OngoingAdjustPower<Card>(new CardsWithCost(1), new Constant(1))
+            ),
             new CardDefinition(
                 "Blue Marvel",
                 5,
                 3,
-                new OngoingAdjustPower(new OtherCards(), new Constant(1))
+                new OngoingAdjustPower<Card>(new OtherCards(), new Constant(1))
             )
         };
 

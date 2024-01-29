@@ -1,6 +1,6 @@
 ﻿namespace Snapdragon.TargetFilters
 {
-    public record OtherCards : ICardFilter
+    public record OtherCards : ICardFilter<Card>
     {
         public bool Applies(Card card, Card source)
         {

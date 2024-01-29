@@ -238,7 +238,7 @@ namespace Snapdragon
             return newState;
         }
 
-        public IEnumerable<(ICardOngoingAbility Ability, Card Source)> GetCardOngoingAbilities()
+        public IEnumerable<(IOngoingAbility<Card> Ability, Card Source)> GetCardOngoingAbilities()
         {
             foreach (var column in All.Columns)
             {
@@ -246,7 +246,7 @@ namespace Snapdragon
                 {
                     foreach (var card in this[column][side])
                     {
-                        if (card.Ability is ICardOngoingAbility ongoingAbility)
+                        if (card.Ability is IOngoingAbility<Card> ongoingAbility)
                         {
                             yield return (ongoingAbility, card);
                         }

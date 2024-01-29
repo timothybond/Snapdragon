@@ -2,6 +2,11 @@
 {
     public interface ICardFilter
     {
-        bool Applies(Card card, Card source);
+        bool Applies(Card card);
+    }
+
+    public interface ICardFilter<T>
+    {
+        bool Applies(Card card, T source);
     }
 }

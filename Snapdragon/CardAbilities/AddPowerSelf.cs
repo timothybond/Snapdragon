@@ -1,6 +1,6 @@
 ﻿namespace Snapdragon.CardAbilities
 {
-    public record AddPowerSelf(int Power) : ICardRevealAbility
+    public record AddPowerSelf(int Power) : IRevealAbility<Card>
     {
         public GameState Activate(GameState game, Card source)
         {

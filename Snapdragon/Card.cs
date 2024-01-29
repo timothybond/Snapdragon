@@ -6,7 +6,7 @@
         string Name,
         int Cost,
         int Power,
-        ICardAbility? Ability,
+        IAbility<Card>? Ability,
         CardState State,
         Side Side,
         Column? Column,

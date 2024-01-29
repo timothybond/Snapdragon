@@ -2,20 +2,12 @@
 
 namespace Snapdragon.CardAbilities
 {
-    public record OnRevealIf(ICardCondition Condition, ICardRevealAbility TriggeredAbility)
-        : ICardRevealAbility
+    public record OnRevealIf(ICardCondition Condition, IRevealAbility<Card> TriggeredAbility)
+        : IRevealAbility<Card>
     {
         public GameState Activate(GameState game, Card source)
         {
-            var otherCardsPlayed = game
-                .PastEvents.Where(e => e.Turn == game.Turn && e.Type == EventType.CardPlayed)
-                .Cast<CardPlayedEvent>();
-
-            if (
-                otherCardsPlayed.Any(cpe =>
-                    cpe.Card.Side == source.Side.OtherSide() && cpe.Card.Column == source.Column
-                )
-            )
+            if (Condition.IsMet(game, source))
             {
                 return this.TriggeredAbility.Activate(game, source);
             }
