@@ -1,10 +1,10 @@
 ﻿namespace Snapdragon
 {
     public record TemporaryEffect<T>(
+        int Id,
         Column Column,
         Side Side,
         T Source,
-        IAbility<T> Ability,
-        int? ExpiresAfterTurn = null
+        ITriggeredAbility<TemporaryEffect<T>>? Ability
     ) { }
 }

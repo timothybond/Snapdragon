@@ -72,6 +72,11 @@ namespace Snapdragon
         public IEnumerable<Card> AllCards =>
             this.Left.AllCards.Concat(this.Middle.AllCards).Concat(this.Right.AllCards);
 
+        public IEnumerable<TemporaryEffect<Card>> AllCardTemporaryEffects =>
+            this
+                .Left.TemporaryCardEffects.Concat(this.Middle.TemporaryCardEffects)
+                .Concat(this.Right.TemporaryCardEffects);
+
         /// <summary>
         /// Gets a modified state that includes the passed-in <see cref="Player"/> as appropriate.
         /// </summary>
@@ -112,6 +117,35 @@ namespace Snapdragon
 
             return this.WithLocation(location)
                 .WithEvent(new LocationRevealedEvent(this.Turn, location));
+        }
+
+        /// <summary>
+        /// Gets a modified state with the given <see cref="TemporaryEffect{Card}"/>.
+        ///
+        /// Note that unlike <see cref="WithCard(Card)"/>, this adds a new effect
+        /// rather than modifying an existing one.
+        /// </summary>
+        public GameState WithTemporaryCardEffect(TemporaryEffect<Card> temporaryCardEffect)
+        {
+            var location = this[temporaryCardEffect.Column];
+
+            return this.WithLocation(location.WithTemporaryCardEffect(temporaryCardEffect));
+        }
+
+        /// <summary>
+        /// Gets a modified state with the given <see cref="TemporaryEffect{Card}"/>.
+        ///
+        /// Note that unlike <see cref="WithCard(Card)"/>, this adds a new effect
+        /// rather than modifying an existing one.
+        /// </summary>
+        public GameState WithTemporaryCardEffectDeleted(int temporaryCardEffectId)
+        {
+            return this with
+            {
+                Left = this.Left.WithTemporaryCardEffectDeleted(temporaryCardEffectId),
+                Middle = this.Middle.WithTemporaryCardEffectDeleted(temporaryCardEffectId),
+                Right = this.Right.WithTemporaryCardEffectDeleted(temporaryCardEffectId),
+            };
         }
 
         /// <summary>
@@ -238,6 +272,34 @@ namespace Snapdragon
             return newState;
         }
 
+        public GameState ProcessNextEvent()
+        {
+            if (NewEvents.Count == 0)
+            {
+                return this;
+            }
+
+            var nextEvent = NewEvents[0];
+            var remainingEvents = NewEvents.Skip(1).ToImmutableList();
+
+            var oldEvents = PastEvents.Add(nextEvent);
+
+            var game = this with { PastEvents = oldEvents, NewEvents = remainingEvents };
+
+            // TODO: Determine if we need to stack-order events for triggers
+            foreach (var cardWithTrigger in AllCards.Where(c => c.Triggered != null))
+            {
+                game = cardWithTrigger.Triggered?.ProcessEvent(game, nextEvent) ?? game;
+            }
+
+            foreach (var temporaryCardEffect in AllCardTemporaryEffects)
+            {
+                game = temporaryCardEffect.Ability?.ProcessEvent(game, nextEvent) ?? game;
+            }
+
+            return game;
+        }
+
         public IEnumerable<(IOngoingAbility<Card> Ability, Card Source)> GetCardOngoingAbilities()
         {
             foreach (var column in All.Columns)
@@ -246,9 +308,9 @@ namespace Snapdragon
                 {
                     foreach (var card in this[column][side])
                     {
-                        if (card.Ability is IOngoingAbility<Card> ongoingAbility)
+                        if (card.Ongoing != null)
                         {
-                            yield return (ongoingAbility, card);
+                            yield return (card.Ongoing, card);
                         }
                     }
                 }

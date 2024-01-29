@@ -6,11 +6,13 @@
         string Name,
         int Cost,
         int Power,
-        IAbility<Card>? Ability,
         CardState State,
         Side Side,
         Column? Column,
-        int? PowerAdjustment
+        int? PowerAdjustment,
+        IRevealAbility<Card>? OnReveal = null,
+        IOngoingAbility<Card>? Ongoing = null,
+        ITriggeredAbility<Card>? Triggered = null
     )
     {
         public Card(CardDefinition definition, Side side, CardState state = CardState.InLibrary)
@@ -20,11 +22,13 @@
                 definition.Name,
                 definition.Cost,
                 definition.Power,
-                definition.Ability,
                 state,
                 side,
                 null,
-                null
+                null,
+                definition.OnReveal,
+                definition.Ongoing,
+                definition.Triggered
             ) { }
 
         public int AdjustedPower => this.Power + (this.PowerAdjustment ?? 0);

@@ -46,5 +46,23 @@ namespace Snapdragon
                     throw new NotImplementedException();
             }
         }
+
+        public Location WithTemporaryCardEffect(TemporaryEffect<Card> temporaryCardEffect)
+        {
+            return this with
+            {
+                TemporaryCardEffects = this.TemporaryCardEffects.Add(temporaryCardEffect)
+            };
+        }
+
+        public Location WithTemporaryCardEffectDeleted(int temporaryCardEffectId)
+        {
+            return this with
+            {
+                TemporaryCardEffects = this.TemporaryCardEffects.RemoveAll(t =>
+                    t.Id == temporaryCardEffectId
+                )
+            };
+        }
     }
 }

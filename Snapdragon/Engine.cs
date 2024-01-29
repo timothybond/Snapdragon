@@ -191,9 +191,9 @@ namespace Snapdragon
                 c => c with { State = CardState.InPlay },
                 (g, c) =>
                 {
-                    if (c.Ability is IRevealAbility<Card> revealAbility)
+                    if (c.OnReveal != null)
                     {
-                        g = revealAbility.Activate(g, c);
+                        g = c.OnReveal.Activate(g, c);
                     }
 
                     return g.WithEvent(new CardRevealedEvent(g.Turn, c));
@@ -248,23 +248,20 @@ namespace Snapdragon
         /// Also has the side effect of recalculating the current power of all <see cref="Card"/>s.
         /// </summary>
         /// <returns>The new state with the appropriate changes applied.</returns>
-        private GameState ProcessEvents(GameState gameState)
+        private GameState ProcessEvents(GameState game)
         {
-            while (gameState.NewEvents.Count > 0)
+            while (game.NewEvents.Count > 0)
             {
                 // TODO: Feed events to triggers
-                var nextEvent = gameState.NewEvents[0];
-                var remainingEvents = gameState.NewEvents.Skip(1).ToImmutableList();
-
+                var nextEvent = game.NewEvents[0];
                 this.logger.LogEvent(nextEvent);
 
-                var oldEvents = gameState.PastEvents.Add(nextEvent);
-                gameState = gameState with { PastEvents = oldEvents, NewEvents = remainingEvents };
+                game = game.ProcessNextEvent();
             }
 
-            gameState = RecalculateOngoingEffects(gameState);
+            game = RecalculateOngoingEffects(game);
 
-            return gameState;
+            return game;
         }
 
         private GameState RecalculateOngoingEffects(GameState gameState)

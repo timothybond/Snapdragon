@@ -2,6 +2,7 @@
 using Snapdragon.CardAbilities;
 using Snapdragon.CardConditions;
 using Snapdragon.TargetFilters;
+using Snapdragon.TemporaryEffects;
 
 namespace Snapdragon
 {
@@ -32,13 +33,34 @@ namespace Snapdragon
                 "Ka-Zar",
                 4,
                 4,
-                new OngoingAdjustPower<Card>(new CardsWithCost(1), new Constant(1))
+                null,
+                new OngoingAdjustPower<Card>(
+                    new CardsWithCost(1).And(new SameSide()),
+                    new Constant(1)
+                )
             ),
             new CardDefinition(
                 "Blue Marvel",
                 5,
                 3,
-                new OngoingAdjustPower<Card>(new OtherCards(), new Constant(1))
+                null,
+                new OngoingAdjustPower<Card>(new OtherCards().And(new SameSide()), new Constant(1))
+            ),
+            new CardDefinition(
+                "Ant Man",
+                1,
+                1,
+                new CreateTemporaryEffect(
+                    new(new(new CardPlayedHereNextTurn(), new GiveParentPowerBuilder(3)))
+                )
+            ),
+            new CardDefinition(
+                "Jessica Jones",
+                4,
+                5,
+                new CreateTemporaryEffect(
+                    new(new(new NoCardPlayedHereNextTurn(), new GiveParentPowerBuilder(4)))
+                )
             )
         };
 

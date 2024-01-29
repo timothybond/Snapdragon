@@ -4,6 +4,8 @@
         string Name,
         int Cost,
         int Power,
-        IAbility<Card>? Ability = null
+        IRevealAbility<Card>? OnReveal = null,
+        IOngoingAbility<Card>? Ongoing = null,
+        ITriggeredAbility<Card>? Triggered = null
     ) { }
 }

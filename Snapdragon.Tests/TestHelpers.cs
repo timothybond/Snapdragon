@@ -73,6 +73,65 @@ namespace Snapdragon.Tests
         }
 
         /// <summary>
+        /// Helper function for testing what happens when certain cards are played.
+        /// </summary>
+        /// <param name="game">Existing game state.</param>
+        /// <param name="turn">The turn count - all prior turns will pass with no actions.</param>
+        /// <param name="topPlayerCards">Cards for the top player to play on the given turn.</param>
+        /// <param name="bottomPlayerCards">Cards for the bottom player to play on the given turn.</param>
+        /// <returns>The game state after the given turn has elapsed and all effects have resolved.</returns>
+        public static GameState PlayCards(
+            GameState game,
+            int turn,
+            (string CardName, Column Column)[] topPlayerCards,
+            (string CardName, Column Column)[] bottomPlayerCards
+        )
+        {
+            if (turn <= game.Turn)
+            {
+                throw new ArgumentException(
+                    $"Game already played to turn {game.Turn}, but tried to play cards on turn {turn}."
+                );
+            }
+
+            var engine = new Engine(new NullLogger());
+            var topController = new TestPlayerController();
+            var bottomController = new TestPlayerController();
+
+            game = game with
+            {
+                Top = game.Top with
+                {
+                    Configuration = game.Top.Configuration with { Controller = topController }
+                },
+                Bottom = game.Bottom with
+                {
+                    Configuration = game.Bottom.Configuration with { Controller = bottomController }
+                }
+            };
+
+            for (var i = 1; i < turn - game.Turn; i++)
+            {
+                game = engine.PlaySingleTurn(game);
+            }
+
+            game = game with
+            {
+                Top = GetPlayerWithCardsToPlay(topPlayerCards, topController, Side.Top, game),
+                Bottom = GetPlayerWithCardsToPlay(
+                    bottomPlayerCards,
+                    bottomController,
+                    Side.Bottom,
+                    game
+                )
+            };
+
+            game = engine.PlaySingleTurn(game);
+
+            return game;
+        }
+
+        /// <summary>
         /// Helper function. Puts the cards to be played into the hand of the returned <see cref="Player"/>
         /// and sets up the <see cref="TestPlayerController"/> to actually play them.
         /// </summary>
