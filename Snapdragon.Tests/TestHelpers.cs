@@ -15,7 +15,7 @@ namespace Snapdragon.Tests
         public static GameState PlayCards(
             int turn,
             Side side,
-            (string CardName, Column Column)[] cards
+            IEnumerable<(string CardName, Column Column)> cards
         )
         {
             switch (side)
@@ -38,8 +38,8 @@ namespace Snapdragon.Tests
         /// <returns>The game state after the given turn has elapsed and all effects have resolved.</returns>
         public static GameState PlayCards(
             int turn,
-            (string CardName, Column Column)[] topPlayerCards,
-            (string CardName, Column Column)[] bottomPlayerCards
+            IEnumerable<(string CardName, Column Column)> topPlayerCards,
+            IEnumerable<(string CardName, Column Column)> bottomPlayerCards
         )
         {
             var engine = new Engine(new NullLogger());
@@ -83,8 +83,8 @@ namespace Snapdragon.Tests
         public static GameState PlayCards(
             GameState game,
             int turn,
-            (string CardName, Column Column)[] topPlayerCards,
-            (string CardName, Column Column)[] bottomPlayerCards
+            IEnumerable<(string CardName, Column Column)> topPlayerCards,
+            IEnumerable<(string CardName, Column Column)> bottomPlayerCards
         )
         {
             if (turn <= game.Turn)
@@ -143,7 +143,7 @@ namespace Snapdragon.Tests
             GameState game,
             int turn,
             Side side,
-            (string CardName, Column Column)[] cardsToPlay
+            IEnumerable<(string CardName, Column Column)> cardsToPlay
         )
         {
             switch (side)

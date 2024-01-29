@@ -173,7 +173,9 @@ namespace Snapdragon
 
             // Cards are revealed in the order they were played
             var unrevealedCards = game
-                .AllCards.Where(c => c.Side == side && c.State == CardState.PlayedButNotRevealed)
+                .AllCardsIncludingUnrevealed.Where(c =>
+                    c.Side == side && c.State == CardState.PlayedButNotRevealed
+                )
                 .OrderBy(c => cardPlayOrder.IndexOf(c.Id));
 
             foreach (var card in unrevealedCards)

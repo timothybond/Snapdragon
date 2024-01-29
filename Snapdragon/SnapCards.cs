@@ -52,6 +52,17 @@ namespace Snapdragon
                 0,
                 new AddPowerRandomly(new SameSide().And(new OtherCards()), 2, 3)
             ),
+            new(
+                "Wolfsbane",
+                3,
+                1,
+                new AddPowerSelf(
+                    new PowerPerCard(
+                        new OtherCards().And(new SameSide()).And(new SameLocation()),
+                        2
+                    )
+                )
+            ),
             new("Gamora", 5, 7, new OnRevealIf(new OpponentPlayedSameTurn(), new AddPowerSelf(5))),
             new(
                 "Ka-Zar",

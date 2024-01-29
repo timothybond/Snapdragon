@@ -67,9 +67,18 @@ namespace Snapdragon
         }
 
         /// <summary>
-        /// Gets all <see cref="Card"/>s that have been played, whether or not they are revealed.
+        /// Gets all <see cref="Card"/>s that have been played and revealed.
         /// </summary>
         public IEnumerable<Card> AllCards =>
+            this
+                .Left.AllCards.Concat(this.Middle.AllCards)
+                .Concat(this.Right.AllCards)
+                .Where(c => c.State == CardState.InPlay);
+
+        /// <summary>
+        /// Gets all <see cref="Card"/>s that have been played, whether or not they are revealed.
+        /// </summary>
+        public IEnumerable<Card> AllCardsIncludingUnrevealed =>
             this.Left.AllCards.Concat(this.Middle.AllCards).Concat(this.Right.AllCards);
 
         public IEnumerable<TemporaryEffect<Card>> AllCardTemporaryEffects =>
