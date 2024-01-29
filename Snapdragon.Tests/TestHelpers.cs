@@ -132,6 +132,32 @@ namespace Snapdragon.Tests
         }
 
         /// <summary>
+        /// Helper function for testing what happens when certain cards are played.
+        /// </summary>
+        /// <param name="game">Existing game state.</param>
+        /// <param name="turn">The turn count - all prior turns will pass with no actions.</param>
+        /// <param name="topPlayerCards">Cards for the top player to play on the given turn.</param>
+        /// <param name="bottomPlayerCards">Cards for the bottom player to play on the given turn.</param>
+        /// <returns>The game state after the given turn has elapsed and all effects have resolved.</returns>
+        public static GameState PlayCards(
+            GameState game,
+            int turn,
+            Side side,
+            (string CardName, Column Column)[] cardsToPlay
+        )
+        {
+            switch (side)
+            {
+                case Side.Top:
+                    return PlayCards(game, turn, cardsToPlay, []);
+                case Side.Bottom:
+                    return PlayCards(game, turn, [], cardsToPlay);
+                default:
+                    throw new NotImplementedException();
+            }
+        }
+
+        /// <summary>
         /// Helper function. Puts the cards to be played into the hand of the returned <see cref="Player"/>
         /// and sets up the <see cref="TestPlayerController"/> to actually play them.
         /// </summary>

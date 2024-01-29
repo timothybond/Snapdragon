@@ -1,10 +1,11 @@
-﻿namespace Snapdragon.RevealAbilities
+﻿using Snapdragon.Calculations;
+using Snapdragon.TargetFilters;
+
+namespace Snapdragon.RevealAbilities
 {
-    public record AddPowerSelf(int Power) : IRevealAbility<Card>
+    public record AddPowerSelf(IPowerCalculation<Card> Power) : AddPower(new Self(), Power)
     {
-        public GameState Activate(GameState game, Card source)
-        {
-            return game.WithModifiedCard(source, c => c with { Power = c.Power + Power });
-        }
+        public AddPowerSelf(int Power)
+            : this(new ConstantPower(Power)) { }
     }
 }
