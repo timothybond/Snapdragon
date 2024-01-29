@@ -3,7 +3,7 @@ using System.Drawing;
 
 namespace Snapdragon.Tests.SnapCardsTest
 {
-    public class KaZarTests
+    public class BlueMarvelTests
     {
         [Test]
         [TestCase(Side.Top)]
@@ -13,7 +13,7 @@ namespace Snapdragon.Tests.SnapCardsTest
             var noCards = new (string CardName, Column Column)[] { };
             (string CardName, Column Column)[] cardsToPlay = new[]
             {
-                ("Ka-Zar", Column.Left),
+                ("Blue Marvel", Column.Left),
                 ("Misty Knight", Column.Right)
             };
 
@@ -25,22 +25,22 @@ namespace Snapdragon.Tests.SnapCardsTest
 
             Assert.That(game[Column.Right][side].Count == 1);
 
-            var kaZar = game[Column.Left][side][0];
-            Assert.That(kaZar.Name, Is.EqualTo("Ka-Zar"));
+            var blueMarvel = game[Column.Left][side][0];
+            Assert.That(blueMarvel.Name, Is.EqualTo("Blue Marvel"));
 
-            Assert.That(kaZar.PowerAdjustment, Is.Null);
-            Assert.That(kaZar.AdjustedPower, Is.EqualTo(4));
+            Assert.That(blueMarvel.PowerAdjustment, Is.Null);
+            Assert.That(blueMarvel.AdjustedPower, Is.EqualTo(3));
         }
 
         [Test]
         [TestCase(Side.Top)]
         [TestCase(Side.Bottom)]
-        public void AddsToOneCostCard(Side side)
+        public void AddsToOtherCards(Side side)
         {
             var noCards = new (string CardName, Column Column)[] { };
             (string CardName, Column Column)[] cardsToPlay = new[]
             {
-                ("Ka-Zar", Column.Left),
+                ("Blue Marvel", Column.Left),
                 ("Misty Knight", Column.Right)
             };
 
@@ -57,33 +57,6 @@ namespace Snapdragon.Tests.SnapCardsTest
 
             Assert.That(mistyKnight.PowerAdjustment, Is.EqualTo(1));
             Assert.That(mistyKnight.AdjustedPower, Is.EqualTo(3));
-        }
-
-        [Test]
-        [TestCase(Side.Top)]
-        [TestCase(Side.Bottom)]
-        public void DoesNotAddToTwoCostCard(Side side)
-        {
-            var noCards = new (string CardName, Column Column)[] { };
-            (string CardName, Column Column)[] cardsToPlay = new[]
-            {
-                ("Ka-Zar", Column.Left),
-                ("Star-Lord", Column.Right)
-            };
-
-            var game = TestHelpers.PlayCards(
-                6,
-                side == Side.Top ? cardsToPlay : noCards,
-                side == Side.Bottom ? cardsToPlay : noCards
-            );
-
-            Assert.That(game[Column.Right][side].Count == 1);
-
-            var starLord = game[Column.Right][side][0];
-            Assert.That(starLord.Name, Is.EqualTo("Star-Lord"));
-
-            Assert.That(starLord.PowerAdjustment, Is.Null);
-            Assert.That(starLord.AdjustedPower, Is.EqualTo(2));
         }
     }
 }
