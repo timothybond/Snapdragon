@@ -9,7 +9,8 @@
         ICardAbility? Ability,
         CardState State,
         Side Side,
-        Column? Column
+        Column? Column,
+        int? PowerAdjustment
     )
     {
         public Card(CardDefinition definition, Side side, CardState state = CardState.InLibrary)
@@ -22,7 +23,10 @@
                 definition.Ability,
                 state,
                 side,
+                null,
                 null
             ) { }
+
+        public int AdjustedPower => this.Power + (this.PowerAdjustment ?? 0);
     }
 }

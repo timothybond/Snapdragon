@@ -69,8 +69,8 @@ namespace Snapdragon
         /// <summary>
         /// Gets all <see cref="Card"/>s that have been played, whether or not they are revealed.
         /// </summary>
-        public IReadOnlyList<Card> AllCards =>
-            this.Left.AllCards.Concat(this.Middle.AllCards).Concat(this.Right.AllCards).ToList();
+        public IEnumerable<Card> AllCards =>
+            this.Left.AllCards.Concat(this.Middle.AllCards).Concat(this.Right.AllCards);
 
         /// <summary>
         /// Gets a modified state that includes the passed-in <see cref="Player"/> as appropriate.
@@ -112,6 +112,58 @@ namespace Snapdragon
 
             return this.WithLocation(location)
                 .WithEvent(new LocationRevealedEvent(this.Turn, location));
+        }
+
+        /// <summary>
+        /// Gets a modified state with the given <see cref="Card"/>s updated.
+        ///
+        /// Currently only suitable for cards in play, with attributes (typically PowerAdjustment)
+        /// changed. Cannot handle moved cards, destroyed cards, etc.
+        /// </summary>
+        /// <param name="card"></param>
+        /// <returns></returns>
+        public GameState WithCards(IEnumerable<Card> cards)
+        {
+            // TODO: Determine if this needs to be optimized
+            var game = this;
+
+            foreach (var card in cards)
+            {
+                game = game.WithCard(card);
+            }
+
+            return game;
+        }
+
+        /// <summary>
+        /// Gets a modified state with the given <see cref="Card"/> updated.
+        ///
+        /// Currently only suitable for cards in play, with attributes (typically PowerAdjustment)
+        /// changed. Cannot handle moved cards, destroyed cards, etc.
+        /// </summary>
+        /// <param name="card"></param>
+        /// <returns></returns>
+        public GameState WithCard(Card card)
+        {
+            var column =
+                card.Column
+                ?? throw new InvalidOperationException(
+                    "Tried to modify a card that isn't in play."
+                );
+
+            var location = this[column];
+            var newCards = location[card.Side]
+                .Select(c => c.Id == card.Id ? card : c)
+                .ToImmutableList();
+
+            location = location with
+            {
+                TopPlayerCards = card.Side == Side.Top ? newCards : location.TopPlayerCards,
+                BottomPlayerCards =
+                    card.Side == Side.Bottom ? newCards : location.BottomPlayerCards,
+            };
+
+            return this.WithLocation(location);
         }
 
         /// <summary>
@@ -184,6 +236,23 @@ namespace Snapdragon
             }
 
             return newState;
+        }
+
+        public IEnumerable<(ICardOngoingAbility Ability, Card Source)> GetCardOngoingAbilities()
+        {
+            foreach (var column in All.Columns)
+            {
+                foreach (var side in All.Sides)
+                {
+                    foreach (var card in this[column][side])
+                    {
+                        if (card.Ability is ICardOngoingAbility ongoingAbility)
+                        {
+                            yield return (ongoingAbility, card);
+                        }
+                    }
+                }
+            }
         }
 
         /// <summary>

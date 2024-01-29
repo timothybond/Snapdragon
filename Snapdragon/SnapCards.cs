@@ -1,5 +1,7 @@
-﻿using Snapdragon.CardAbilities;
+﻿using Snapdragon.Calculations;
+using Snapdragon.CardAbilities;
 using Snapdragon.CardConditions;
+using Snapdragon.TargetFilters;
 
 namespace Snapdragon
 {
@@ -24,7 +26,14 @@ namespace Snapdragon
                 2,
                 new OnRevealIf(new OpponentPlayedSameTurn(), new AddPowerSelf(3))
             ),
-            new("Gamora", 5, 7, new OnRevealIf(new OpponentPlayedSameTurn(), new AddPowerSelf(5)))
+            new("Gamora", 5, 7, new OnRevealIf(new OpponentPlayedSameTurn(), new AddPowerSelf(5))),
+            new("Ka-Zar", 4, 4, new OngoingAdjustPower(new CardsWithCost(1), new Constant(1))),
+            new CardDefinition(
+                "Blue Marvel",
+                5,
+                3,
+                new OngoingAdjustPower(new OtherCards(), new Constant(1))
+            )
         };
 
         public static IReadOnlyDictionary<string, CardDefinition> ByName = All.ToDictionary(cd =>

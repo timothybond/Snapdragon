@@ -1,4 +1,6 @@
-﻿namespace Snapdragon
+﻿using System.Collections.Immutable;
+
+namespace Snapdragon
 {
     public enum Column
     {

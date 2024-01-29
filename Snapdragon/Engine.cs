@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using Snapdragon.CardAbilities;
 using Snapdragon.Events;
 
 namespace Snapdragon
@@ -240,11 +241,18 @@ namespace Snapdragon
             }
         }
 
-        GameState ProcessEvents(GameState gameState)
+        /// <summary>
+        /// Processes any <see cref="Event"/>s in the <see cref="GameState.NewEvents"/> list,
+        /// moving them to the <see cref="GameState.PastEvents"/> list when finished.
+        ///
+        /// Also has the side effect of recalculating the current power of all <see cref="Card"/>s.
+        /// </summary>
+        /// <returns>The new state with the appropriate changes applied.</returns>
+        private GameState ProcessEvents(GameState gameState)
         {
             while (gameState.NewEvents.Count > 0)
             {
-                // TODO: Actually do something useful for events
+                // TODO: Feed events to triggers
                 var nextEvent = gameState.NewEvents[0];
                 var remainingEvents = gameState.NewEvents.Skip(1).ToImmutableList();
 
@@ -254,7 +262,48 @@ namespace Snapdragon
                 gameState = gameState with { PastEvents = oldEvents, NewEvents = remainingEvents };
             }
 
+            gameState = RecalculateOngoingEffects(gameState);
+
             return gameState;
+        }
+
+        private GameState RecalculateOngoingEffects(GameState gameState)
+        {
+            var ongoingCardAbilities = gameState.GetCardOngoingAbilities().ToList();
+
+            var recalculatedCards = gameState.AllCards.Select(c =>
+                c with
+                {
+                    PowerAdjustment = this.GetPowerAdjustment(c, ongoingCardAbilities, gameState)
+                }
+            );
+
+            return gameState.WithCards(recalculatedCards);
+        }
+
+        private int? GetPowerAdjustment(
+            Card card,
+            IReadOnlyList<(ICardOngoingAbility Ability, Card Source)> ongoingCardAbilities,
+            GameState game
+        )
+        {
+            var any = false;
+            var total = 0;
+
+            foreach (var ongoing in ongoingCardAbilities)
+            {
+                if (ongoing.Ability is OngoingAdjustPower adjustPower)
+                {
+                    var adjustment = adjustPower.Apply(card, ongoing.Source, game);
+                    if (adjustment.HasValue)
+                    {
+                        total += adjustment.Value;
+                        any = true;
+                    }
+                }
+            }
+
+            return any ? total : null;
         }
     }
 }

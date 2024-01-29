@@ -15,10 +15,10 @@
 
             Assert.That(game[column][side].Count == 1);
 
-            var rocketRaccoon = game[column][side][0];
-            Assert.That(rocketRaccoon.Name, Is.EqualTo("Star-Lord"));
+            var starLord = game[column][side][0];
+            Assert.That(starLord.Name, Is.EqualTo("Star-Lord"));
 
-            Assert.That(rocketRaccoon.Power, Is.EqualTo(2));
+            Assert.That(starLord.Power, Is.EqualTo(2));
         }
 
         [Test]
@@ -38,10 +38,10 @@
 
             Assert.That(game[column][side].Count == 2);
 
-            var rocketRaccoon = game[column][side][0];
-            Assert.That(rocketRaccoon.Name, Is.EqualTo("Star-Lord"));
+            var starLord = game[column][side][0];
+            Assert.That(starLord.Name, Is.EqualTo("Star-Lord"));
 
-            Assert.That(rocketRaccoon.Power, Is.EqualTo(2));
+            Assert.That(starLord.Power, Is.EqualTo(2));
         }
 
         [Test]
@@ -61,10 +61,10 @@
 
             Assert.That(game[column][side].Count == 1);
 
-            var rocketRaccoon = game[column][side][0];
-            Assert.That(rocketRaccoon.Name, Is.EqualTo("Star-Lord"));
+            var starLord = game[column][side][0];
+            Assert.That(starLord.Name, Is.EqualTo("Star-Lord"));
 
-            Assert.That(rocketRaccoon.Power, Is.EqualTo(5));
+            Assert.That(starLord.Power, Is.EqualTo(5));
         }
     }
 }
