@@ -1,6 +1,6 @@
 ﻿namespace Snapdragon.Tests.SnapCardsTest
 {
-    public class AntManTests
+    public class HawkeyeTests
     {
         [Test]
         [TestCase(Side.Top, Column.Middle)]
@@ -9,8 +9,8 @@
         {
             var game = TestHelpers.PlayCards(
                 1,
-                side == Side.Top ? new[] { ("Ant Man", column) } : new (string, Column)[] { },
-                side == Side.Bottom ? new[] { ("Ant Man", column) } : new (string, Column)[] { }
+                side == Side.Top ? new[] { ("Hawkeye", column) } : new (string, Column)[] { },
+                side == Side.Bottom ? new[] { ("Hawkeye", column) } : new (string, Column)[] { }
             );
 
             var engine = new Engine(new NullLogger());
@@ -18,10 +18,10 @@
 
             Assert.That(game[column][side].Count, Is.EqualTo(1));
 
-            var antMan = game[column][side][0];
-            Assert.That(antMan.Name, Is.EqualTo("Ant Man"));
+            var hawkeye = game[column][side][0];
+            Assert.That(hawkeye.Name, Is.EqualTo("Hawkeye"));
 
-            Assert.That(antMan.Power, Is.EqualTo(1));
+            Assert.That(hawkeye.Power, Is.EqualTo(1));
         }
 
         [Test]
@@ -31,8 +31,8 @@
         {
             var game = TestHelpers.PlayCards(
                 1,
-                side == Side.Top ? new[] { ("Ant Man", column) } : new (string, Column)[] { },
-                side == Side.Bottom ? new[] { ("Ant Man", column) } : new (string, Column)[] { }
+                side == Side.Top ? new[] { ("Hawkeye", column) } : new (string, Column)[] { },
+                side == Side.Bottom ? new[] { ("Hawkeye", column) } : new (string, Column)[] { }
             );
 
             game = TestHelpers.PlayCards(
@@ -46,10 +46,10 @@
 
             Assert.That(game[column][side].Count, Is.EqualTo(2));
 
-            var antMan = game[column][side][0];
-            Assert.That(antMan.Name, Is.EqualTo("Ant Man"));
+            var hawkeye = game[column][side][0];
+            Assert.That(hawkeye.Name, Is.EqualTo("Hawkeye"));
 
-            Assert.That(antMan.Power, Is.EqualTo(1));
+            Assert.That(hawkeye.Power, Is.EqualTo(1));
         }
 
         [Test]
@@ -59,8 +59,8 @@
         {
             var game = TestHelpers.PlayCards(
                 1,
-                side == Side.Top ? new[] { ("Ant Man", column) } : new (string, Column)[] { },
-                side == Side.Bottom ? new[] { ("Ant Man", column) } : new (string, Column)[] { }
+                side == Side.Top ? new[] { ("Hawkeye", column) } : new (string, Column)[] { },
+                side == Side.Bottom ? new[] { ("Hawkeye", column) } : new (string, Column)[] { }
             );
 
             game = TestHelpers.PlayCards(
@@ -74,10 +74,10 @@
 
             Assert.That(game[column][side].Count, Is.EqualTo(2));
 
-            var antMan = game[column][side][0];
-            Assert.That(antMan.Name, Is.EqualTo("Ant Man"));
+            var hawkeye = game[column][side][0];
+            Assert.That(hawkeye.Name, Is.EqualTo("Hawkeye"));
 
-            Assert.That(antMan.Power, Is.EqualTo(4));
+            Assert.That(hawkeye.Power, Is.EqualTo(4));
         }
 
         [Test]
@@ -87,8 +87,8 @@
         {
             var game = TestHelpers.PlayCards(
                 1,
-                side == Side.Top ? new[] { ("Ant Man", column) } : new (string, Column)[] { },
-                side == Side.Bottom ? new[] { ("Ant Man", column) } : new (string, Column)[] { }
+                side == Side.Top ? new[] { ("Hawkeye", column) } : new (string, Column)[] { },
+                side == Side.Bottom ? new[] { ("Hawkeye", column) } : new (string, Column)[] { }
             );
 
             game = TestHelpers.PlayCards(
@@ -104,10 +104,10 @@
 
             Assert.That(game[column][side].Count, Is.EqualTo(3));
 
-            var antMan = game[column][side][0];
-            Assert.That(antMan.Name, Is.EqualTo("Ant Man"));
+            var hawkeye = game[column][side][0];
+            Assert.That(hawkeye.Name, Is.EqualTo("Hawkeye"));
 
-            Assert.That(antMan.Power, Is.EqualTo(4));
+            Assert.That(hawkeye.Power, Is.EqualTo(4));
         }
     }
 }

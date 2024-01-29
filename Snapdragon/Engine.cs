@@ -1,6 +1,6 @@
 ﻿using System.Collections.Immutable;
-using Snapdragon.CardAbilities;
 using Snapdragon.Events;
+using Snapdragon.OngoingAbilities;
 
 namespace Snapdragon
 {

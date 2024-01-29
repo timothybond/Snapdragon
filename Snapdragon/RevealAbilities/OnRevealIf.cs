@@ -1,6 +1,6 @@
 ﻿using Snapdragon.Events;
 
-namespace Snapdragon.CardAbilities
+namespace Snapdragon.RevealAbilities
 {
     public record OnRevealIf(ICardCondition Condition, IRevealAbility<Card> TriggeredAbility)
         : IRevealAbility<Card>
@@ -9,7 +9,7 @@ namespace Snapdragon.CardAbilities
         {
             if (Condition.IsMet(game, source))
             {
-                return this.TriggeredAbility.Activate(game, source);
+                return TriggeredAbility.Activate(game, source);
             }
 
             return game;

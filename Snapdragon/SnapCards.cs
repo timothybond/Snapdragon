@@ -1,6 +1,7 @@
 ﻿using Snapdragon.Calculations;
-using Snapdragon.CardAbilities;
 using Snapdragon.CardConditions;
+using Snapdragon.OngoingAbilities;
+using Snapdragon.RevealAbilities;
 using Snapdragon.TargetFilters;
 using Snapdragon.TemporaryEffects;
 
@@ -47,7 +48,7 @@ namespace Snapdragon
                 new OngoingAdjustPower<Card>(new OtherCards().And(new SameSide()), new Constant(1))
             ),
             new CardDefinition(
-                "Ant Man",
+                "Hawkeye",
                 1,
                 1,
                 new CreateTemporaryEffect(

@@ -1,4 +1,4 @@
-﻿namespace Snapdragon.CardAbilities
+﻿namespace Snapdragon.RevealAbilities
 {
     public record AddCalculatedPowerSelf(Func<GameState, Card, int> PowerCalculation)
         : IRevealAbility<Card>

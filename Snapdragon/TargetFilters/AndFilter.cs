@@ -2,9 +2,9 @@
 {
     public record AndFilter<T>(ICardFilter<T> First, ICardFilter<T> Second) : ICardFilter<T>
     {
-        public bool Applies(Card card, T source)
+        public bool Applies(Card card, T source, GameState game)
         {
-            return First.Applies(card, source) && Second.Applies(card, source);
+            return First.Applies(card, source, game) && Second.Applies(card, source, game);
         }
     }
 }
