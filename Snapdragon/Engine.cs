@@ -133,6 +133,9 @@ namespace Snapdragon
             // Reveal cards
             game = this.RevealCards(game);
 
+            game = game.EndTurn();
+            game = this.ProcessEvents(game);
+
             this.logger.LogGameState(game);
 
             // TODO: Allow for abilities that alter the number of turns

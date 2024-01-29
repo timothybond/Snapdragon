@@ -272,6 +272,15 @@ namespace Snapdragon
             return newState;
         }
 
+        /// <summary>
+        /// Gets the modified state after ending the current turn and processing any raised events.
+        /// </summary>
+        /// <returns></returns>
+        public GameState EndTurn()
+        {
+            return this.WithEvent(new TurnEndedEvent(this.Turn));
+        }
+
         public GameState ProcessNextEvent()
         {
             if (NewEvents.Count == 0)
