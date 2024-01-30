@@ -1,15 +1,13 @@
-﻿using System.Data.Common;
-
-namespace Snapdragon
+﻿namespace Snapdragon
 {
     public record CurrentScores(LocationScores Left, LocationScores Middle, LocationScores Right)
     {
-        public CurrentScores()
-            : this(
-                new LocationScores(Column.Left, 0, 0),
-                new LocationScores(Column.Middle, 0, 0),
-                new LocationScores(Column.Right, 0, 0)
-            ) { }
+        public CurrentScores() : this(
+            new LocationScores(Column.Left, 0, 0),
+            new LocationScores(Column.Middle, 0, 0),
+            new LocationScores(Column.Right, 0, 0))
+        {
+        }
 
         public LocationScores this[Column column]
         {
@@ -65,8 +63,7 @@ namespace Snapdragon
                     if (scores.Leader == Side.Top)
                     {
                         topCount += 1;
-                    }
-                    else if (scores.Leader == Side.Bottom)
+                    } else if (scores.Leader == Side.Bottom)
                     {
                         bottomCount += 1;
                     }
@@ -78,20 +75,16 @@ namespace Snapdragon
                 if (topCount > bottomCount)
                 {
                     return Side.Top;
-                }
-                else if (topCount < bottomCount)
+                } else if (topCount < bottomCount)
                 {
                     return Side.Bottom;
-                }
-                else if (topTotal > bottomTotal)
+                } else if (topTotal > bottomTotal)
                 {
                     return Side.Top;
-                }
-                else if (topTotal < bottomTotal)
+                } else if (topTotal < bottomTotal)
                 {
                     return Side.Bottom;
-                }
-                else
+                } else
                 {
                     return null;
                 }

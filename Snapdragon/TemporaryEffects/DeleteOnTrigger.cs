@@ -2,8 +2,7 @@
 
 namespace Snapdragon.TemporaryEffects
 {
-    public class DeleteOnTrigger(IEffectBuilder<TemporaryEffect<Card>> EffectBuilder)
-        : IEffectBuilder<TemporaryEffect<Card>>
+    public class DeleteOnTrigger(IEffectBuilder<TemporaryEffect<Card>> EffectBuilder) : IEffectBuilder<TemporaryEffect<Card>>
     {
         public IEffect Build(GameState game, TemporaryEffect<Card> source)
         {

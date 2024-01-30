@@ -9,12 +9,10 @@
                 if (this.Top > this.Bottom)
                 {
                     return Side.Top;
-                }
-                else if (this.Top < this.Bottom)
+                } else if (this.Top < this.Bottom)
                 {
                     return Side.Bottom;
-                }
-                else
+                } else
                 {
                     return null;
                 }

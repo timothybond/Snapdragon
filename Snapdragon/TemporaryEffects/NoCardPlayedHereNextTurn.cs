@@ -12,21 +12,21 @@ namespace Snapdragon.TemporaryEffects
             var nextTurn = game.Turn + 1;
 
             return new OnTurnEnded().And(
-                new ConditionTrigger(game =>
-                {
-                    if (game.Turn != nextTurn)
+                new ConditionTrigger(
+                    game =>
                     {
-                        return false;
-                    }
+                        if (game.Turn != nextTurn)
+                        {
+                            return false;
+                        }
 
-                    return !game.PastEvents.Any(e =>
-                        e is CardRevealedEvent cr
-                        && cr.Turn == nextTurn
-                        && cr.Card.Side == side
-                        && cr.Card.Column == location
-                    );
-                })
-            );
+                        return !game.PastEvents
+                            .Any(
+                                e => e is CardRevealedEvent cr &&
+                                            cr.Turn == nextTurn &&
+                                            cr.Card.Side == side &&
+                                            cr.Card.Column == location);
+                    }));
         }
     }
 }

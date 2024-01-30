@@ -8,11 +8,11 @@ namespace Snapdragon
         ImmutableList<Card> TopPlayerCards,
         ImmutableList<Card> BottomPlayerCards,
         ImmutableList<TemporaryEffect<Card>> TemporaryCardEffects,
-        bool Revealed = false
-    )
+        bool Revealed = false)
     {
-        public Location(string Name, Column Column)
-            : this(Name, Column, [], [], []) { }
+        public Location(string Name, Column Column) : this(Name, Column, [], [], [])
+        {
+        }
 
         public ImmutableList<Card> this[Side side]
         {
@@ -30,8 +30,7 @@ namespace Snapdragon
             }
         }
 
-        public IReadOnlyList<Card> AllCards =>
-            this.TopPlayerCards.Concat(this.BottomPlayerCards).ToList();
+        public IReadOnlyList<Card> AllCards => this.TopPlayerCards.Concat(this.BottomPlayerCards).ToList();
 
         public Location WithPlayedCard(Card card, Side side)
         {
@@ -59,9 +58,7 @@ namespace Snapdragon
         {
             return this with
             {
-                TemporaryCardEffects = this.TemporaryCardEffects.RemoveAll(t =>
-                    t.Id == temporaryCardEffectId
-                )
+                TemporaryCardEffects = this.TemporaryCardEffects.RemoveAll(t => t.Id == temporaryCardEffectId)
             };
         }
     }

@@ -13,26 +13,21 @@ namespace Snapdragon.PlayerActions
 
             if (location[Side].Count >= 4)
             {
-                throw new InvalidOperationException(
-                    $"Tried to play more than 4 cards to {Column} for side {Side}."
-                );
+                throw new InvalidOperationException($"Tried to play more than 4 cards to {Column} for side {Side}.");
             }
 
             var player = initialState[Side];
 
             if (!player.Hand.Contains(Card))
             {
-                throw new InvalidOperationException(
-                    "Tried to play a card that wasn't in the player's hand."
-                );
+                throw new InvalidOperationException("Tried to play a card that wasn't in the player's hand.");
             }
 
             if (initialState[Side].Energy < Card.Cost)
             {
                 // TODO: This should probably actually log and fail silently.
                 throw new InvalidOperationException(
-                    $"Tried to play card with cost {Card.Cost}, but remaining energy was {initialState[Side].Energy}."
-                );
+                    $"Tried to play card with cost {Card.Cost}, but remaining energy was {initialState[Side].Energy}.");
             }
 
             var newPlayerState = player with

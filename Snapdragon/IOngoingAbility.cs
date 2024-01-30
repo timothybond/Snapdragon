@@ -1,4 +1,6 @@
 ﻿namespace Snapdragon
 {
-    public interface IOngoingAbility<T> : IAbility<T> { }
+    public interface IOngoingAbility<T> : IAbility<T>
+    {
+    }
 }

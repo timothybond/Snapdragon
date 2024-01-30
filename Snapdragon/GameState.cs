@@ -1,8 +1,6 @@
-﻿using System.Collections.Immutable;
-using System.Drawing;
-using System.Reflection.Metadata.Ecma335;
-using Snapdragon.Events;
+﻿using Snapdragon.Events;
 using Snapdragon.OngoingAbilities;
+using System.Collections.Immutable;
 
 namespace Snapdragon
 {
@@ -16,8 +14,7 @@ namespace Snapdragon
         Side FirstRevealed,
         ImmutableList<Event> PastEvents,
         ImmutableList<Event> NewEvents,
-        bool GameOver = false
-    )
+        bool GameOver = false)
     {
         /// <summary>
         /// Gets a modified state with the specified new <see cref="Event"/> added.
@@ -33,7 +30,6 @@ namespace Snapdragon
         {
             get
             {
-
                 switch (column)
                 {
                     case Column.Left:
@@ -70,22 +66,23 @@ namespace Snapdragon
         /// <summary>
         /// Gets all <see cref="Card"/>s that have been played and revealed.
         /// </summary>
-        public IEnumerable<Card> AllCards =>
-            this
-                .Left.AllCards.Concat(this.Middle.AllCards)
-                .Concat(this.Right.AllCards)
-                .Where(c => c.State == CardState.InPlay);
+        public IEnumerable<Card> AllCards => this
+                .Left.AllCards
+            .Concat(this.Middle.AllCards)
+            .Concat(this.Right.AllCards)
+            .Where(c => c.State == CardState.InPlay);
 
         /// <summary>
         /// Gets all <see cref="Card"/>s that have been played, whether or not they are revealed.
         /// </summary>
-        public IEnumerable<Card> AllCardsIncludingUnrevealed =>
-            this.Left.AllCards.Concat(this.Middle.AllCards).Concat(this.Right.AllCards);
+        public IEnumerable<Card> AllCardsIncludingUnrevealed => this.Left.AllCards
+            .Concat(this.Middle.AllCards)
+            .Concat(this.Right.AllCards);
 
-        public IEnumerable<TemporaryEffect<Card>> AllCardTemporaryEffects =>
-            this
-                .Left.TemporaryCardEffects.Concat(this.Middle.TemporaryCardEffects)
-                .Concat(this.Right.TemporaryCardEffects);
+        public IEnumerable<TemporaryEffect<Card>> AllCardTemporaryEffects => this
+                .Left.TemporaryCardEffects
+            .Concat(this.Middle.TemporaryCardEffects)
+            .Concat(this.Right.TemporaryCardEffects);
 
         /// <summary>
         /// Gets a modified state that includes the passed-in <see cref="Player"/> as appropriate.
@@ -125,15 +122,12 @@ namespace Snapdragon
         {
             var location = this[column] with { Revealed = true };
 
-            return this.WithLocation(location)
-                .WithEvent(new LocationRevealedEvent(this.Turn, location));
+            return this.WithLocation(location).WithEvent(new LocationRevealedEvent(this.Turn, location));
         }
 
         /// <summary>
-        /// Gets a modified state with the given <see cref="TemporaryEffect{Card}"/>.
-        ///
-        /// Note that unlike <see cref="WithCard(Card)"/>, this adds a new effect
-        /// rather than modifying an existing one.
+        /// Gets a modified state with the given <see cref="TemporaryEffect{Card}"/>.  Note that unlike <see
+        /// cref="WithCard(Card)"/>, this adds a new effect rather than modifying an existing one.
         /// </summary>
         public GameState WithTemporaryCardEffect(TemporaryEffect<Card> temporaryCardEffect)
         {
@@ -143,10 +137,8 @@ namespace Snapdragon
         }
 
         /// <summary>
-        /// Gets a modified state with the given <see cref="TemporaryEffect{Card}"/>.
-        ///
-        /// Note that unlike <see cref="WithCard(Card)"/>, this adds a new effect
-        /// rather than modifying an existing one.
+        /// Gets a modified state with the given <see cref="TemporaryEffect{Card}"/>.  Note that unlike <see
+        /// cref="WithCard(Card)"/>, this adds a new effect rather than modifying an existing one.
         /// </summary>
         public GameState WithTemporaryCardEffectDeleted(int temporaryCardEffectId)
         {
@@ -159,10 +151,8 @@ namespace Snapdragon
         }
 
         /// <summary>
-        /// Gets a modified state with the given <see cref="Card"/>s updated.
-        ///
-        /// Currently only suitable for cards in play, with attributes (typically PowerAdjustment)
-        /// changed. Cannot handle moved cards, destroyed cards, etc.
+        /// Gets a modified state with the given <see cref="Card"/>s updated.  Currently only suitable for cards in
+        /// play, with attributes (typically PowerAdjustment) changed. Cannot handle moved cards, destroyed cards, etc.
         /// </summary>
         /// <param name="card"></param>
         /// <returns></returns>
@@ -180,20 +170,15 @@ namespace Snapdragon
         }
 
         /// <summary>
-        /// Gets a modified state with the given <see cref="Card"/> updated.
-        ///
-        /// Currently only suitable for cards in play, with attributes (typically PowerAdjustment)
-        /// changed. Cannot handle moved cards, destroyed cards, etc.
+        /// Gets a modified state with the given <see cref="Card"/> updated.  Currently only suitable for cards in play,
+        /// with attributes (typically PowerAdjustment) changed. Cannot handle moved cards, destroyed cards, etc.
         /// </summary>
         /// <param name="card"></param>
         /// <returns></returns>
         public GameState WithCard(Card card)
         {
             var column =
-                card.Column
-                ?? throw new InvalidOperationException(
-                    "Tried to modify a card that isn't in play."
-                );
+                card.Column ?? throw new InvalidOperationException("Tried to modify a card that isn't in play.");
 
             var location = this[column];
             var newCards = location[card.Side]
@@ -203,37 +188,33 @@ namespace Snapdragon
             location = location with
             {
                 TopPlayerCards = card.Side == Side.Top ? newCards : location.TopPlayerCards,
-                BottomPlayerCards =
-                    card.Side == Side.Bottom ? newCards : location.BottomPlayerCards,
+                BottomPlayerCards = card.Side == Side.Bottom ? newCards : location.BottomPlayerCards,
             };
 
             return this.WithLocation(location);
         }
 
         /// <summary>
-        /// Gets a modified state that applies some change to a <see cref="Card"/> (in place).
-        ///
-        /// Moves or side changes need to be handled elsewhere.
+        /// Gets a modified state that applies some change to a <see cref="Card"/> (in place).  Moves or side changes
+        /// need to be handled elsewhere.
         /// </summary>
         /// <param name="currentCard">The existing card to be modified.</param>
         /// <param name="modifier">The modification to perform on the existing card.</param>
         /// <param name="postModifyTransform">
-        /// Any change to the <see cref="GameState"/> to follow the modification
-        /// (typically, this will be used to raise events, like <see cref="CardRevealedEvent"/>).
+        /// Any change to the <see cref="GameState"/> to follow the modification (typically, this will be used to raise
+        /// events, like <see cref="CardRevealedEvent"/>).
         /// </param>
         public GameState WithModifiedCard(
             Card currentCard,
             Func<Card, Card> modifier,
-            Func<GameState, Card, GameState>? postModifyTransform = null
-        )
+            Func<GameState, Card, GameState>? postModifyTransform = null)
         {
-            if (currentCard.Column == null) { }
+            if (currentCard.Column == null)
+            {
+            }
 
             Column column =
-                currentCard.Column
-                ?? throw new InvalidOperationException(
-                    "Tried to modify a card that isn't in play."
-                );
+                currentCard.Column ?? throw new InvalidOperationException("Tried to modify a card that isn't in play.");
 
             var location = this[column];
             var side = currentCard.Side;
@@ -250,8 +231,7 @@ namespace Snapdragon
                 if (currentCardsForSide[i].Id == currentCard.Id)
                 {
                     newCardsForSide.Add(newCard);
-                }
-                else
+                } else
                 {
                     newCardsForSide.Add(currentCardsForSide[i]);
                 }
@@ -340,12 +320,12 @@ namespace Snapdragon
         {
             var ongoingCardAbilities = this.GetCardOngoingAbilities().ToList();
 
-            var recalculatedCards = this.AllCards.Select(c =>
-                c with
+            var recalculatedCards = this.AllCards
+                .Select(
+                    c => c with
                 {
                     PowerAdjustment = this.GetPowerAdjustment(c, ongoingCardAbilities, this)
-                }
-            );
+                });
 
             return this.WithCards(recalculatedCards);
         }
@@ -353,8 +333,7 @@ namespace Snapdragon
         private int? GetPowerAdjustment(
             Card card,
             IReadOnlyList<(IOngoingAbility<Card> Ability, Card Source)> ongoingCardAbilities,
-            GameState game
-        )
+            GameState game)
         {
             var any = false;
             var total = 0;
@@ -426,12 +405,13 @@ namespace Snapdragon
         }
 
         /// <summary>
-        /// Get the <see cref="Side"/> of the <see cref="Player"/> who is currently winning,
-        /// meaning they have control of more <see cref="Locations"/> or, in the event of a
-        /// tie, they have more Power overall.
+        /// Get the <see cref="Side"/> of the <see cref="Player"/> who is currently winning, meaning they have control
+        /// of more <see cref="Locations"/> or, in the event of a tie, they have more Power overall.
         /// </summary>
-        /// <returns>The <see cref="Side"/> of the <see cref="Player"/> currently in the lead,
-        /// or <c>null</c> if they are tied in both <see cref="Location"/>s and Power.</returns>
+        /// <returns>
+        /// The <see cref="Side"/> of the <see cref="Player"/> currently in the lead, or <c>null</c> if they are tied in
+        /// both <see cref="Location"/>s and Power.
+        /// </returns>
         public Side? GetLeader()
         {
             var scores = this.GetCurrentScores();

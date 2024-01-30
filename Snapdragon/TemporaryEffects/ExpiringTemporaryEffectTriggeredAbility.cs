@@ -3,8 +3,7 @@
     public record ExpiringTemporaryEffectTriggeredAbility(
         int Turn,
         TemporaryEffect<Card> Source,
-        TriggeredAbility<TemporaryEffect<Card>> Inner
-    ) : ITriggeredAbility<TemporaryEffect<Card>>
+        TriggeredAbility<TemporaryEffect<Card>> Inner) : ITriggeredAbility<TemporaryEffect<Card>>
     {
         public GameState ProcessEvent(GameState game, Event e)
         {

@@ -1,9 +1,8 @@
 ﻿namespace Snapdragon.Effects
 {
     /// <summary>
-    /// An <see cref="IEffect"/> that adds a calculated amount of power to the specified <see cref="Card"/>s.
-    ///
-    /// Note that this is permanent power, not as an ongoing effect.
+    /// An <see cref="IEffect"/> that adds a calculated amount of power to the specified <see cref="Card"/>s.  Note that
+    /// this is permanent power, not as an ongoing effect.
     /// </summary>
     public record AddPowerTo(ICardFilter Targets, ICalculation Amount) : IEffect
     {
@@ -11,7 +10,8 @@
         {
             var power = Amount.GetValue(game);
             var cards = game
-                .AllCards.Where(c => Targets.Applies(c, game))
+                .AllCards
+                .Where(c => Targets.Applies(c, game))
                 .Select(c => c with { Power = c.Power + power });
 
             return game.WithCards(cards);

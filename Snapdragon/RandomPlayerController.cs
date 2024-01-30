@@ -3,8 +3,7 @@
 namespace Snapdragon
 {
     /// <summary>
-    /// An implementation of <see cref="IPlayerController"/> that
-    /// essentially just plays cards in random locations.
+    /// An implementation of <see cref="IPlayerController"/> that essentially just plays cards in random locations.
     /// </summary>
     public class RandomPlayerController : IPlayerController
     {
@@ -37,9 +36,7 @@ namespace Snapdragon
             var energy = player.Energy;
             var hand = player.Hand;
 
-            var playableCards = hand.Where(c => c.Cost <= energy)
-                .OrderBy(c => Random.Next())
-                .ToList();
+            var playableCards = hand.Where(c => c.Cost <= energy).OrderBy(c => Random.Next()).ToList();
 
             while (playableCards.Count > 0)
             {

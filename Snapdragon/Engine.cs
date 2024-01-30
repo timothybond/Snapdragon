@@ -1,6 +1,4 @@
-﻿using System.Collections.Immutable;
-using Snapdragon.Events;
-using Snapdragon.OngoingAbilities;
+﻿using Snapdragon.Events;
 
 namespace Snapdragon
 {
@@ -17,8 +15,7 @@ namespace Snapdragon
             PlayerConfiguration topPlayer,
             PlayerConfiguration bottomPlayer,
             bool shuffle = true,
-            Side? firstRevealed = null
-        )
+            Side? firstRevealed = null)
         {
             var firstRevealedOrRandom = firstRevealed ?? Random.Side();
 
@@ -33,17 +30,18 @@ namespace Snapdragon
                 bottomPlayer.ToState(Side.Bottom, shuffle).DrawCard().DrawCard().DrawCard(),
                 firstRevealedOrRandom,
                 [],
-                []
-            );
+                []);
         }
 
         /// <summary>
-        /// Processes the beginning of a Turn.
-        ///
-        /// Used inside <see cref="PlaySingleTurn(GameState)"/>, but exposed here for unit-testing purposes.
+        /// Processes the beginning of a Turn.  Used inside <see cref="PlaySingleTurn(GameState)"/>, but exposed here
+        /// for unit-testing purposes.
         /// </summary>
         /// <param name="game">The <see cref="GameState"/> at the end of the previous Turn.</param>
-        /// <returns>The <see cref="GameState"/> at the start of the new Turn, before any <see cref="PlayerConfiguration"/> actions.</returns>
+        /// <returns>
+        /// The <see cref="GameState"/> at the start of the new Turn, before any <see cref="PlayerConfiguration"/>
+        /// actions.
+        /// </returns>
         public GameState StartNextTurn(GameState game)
         {
             // Note the check for Games going over is in PlaySingleTurn
@@ -71,9 +69,8 @@ namespace Snapdragon
         }
 
         /// <summary>
-        /// Helper that reveals the <see cref="Location"/> for the given turn, assuming it's turn 1-3.
-        ///
-        /// For all other turns, just returns the input <see cref="GameState"/>.
+        /// Helper that reveals the <see cref="Location"/> for the given turn, assuming it's turn 1-3.  For all other
+        /// turns, just returns the input <see cref="GameState"/>.
         /// </summary>
         private GameState RevealLocation(GameState game)
         {
@@ -166,16 +163,16 @@ namespace Snapdragon
             // Note all instances of CardPlayedEvent in the previous phase
             // should be processed now, because we call ProcessEvent in ProcessPlayerActions first.
             var cardPlayOrder = game
-                .PastEvents.Where(e => e.Type == EventType.CardPlayed)
+                .PastEvents
+                .Where(e => e.Type == EventType.CardPlayed)
                 .Cast<CardPlayedEvent>()
                 .Select(cpe => cpe.Card.Id)
                 .ToList();
 
             // Cards are revealed in the order they were played
             var unrevealedCards = game
-                .AllCardsIncludingUnrevealed.Where(c =>
-                    c.Side == side && c.State == CardState.PlayedButNotRevealed
-                )
+                .AllCardsIncludingUnrevealed
+                .Where(c => c.Side == side && c.State == CardState.PlayedButNotRevealed)
                 .OrderBy(c => cardPlayOrder.IndexOf(c.Id));
 
             foreach (var card in unrevealedCards)
@@ -202,8 +199,7 @@ namespace Snapdragon
                     }
 
                     return g.WithEvent(new CardRevealedEvent(g.Turn, c));
-                }
-            );
+                });
 
             return ProcessEvents(game);
         }
@@ -211,8 +207,7 @@ namespace Snapdragon
         GameState ProcessPlayerActions(
             GameState game,
             IReadOnlyList<IPlayerAction> topPlayerActions,
-            IReadOnlyList<IPlayerAction> bottomPlayerActions
-        )
+            IReadOnlyList<IPlayerAction> bottomPlayerActions)
         {
             // Sanity check - ensure that the Actions are for the correct Player
             ValidatePlayerActions(topPlayerActions, Side.Top);
@@ -240,17 +235,14 @@ namespace Snapdragon
             if (actions.Any(a => a.Side != side))
             {
                 var invalidAction = actions.First(a => a.Side != side);
-                throw new InvalidOperationException(
-                    $"{side} player action specified a Side of {invalidAction.Side}"
-                );
+                throw new InvalidOperationException($"{side} player action specified a Side of {invalidAction.Side}");
             }
         }
 
         /// <summary>
-        /// Processes any <see cref="Event"/>s in the <see cref="GameState.NewEvents"/> list,
-        /// moving them to the <see cref="GameState.PastEvents"/> list when finished.
-        ///
-        /// Also has the side effect of recalculating the current power of all <see cref="Card"/>s.
+        /// Processes any <see cref="Event"/>s in the <see cref="GameState.NewEvents"/> list, moving them to the <see
+        /// cref="GameState.PastEvents"/> list when finished.  Also has the side effect of recalculating the current
+        /// power of all <see cref="Card"/>s.
         /// </summary>
         /// <returns>The new state with the appropriate changes applied.</returns>
         private GameState ProcessEvents(GameState game)

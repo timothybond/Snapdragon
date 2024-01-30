@@ -1,7 +1,6 @@
 ﻿namespace Snapdragon.OngoingAbilities
 {
-    public record OngoingAdjustPower<T>(ICardFilter<T> TargetFilter, IPowerCalculation<T> Amount)
-        : IOngoingAbility<T>
+    public record OngoingAdjustPower<T>(ICardFilter<T> TargetFilter, IPowerCalculation<T> Amount) : IOngoingAbility<T>
     {
         public int? Apply(Card target, T source, GameState game)
         {
