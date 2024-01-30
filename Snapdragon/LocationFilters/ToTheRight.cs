@@ -2,7 +2,7 @@
 {
     public record ToTheRight() : ILocationFilter<Card>
     {
-        public bool Applies(Location location, Card source, GameState game)
+        public bool Applies(Location location, Card source, Game game)
         {
             switch (source.Column)
             {

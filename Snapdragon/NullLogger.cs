@@ -9,7 +9,7 @@
         {
         }
 
-        public void LogGameState(GameState game)
+        public void LogGameState(Game game)
         {
         }
     }

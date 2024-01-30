@@ -2,6 +2,6 @@
 {
     public interface IEffect
     {
-        GameState Apply(GameState game);
+        Game Apply(Game game);
     }
 }

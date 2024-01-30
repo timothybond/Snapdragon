@@ -2,6 +2,6 @@
 {
     public interface IGameCondition
     {
-        bool IsMet(GameState game);
+        bool IsMet(Game game);
     }
 }

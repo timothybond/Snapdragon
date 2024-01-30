@@ -5,7 +5,7 @@
         IEffectBuilder<TemporaryEffect<Card>> EffectBuilder,
         bool DeleteOnActivation = true) : ITriggeredAbilityBuilder<TemporaryEffect<Card>>
     {
-        public TriggeredAbility<TemporaryEffect<Card>> Build(GameState game, TemporaryEffect<Card> source)
+        public TriggeredAbility<TemporaryEffect<Card>> Build(Game game, TemporaryEffect<Card> source)
         {
             if (DeleteOnActivation)
             {

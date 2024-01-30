@@ -2,7 +2,7 @@
 {
     public record OnEventType(EventType Type) : ITrigger
     {
-        public bool IsMet(Event e, GameState game)
+        public bool IsMet(Event e, Game game)
         {
             return e.Type == this.Type;
         }

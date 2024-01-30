@@ -2,7 +2,7 @@
 {
     public record ConstantCalculation(int Value) : ICalculation
     {
-        public int GetValue(GameState game)
+        public int GetValue(Game game)
         {
             return this.Value;
         }

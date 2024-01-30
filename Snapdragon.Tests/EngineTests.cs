@@ -1,5 +1,3 @@
-using System.Data.Common;
-using System.Numerics;
 using Snapdragon.Events;
 using Snapdragon.PlayerActions;
 
@@ -92,7 +90,7 @@ namespace Snapdragon.Tests
         public void StartTurn_GivesPlayerEnergy(int turn)
         {
             var engine = new Engine(new NullLogger());
-            var game = GetInitialGameState(engine);
+            var game = GetInitialGame(engine);
 
             for (var i = 0; i < turn - 1; i++)
             {
@@ -121,7 +119,7 @@ namespace Snapdragon.Tests
         )
         {
             var engine = new Engine(new NullLogger());
-            var game = GetInitialGameState(engine);
+            var game = GetInitialGame(engine);
 
             for (var i = 0; i < turn - 1; i++)
             {
@@ -142,7 +140,7 @@ namespace Snapdragon.Tests
         public void StartTurn_RaisesRevealLocationEvent(int turn, Column column)
         {
             var engine = new Engine(new NullLogger());
-            var game = GetInitialGameState(engine);
+            var game = GetInitialGame(engine);
 
             for (var i = 0; i < turn - 1; i++)
             {
@@ -343,7 +341,7 @@ namespace Snapdragon.Tests
         public void PlayGame_PlaysSixTurnsByDefault()
         {
             var engine = new Engine(new NullLogger());
-            var game = GetInitialGameState(engine);
+            var game = GetInitialGame(engine);
 
             game = engine.PlayGame(game);
 
@@ -354,7 +352,7 @@ namespace Snapdragon.Tests
         public void PlayGame_GameOverIsTrue()
         {
             var engine = new Engine(new NullLogger());
-            var game = GetInitialGameState(engine);
+            var game = GetInitialGame(engine);
 
             game = engine.PlayGame(game);
 
@@ -365,7 +363,7 @@ namespace Snapdragon.Tests
 
         #region Helper Functions
 
-        private static GameState GetInitialGameState(Engine engine)
+        private static Game GetInitialGame(Engine engine)
         {
             var topPlayerConfig = new PlayerConfiguration(
                 "Top",

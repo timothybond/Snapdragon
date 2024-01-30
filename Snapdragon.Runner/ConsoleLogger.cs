@@ -7,7 +7,7 @@
             Console.WriteLine(e.ToString());
         }
 
-        public void LogGameState(GameState game)
+        public void LogGameState(Game game)
         {
             // TODO: Decide how to log game state
             return;

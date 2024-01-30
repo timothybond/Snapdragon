@@ -7,16 +7,16 @@ namespace Snapdragon
     /// </summary>
     public class RandomPlayerController : IPlayerController
     {
-        public IReadOnlyList<IPlayerAction> GetActions(GameState gameState, Side player)
+        public IReadOnlyList<IPlayerAction> GetActions(Game game, Side player)
         {
-            var cardsToPlay = GetRandomPlayableCards(gameState[player]);
+            var cardsToPlay = GetRandomPlayableCards(game[player]);
 
             var availableColumns = new List<Column>();
 
             // Still need to avoid trying to play over full lanes
             foreach (var column in new[] { Column.Left, Column.Middle, Column.Right })
             {
-                for (var i = 0; i < 4 - gameState[column][player].Count; i++)
+                for (var i = 0; i < 4 - game[column][player].Count; i++)
                 {
                     availableColumns.Add(column);
                 }

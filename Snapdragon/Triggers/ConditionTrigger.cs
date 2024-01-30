@@ -1,8 +1,8 @@
 ﻿namespace Snapdragon.Triggers
 {
-    public record ConditionTrigger(Func<GameState, bool> Condition) : ITrigger
+    public record ConditionTrigger(Func<Game, bool> Condition) : ITrigger
     {
-        public bool IsMet(Event e, GameState game)
+        public bool IsMet(Event e, Game game)
         {
             return this.Condition(game);
         }

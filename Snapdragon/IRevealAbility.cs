@@ -2,6 +2,6 @@
 {
     public interface IRevealAbility<T> : IAbility<T>
     {
-        GameState Activate(GameState game, T source);
+        Game Activate(Game game, T source);
     }
 }

@@ -11,7 +11,7 @@ namespace Snapdragon
             this.logger = logger;
         }
 
-        public GameState CreateGame(
+        public Game CreateGame(
             PlayerConfiguration topPlayer,
             PlayerConfiguration bottomPlayer,
             bool shuffle = true,
@@ -21,28 +21,27 @@ namespace Snapdragon
 
             // TODO: Specify different Locations, with effects
             // TODO: Handle card abilities that put them in a specific draw order
-            return new GameState(
+            return new Game(
                 0,
                 new Location("Left", Column.Left),
                 new Location("Middle", Column.Middle),
                 new Location("Right", Column.Right),
-                topPlayer.ToState(Side.Top, shuffle).DrawCard().DrawCard().DrawCard(),
-                bottomPlayer.ToState(Side.Bottom, shuffle).DrawCard().DrawCard().DrawCard(),
+                topPlayer.ToPlayer(Side.Top, shuffle).DrawCard().DrawCard().DrawCard(),
+                bottomPlayer.ToPlayer(Side.Bottom, shuffle).DrawCard().DrawCard().DrawCard(),
                 firstRevealedOrRandom,
                 [],
                 []);
         }
 
         /// <summary>
-        /// Processes the beginning of a Turn.  Used inside <see cref="PlaySingleTurn(GameState)"/>, but exposed here
-        /// for unit-testing purposes.
+        /// Processes the beginning of a Turn.  Used inside <see cref="PlaySingleTurn(Game)"/>, but exposed here for
+        /// unit-testing purposes.
         /// </summary>
-        /// <param name="game">The <see cref="GameState"/> at the end of the previous Turn.</param>
+        /// <param name="game">The <see cref="Game"/> at the end of the previous Turn.</param>
         /// <returns>
-        /// The <see cref="GameState"/> at the start of the new Turn, before any <see cref="PlayerConfiguration"/>
-        /// actions.
+        /// The <see cref="Game"/> at the start of the new Turn, before any <see cref="PlayerConfiguration"/> actions.
         /// </returns>
-        public GameState StartNextTurn(GameState game)
+        public Game StartNextTurn(Game game)
         {
             // Note the check for Games going over is in PlaySingleTurn
             game = game with
@@ -70,9 +69,9 @@ namespace Snapdragon
 
         /// <summary>
         /// Helper that reveals the <see cref="Location"/> for the given turn, assuming it's turn 1-3.  For all other
-        /// turns, just returns the input <see cref="GameState"/>.
+        /// turns, just returns the input <see cref="Game"/>.
         /// </summary>
-        private GameState RevealLocation(GameState game)
+        private Game RevealLocation(Game game)
         {
             // TODO: Handle any effects that alter the reveal (are there any?)
             switch (game.Turn)
@@ -91,7 +90,7 @@ namespace Snapdragon
         /// <summary>
         /// Plays the game until it finishes.
         /// </summary>
-        public GameState PlayGame(GameState game)
+        public Game PlayGame(Game game)
         {
             while (!game.GameOver)
             {
@@ -104,9 +103,9 @@ namespace Snapdragon
         /// <summary>
         /// Processes a single Turn, including all <see cref="Player"/> actions and any triggered effects.
         /// </summary>
-        /// <param name="game">The <see cref="GameState"/> at the end of the previous Turn.</param>
-        /// <returns>The <see cref="GameState"/> at the end of the new Turn.</returns>
-        public GameState PlaySingleTurn(GameState game)
+        /// <param name="game">The <see cref="Game"/> at the end of the previous Turn.</param>
+        /// <returns>The <see cref="Game"/> at the end of the new Turn.</returns>
+        public Game PlaySingleTurn(Game game)
         {
             var lastTurn = game.Turn;
 
@@ -146,7 +145,7 @@ namespace Snapdragon
             return game with { FirstRevealed = firstRevealed };
         }
 
-        GameState RevealCards(GameState game)
+        Game RevealCards(Game game)
         {
             game = RevealCardsForOneSide(game, game.FirstRevealed);
             game = RevealCardsForOneSide(game, game.FirstRevealed.OtherSide());
@@ -157,7 +156,7 @@ namespace Snapdragon
         /// <summary>
         /// Helper function that reveals only one Player's cards. Called in order by <see cref="RevealCards"/>.
         /// </summary>
-        private GameState RevealCardsForOneSide(GameState game, Side side)
+        private Game RevealCardsForOneSide(Game game, Side side)
         {
             // TODO: Handle anything that delays revealing cards
             // Note all instances of CardPlayedEvent in the previous phase
@@ -186,7 +185,7 @@ namespace Snapdragon
         /// <summary>
         /// Helper function that reveals a single card, then processes any triggered events.
         /// </summary>
-        private GameState RevealCard(GameState game, Card card)
+        private Game RevealCard(Game game, Card card)
         {
             game = game.WithModifiedCard(
                 card,
@@ -204,8 +203,8 @@ namespace Snapdragon
             return ProcessEvents(game);
         }
 
-        GameState ProcessPlayerActions(
-            GameState game,
+        Game ProcessPlayerActions(
+            Game game,
             IReadOnlyList<IPlayerAction> topPlayerActions,
             IReadOnlyList<IPlayerAction> bottomPlayerActions)
         {
@@ -240,12 +239,12 @@ namespace Snapdragon
         }
 
         /// <summary>
-        /// Processes any <see cref="Event"/>s in the <see cref="GameState.NewEvents"/> list, moving them to the <see
-        /// cref="GameState.PastEvents"/> list when finished.  Also has the side effect of recalculating the current
-        /// power of all <see cref="Card"/>s.
+        /// Processes any <see cref="Event"/>s in the <see cref="Game.NewEvents"/> list, moving them to the <see
+        /// cref="Game.PastEvents"/> list when finished.  Also has the side effect of recalculating the current power of
+        /// all <see cref="Card"/>s.
         /// </summary>
         /// <returns>The new state with the appropriate changes applied.</returns>
-        private GameState ProcessEvents(GameState game)
+        private Game ProcessEvents(Game game)
         {
             while (game.NewEvents.Count > 0)
             {

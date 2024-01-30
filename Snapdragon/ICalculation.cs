@@ -2,6 +2,6 @@
 {
     public interface ICalculation
     {
-        int GetValue(GameState game);
+        int GetValue(Game game);
     }
 }

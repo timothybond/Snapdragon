@@ -8,7 +8,7 @@ namespace Snapdragon.CardConditions
     /// </summary>
     public class OpponentPlayedSameTurn : ICardCondition
     {
-        public bool IsMet(GameState game, Card source)
+        public bool IsMet(Game game, Card source)
         {
             var otherCardsPlayed = game
                 .PastEvents

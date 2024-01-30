@@ -2,6 +2,6 @@
 {
     public interface ITrigger
     {
-        bool IsMet(Event e, GameState game);
+        bool IsMet(Event e, Game game);
     }
 }

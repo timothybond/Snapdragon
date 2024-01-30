@@ -2,6 +2,6 @@
 {
     public interface IEffectBuilder<T>
     {
-        IEffect Build(GameState game, T source);
+        IEffect Build(Game game, T source);
     }
 }

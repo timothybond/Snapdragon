@@ -11,7 +11,7 @@ namespace Snapdragon.Triggers
     /// <param name="Turn"></param>
     public record OnPlayCard(Column? Column, Side? Side, int? Turn) : ITrigger
     {
-        public bool IsMet(Event e, GameState game)
+        public bool IsMet(Event e, Game game)
         {
             if (e.Type != EventType.CardPlayed)
             {

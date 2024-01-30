@@ -2,7 +2,7 @@
 {
     public record TemporaryEffectBuilder(TemporaryEffectTriggeredAbilityBuilder AbilityBuilder)
     {
-        public TemporaryEffect<Card> Build(GameState game, Card source)
+        public TemporaryEffect<Card> Build(Game game, Card source)
         {
             var column =
                 source.Column ??

@@ -4,30 +4,30 @@ namespace Snapdragon.PlayerActions
 {
     public record PlayCardAction(Side Side, Card Card, Column Column) : IPlayerAction
     {
-        public GameState Apply(GameState initialState)
+        public Game Apply(Game game)
         {
             // Sanity checks to ensure we should play a card here
 
             // TODO: Handle effects that limit card play or slots
-            var location = initialState[Column];
+            var location = game[Column];
 
             if (location[Side].Count >= 4)
             {
                 throw new InvalidOperationException($"Tried to play more than 4 cards to {Column} for side {Side}.");
             }
 
-            var player = initialState[Side];
+            var player = game[Side];
 
             if (!player.Hand.Contains(Card))
             {
                 throw new InvalidOperationException("Tried to play a card that wasn't in the player's hand.");
             }
 
-            if (initialState[Side].Energy < Card.Cost)
+            if (game[Side].Energy < Card.Cost)
             {
                 // TODO: This should probably actually log and fail silently.
                 throw new InvalidOperationException(
-                    $"Tried to play card with cost {Card.Cost}, but remaining energy was {initialState[Side].Energy}.");
+                    $"Tried to play card with cost {Card.Cost}, but remaining energy was {game[Side].Energy}.");
             }
 
             var newPlayerState = player with
@@ -40,10 +40,10 @@ namespace Snapdragon.PlayerActions
 
             var newLocationState = location.WithPlayedCard(newCard, Side);
 
-            return initialState
+            return game
                 .WithPlayer(newPlayerState)
                 .WithLocation(newLocationState)
-                .WithEvent(new CardPlayedEvent(initialState.Turn, newCard));
+                .WithEvent(new CardPlayedEvent(game.Turn, newCard));
         }
     }
 }

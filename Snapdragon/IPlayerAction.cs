@@ -7,6 +7,6 @@
     {
         public Side Side { get; }
 
-        GameState Apply(GameState initialState);
+        Game Apply(Game game);
     }
 }

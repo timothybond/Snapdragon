@@ -2,6 +2,6 @@
 {
     public interface ITriggerBuilder<T>
     {
-        ITrigger Build(GameState game, T source);
+        ITrigger Build(Game game, T source);
     }
 }

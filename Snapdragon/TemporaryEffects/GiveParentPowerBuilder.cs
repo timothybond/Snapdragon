@@ -5,7 +5,7 @@ namespace Snapdragon.TemporaryEffects
 {
     public record GiveParentPowerBuilder(int Amount) : IEffectBuilder<TemporaryEffect<Card>>
     {
-        public IEffect Build(GameState game, TemporaryEffect<Card> source)
+        public IEffect Build(Game game, TemporaryEffect<Card> source)
         {
             return new AddPowerTo(new ParentCard(source), new ConstantCalculation(this.Amount));
         }

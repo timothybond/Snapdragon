@@ -6,7 +6,7 @@
     /// </summary>
     public record AddPowerTo(ICardFilter Targets, ICalculation Amount) : IEffect
     {
-        public GameState Apply(GameState game)
+        public Game Apply(Game game)
         {
             var power = Amount.GetValue(game);
             var cards = game

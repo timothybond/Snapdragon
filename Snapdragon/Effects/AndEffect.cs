@@ -2,7 +2,7 @@
 {
     public record AndEffect(IEffect First, IEffect Second) : IEffect
     {
-        public GameState Apply(GameState game)
+        public Game Apply(Game game)
         {
             game = First.Apply(game);
             game = Second.Apply(game);

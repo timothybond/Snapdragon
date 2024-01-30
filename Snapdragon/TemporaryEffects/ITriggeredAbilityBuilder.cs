@@ -2,6 +2,6 @@
 {
     public interface ITriggeredAbilityBuilder<T>
     {
-        TriggeredAbility<T> Build(GameState game, T source);
+        TriggeredAbility<T> Build(Game game, T source);
     }
 }

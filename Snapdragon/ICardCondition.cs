@@ -10,6 +10,6 @@
         /// The <see cref="Card"/> on which the condition was defined.  Conditions are often in reference to this card (e.g.,
         /// things happening in the same location).
         /// </param>
-        bool IsMet(GameState game, Card source);
+        bool IsMet(Game game, Card source);
     }
 }

@@ -8,7 +8,7 @@ namespace Snapdragon.RevealAbilities
         {
         }
 
-        public GameState Activate(GameState game, Card source)
+        public Game Activate(Game game, Card source)
         {
             var cards = game
                 .AllCards

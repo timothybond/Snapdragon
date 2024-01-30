@@ -5,7 +5,7 @@ namespace Snapdragon.TemporaryEffects
 {
     public record NoCardPlayedHereNextTurn : ITriggerBuilder<TemporaryEffect<Card>>
     {
-        public ITrigger Build(GameState game, TemporaryEffect<Card> source)
+        public ITrigger Build(Game game, TemporaryEffect<Card> source)
         {
             var location = source.Column;
             var side = source.Side;

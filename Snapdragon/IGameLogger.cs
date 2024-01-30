@@ -5,7 +5,7 @@
     /// </summary>
     public interface IGameLogger
     {
-        void LogGameState(GameState game);
+        void LogGameState(Game game);
 
         void LogEvent(Event e);
     }

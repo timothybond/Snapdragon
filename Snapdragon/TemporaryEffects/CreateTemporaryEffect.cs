@@ -2,7 +2,7 @@
 {
     public record CreateTemporaryEffect(TemporaryEffectBuilder Builder) : IRevealAbility<Card>
     {
-        public GameState Activate(GameState game, Card source)
+        public Game Activate(Game game, Card source)
         {
             var temporaryCardEffect = this.Builder.Build(game, source);
 

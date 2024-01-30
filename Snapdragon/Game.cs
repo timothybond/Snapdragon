@@ -4,7 +4,7 @@ using System.Collections.Immutable;
 
 namespace Snapdragon
 {
-    public record GameState(
+    public record Game(
         int Turn,
         Location Left,
         Location Middle,
@@ -19,7 +19,7 @@ namespace Snapdragon
         /// <summary>
         /// Gets a modified state with the specified new <see cref="Event"/> added.
         /// </summary>
-        public GameState WithEvent(Event e)
+        public Game WithEvent(Event e)
         {
             return this with { NewEvents = this.NewEvents.Add(e) };
         }
@@ -87,7 +87,7 @@ namespace Snapdragon
         /// <summary>
         /// Gets a modified state that includes the passed-in <see cref="Player"/> as appropriate.
         /// </summary>
-        public GameState WithPlayer(Player player)
+        public Game WithPlayer(Player player)
         {
             switch (player.Side)
             {
@@ -103,7 +103,7 @@ namespace Snapdragon
         /// <summary>
         /// Gets a modified state that includes the passed-in <see cref="Location"/> as appropriate.
         /// </summary>
-        public GameState WithLocation(Location location)
+        public Game WithLocation(Location location)
         {
             switch (location.Column)
             {
@@ -118,7 +118,7 @@ namespace Snapdragon
             }
         }
 
-        public GameState WithRevealedLocation(Column column)
+        public Game WithRevealedLocation(Column column)
         {
             var location = this[column] with { Revealed = true };
 
@@ -129,7 +129,7 @@ namespace Snapdragon
         /// Gets a modified state with the given <see cref="TemporaryEffect{Card}"/>.  Note that unlike <see
         /// cref="WithCard(Card)"/>, this adds a new effect rather than modifying an existing one.
         /// </summary>
-        public GameState WithTemporaryCardEffect(TemporaryEffect<Card> temporaryCardEffect)
+        public Game WithTemporaryCardEffect(TemporaryEffect<Card> temporaryCardEffect)
         {
             var location = this[temporaryCardEffect.Column];
 
@@ -140,7 +140,7 @@ namespace Snapdragon
         /// Gets a modified state with the given <see cref="TemporaryEffect{Card}"/>.  Note that unlike <see
         /// cref="WithCard(Card)"/>, this adds a new effect rather than modifying an existing one.
         /// </summary>
-        public GameState WithTemporaryCardEffectDeleted(int temporaryCardEffectId)
+        public Game WithTemporaryCardEffectDeleted(int temporaryCardEffectId)
         {
             return this with
             {
@@ -156,7 +156,7 @@ namespace Snapdragon
         /// </summary>
         /// <param name="card"></param>
         /// <returns></returns>
-        public GameState WithCards(IEnumerable<Card> cards)
+        public Game WithCards(IEnumerable<Card> cards)
         {
             // TODO: Determine if this needs to be optimized
             var game = this;
@@ -175,7 +175,7 @@ namespace Snapdragon
         /// </summary>
         /// <param name="card"></param>
         /// <returns></returns>
-        public GameState WithCard(Card card)
+        public Game WithCard(Card card)
         {
             var column =
                 card.Column ?? throw new InvalidOperationException("Tried to modify a card that isn't in play.");
@@ -201,13 +201,13 @@ namespace Snapdragon
         /// <param name="currentCard">The existing card to be modified.</param>
         /// <param name="modifier">The modification to perform on the existing card.</param>
         /// <param name="postModifyTransform">
-        /// Any change to the <see cref="GameState"/> to follow the modification (typically, this will be used to raise
+        /// Any change to the <see cref="Game"/> to follow the modification (typically, this will be used to raise
         /// events, like <see cref="CardRevealedEvent"/>).
         /// </param>
-        public GameState WithModifiedCard(
+        public Game WithModifiedCard(
             Card currentCard,
             Func<Card, Card> modifier,
-            Func<GameState, Card, GameState>? postModifyTransform = null)
+            Func<Game, Card, Game>? postModifyTransform = null)
         {
             if (currentCard.Column == null)
             {
@@ -231,7 +231,8 @@ namespace Snapdragon
                 if (currentCardsForSide[i].Id == currentCard.Id)
                 {
                     newCardsForSide.Add(newCard);
-                } else
+                }
+                else
                 {
                     newCardsForSide.Add(currentCardsForSide[i]);
                 }
@@ -252,26 +253,26 @@ namespace Snapdragon
                     throw new NotImplementedException();
             }
 
-            var newState = this.WithLocation(location);
+            var newGame = this.WithLocation(location);
 
             if (postModifyTransform != null)
             {
-                newState = postModifyTransform(newState, newCard);
+                newGame = postModifyTransform(newGame, newCard);
             }
 
-            return newState;
+            return newGame;
         }
 
         /// <summary>
         /// Gets the modified state after ending the current turn and processing any raised events.
         /// </summary>
         /// <returns></returns>
-        public GameState EndTurn()
+        public Game EndTurn()
         {
             return this.WithEvent(new TurnEndedEvent(this.Turn));
         }
 
-        public GameState ProcessNextEvent()
+        public Game ProcessNextEvent()
         {
             if (NewEvents.Count == 0)
             {
@@ -316,16 +317,16 @@ namespace Snapdragon
             }
         }
 
-        public GameState RecalculateOngoingEffects()
+        public Game RecalculateOngoingEffects()
         {
             var ongoingCardAbilities = this.GetCardOngoingAbilities().ToList();
 
             var recalculatedCards = this.AllCards
                 .Select(
                     c => c with
-                {
-                    PowerAdjustment = this.GetPowerAdjustment(c, ongoingCardAbilities, this)
-                });
+                    {
+                        PowerAdjustment = this.GetPowerAdjustment(c, ongoingCardAbilities, this)
+                    });
 
             return this.WithCards(recalculatedCards);
         }
@@ -333,7 +334,7 @@ namespace Snapdragon
         private int? GetPowerAdjustment(
             Card card,
             IReadOnlyList<(IOngoingAbility<Card> Ability, Card Source)> ongoingCardAbilities,
-            GameState game)
+            Game game)
         {
             var any = false;
             var total = 0;
