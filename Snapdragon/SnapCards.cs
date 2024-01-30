@@ -109,6 +109,7 @@ namespace Snapdragon
                 null,
                 new OngoingAddLocationPower<Card>(new ToTheRight(), new ConstantPower(6))
             ),
+            new("Iron Man", 5, 0, null, new DoubleLocationPower()),
             new CardDefinition(
                 "Spectrum",
                 6,
