@@ -1,7 +1,16 @@
-﻿namespace Snapdragon
+﻿using System.Data.Common;
+
+namespace Snapdragon
 {
     public record CurrentScores(LocationScores Left, LocationScores Middle, LocationScores Right)
     {
+        public CurrentScores()
+            : this(
+                new LocationScores(Column.Left, 0, 0),
+                new LocationScores(Column.Middle, 0, 0),
+                new LocationScores(Column.Right, 0, 0)
+            ) { }
+
         public LocationScores this[Column column]
         {
             get
@@ -18,6 +27,26 @@
                         throw new NotImplementedException();
                 }
             }
+        }
+
+        public CurrentScores WithLocationScores(LocationScores locationScores)
+        {
+            switch (locationScores.Column)
+            {
+                case Column.Left:
+                    return this with { Left = locationScores };
+                case Column.Middle:
+                    return this with { Middle = locationScores };
+                case Column.Right:
+                    return this with { Right = locationScores };
+                default:
+                    throw new NotImplementedException();
+            }
+        }
+
+        public CurrentScores WithAddedPower(int amount, Column column, Side side)
+        {
+            return this.WithLocationScores(this[column].WithAddedPower(amount, side));
         }
 
         public Side? Leader

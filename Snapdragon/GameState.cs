@@ -2,6 +2,7 @@
 using System.Drawing;
 using System.Reflection.Metadata.Ecma335;
 using Snapdragon.Events;
+using Snapdragon.OngoingAbilities;
 
 namespace Snapdragon
 {
@@ -335,6 +336,95 @@ namespace Snapdragon
             }
         }
 
+        public GameState RecalculateOngoingEffects()
+        {
+            var ongoingCardAbilities = this.GetCardOngoingAbilities().ToList();
+
+            var recalculatedCards = this.AllCards.Select(c =>
+                c with
+                {
+                    PowerAdjustment = this.GetPowerAdjustment(c, ongoingCardAbilities, this)
+                }
+            );
+
+            return this.WithCards(recalculatedCards);
+        }
+
+        private int? GetPowerAdjustment(
+            Card card,
+            IReadOnlyList<(IOngoingAbility<Card> Ability, Card Source)> ongoingCardAbilities,
+            GameState game
+        )
+        {
+            var any = false;
+            var total = 0;
+
+            foreach (var ongoing in ongoingCardAbilities)
+            {
+                if (ongoing.Ability is OngoingAdjustPower<Card> adjustPower)
+                {
+                    var adjustment = adjustPower.Apply(card, ongoing.Source, game);
+                    if (adjustment.HasValue)
+                    {
+                        total += adjustment.Value;
+                        any = true;
+                    }
+                }
+            }
+
+            return any ? total : null;
+        }
+
+        public CurrentScores GetCurrentScores()
+        {
+            var scores = new CurrentScores();
+
+            foreach (var column in All.Columns)
+            {
+                var location = this[column];
+
+                // First sum the adjusted power of all cards
+                foreach (var side in All.Sides)
+                {
+                    var totalPower = location[side].Sum(c => c.AdjustedPower);
+                    scores = scores.WithAddedPower(totalPower, column, side);
+                }
+
+                // Now apply any ongoing effects that ADD power to a location (e.g. Mister Fantastic, Klaw)
+                foreach (var card in this.AllCards)
+                {
+                    if (card.Ongoing is OngoingAddLocationPower<Card> addLocationPower)
+                    {
+                        if (addLocationPower.LocationFilter.Applies(location, card, this))
+                        {
+                            // TODO: Deal with the fact that the card isn't the "target"
+                            var power = addLocationPower.Amount.GetValue(this, card, card);
+
+                            // TODO: Check if anything adds power to the opposite side (probably the case)
+                            scores = scores.WithAddedPower(power, column, card.Side);
+                        }
+                    }
+                }
+
+                // Now handle the special "double power" ability
+                // TODO: Determine how this sometimes stacks
+                foreach (var side in All.Sides)
+                {
+                    foreach (var card in location[side])
+                    {
+                        // For now I'm just ignoring the multiple doublings
+                        if (card.Ongoing is DoubleLocationPower)
+                        {
+                            scores = scores.WithAddedPower(scores[column][side], column, side);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            return scores;
+        }
+
         /// <summary>
         /// Get the <see cref="Side"/> of the <see cref="Player"/> who is currently winning,
         /// meaning they have control of more <see cref="Locations"/> or, in the event of a
@@ -344,58 +434,9 @@ namespace Snapdragon
         /// or <c>null</c> if they are tied in both <see cref="Location"/>s and Power.</returns>
         public Side? GetLeader()
         {
-            var topLocations = 0;
-            var topPower = 0;
-            var bottomLocations = 0;
-            var bottomPower = 0;
+            var scores = this.GetCurrentScores();
 
-            // TODO: Account for modifiers to Card Power
-            foreach (var location in new[] { Left, Middle, Right })
-            {
-                var topPowerLocal = 0;
-                var bottomPowerLocal = 0;
-
-                foreach (var topCard in location.TopPlayerCards)
-                {
-                    topPowerLocal += topCard.Power;
-                }
-
-                foreach (var bottomCard in location.BottomPlayerCards)
-                {
-                    bottomPowerLocal += bottomCard.Power;
-                }
-
-                if (topPowerLocal > bottomPowerLocal)
-                {
-                    topLocations += 1;
-                }
-                else if (topPowerLocal < bottomPowerLocal)
-                {
-                    bottomLocations += 1;
-                }
-
-                topPower += topPowerLocal;
-                bottomPower += bottomPowerLocal;
-            }
-
-            if (topLocations > bottomLocations)
-            {
-                return Side.Top;
-            }
-            else if (topLocations < bottomLocations)
-            {
-                return Side.Bottom;
-            }
-            else if (topPower > bottomPower)
-            {
-                return Side.Top;
-            }
-            else if (topPower < bottomPower)
-            {
-                return Side.Bottom;
-            }
-
-            return null;
+            return scores.Leader;
         }
     }
 }

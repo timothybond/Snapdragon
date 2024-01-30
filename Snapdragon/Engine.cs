@@ -264,48 +264,9 @@ namespace Snapdragon
                 game = game.ProcessNextEvent();
             }
 
-            game = RecalculateOngoingEffects(game);
+            game = game.RecalculateOngoingEffects();
 
             return game;
-        }
-
-        private GameState RecalculateOngoingEffects(GameState gameState)
-        {
-            var ongoingCardAbilities = gameState.GetCardOngoingAbilities().ToList();
-
-            var recalculatedCards = gameState.AllCards.Select(c =>
-                c with
-                {
-                    PowerAdjustment = this.GetPowerAdjustment(c, ongoingCardAbilities, gameState)
-                }
-            );
-
-            return gameState.WithCards(recalculatedCards);
-        }
-
-        private int? GetPowerAdjustment(
-            Card card,
-            IReadOnlyList<(IOngoingAbility<Card> Ability, Card Source)> ongoingCardAbilities,
-            GameState game
-        )
-        {
-            var any = false;
-            var total = 0;
-
-            foreach (var ongoing in ongoingCardAbilities)
-            {
-                if (ongoing.Ability is OngoingAdjustPower<Card> adjustPower)
-                {
-                    var adjustment = adjustPower.Apply(card, ongoing.Source, game);
-                    if (adjustment.HasValue)
-                    {
-                        total += adjustment.Value;
-                        any = true;
-                    }
-                }
-            }
-
-            return any ? total : null;
         }
     }
 }

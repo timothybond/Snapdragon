@@ -1,5 +1,6 @@
 ﻿using Snapdragon.Calculations;
 using Snapdragon.CardConditions;
+using Snapdragon.LocationFilters;
 using Snapdragon.OngoingAbilities;
 using Snapdragon.RevealAbilities;
 using Snapdragon.TargetFilters;
@@ -46,11 +47,19 @@ namespace Snapdragon
                 2,
                 new OnRevealIf(new OpponentPlayedSameTurn(), new AddPowerSelf(3))
             ),
+            new("Cyclops", 3, 4),
             new(
                 "Ironheart",
                 3,
                 0,
                 new AddPowerRandomly(new SameSide().And(new OtherCards()), 2, 3)
+            ),
+            new(
+                "Mister Fantastic",
+                3,
+                2,
+                null,
+                new OngoingAddLocationPower<Card>(new AdjacentToCard(), new ConstantPower(2))
             ),
             new(
                 "Wolfsbane",
@@ -74,6 +83,7 @@ namespace Snapdragon
                     new ConstantPower(1)
                 )
             ),
+            new("The Thing", 4, 6),
             new CardDefinition(
                 "Blue Marvel",
                 5,
@@ -92,12 +102,20 @@ namespace Snapdragon
                     new(new(new NoCardPlayedHereNextTurn(), new GiveParentPowerBuilder(4)))
                 )
             ),
+            new(
+                "Klaw",
+                5,
+                4,
+                null,
+                new OngoingAddLocationPower<Card>(new ToTheRight(), new ConstantPower(6))
+            ),
             new CardDefinition(
                 "Spectrum",
                 6,
                 7,
                 new AddPower(new SameSide().And(new WithOngoingAbility()), 2)
-            )
+            ),
+            new("Hulk", 6, 12)
         };
 
         public static IReadOnlyDictionary<string, CardDefinition> ByName = All.ToDictionary(cd =>
