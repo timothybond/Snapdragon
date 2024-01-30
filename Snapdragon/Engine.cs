@@ -15,7 +15,8 @@ namespace Snapdragon
             PlayerConfiguration topPlayer,
             PlayerConfiguration bottomPlayer,
             bool shuffle = true,
-            Side? firstRevealed = null)
+            Side? firstRevealed = null
+        )
         {
             var firstRevealedOrRandom = firstRevealed ?? Random.Side();
 
@@ -30,7 +31,9 @@ namespace Snapdragon
                 bottomPlayer.ToPlayer(Side.Bottom, shuffle).DrawCard().DrawCard().DrawCard(),
                 firstRevealedOrRandom,
                 [],
-                []);
+                [],
+                this.logger
+            );
         }
 
         /// <summary>
@@ -49,7 +52,7 @@ namespace Snapdragon
                 Turn = game.Turn + 1
             };
             game = RevealLocation(game);
-            game = ProcessEvents(game);
+            game = game.ProcessEvents();
 
             // Each Player draws a card, and gets an amount of energy equal to the turn count
             var topPlayer = game.Top.DrawCard() with
@@ -62,7 +65,7 @@ namespace Snapdragon
 
             // Raise an event for the start of the turn
             game = game.WithEvent(new TurnStartedEvent(game.Turn));
-            game = this.ProcessEvents(game);
+            game = game.ProcessEvents();
 
             return game;
         }
@@ -130,7 +133,7 @@ namespace Snapdragon
             game = this.RevealCards(game);
 
             game = game.EndTurn();
-            game = this.ProcessEvents(game);
+            game = game.ProcessEvents();
 
             this.logger.LogGameState(game);
 
@@ -162,16 +165,16 @@ namespace Snapdragon
             // Note all instances of CardPlayedEvent in the previous phase
             // should be processed now, because we call ProcessEvent in ProcessPlayerActions first.
             var cardPlayOrder = game
-                .PastEvents
-                .Where(e => e.Type == EventType.CardPlayed)
+                .PastEvents.Where(e => e.Type == EventType.CardPlayed)
                 .Cast<CardPlayedEvent>()
                 .Select(cpe => cpe.Card.Id)
                 .ToList();
 
             // Cards are revealed in the order they were played
             var unrevealedCards = game
-                .AllCardsIncludingUnrevealed
-                .Where(c => c.Side == side && c.State == CardState.PlayedButNotRevealed)
+                .AllCardsIncludingUnrevealed.Where(c =>
+                    c.Side == side && c.State == CardState.PlayedButNotRevealed
+                )
                 .OrderBy(c => cardPlayOrder.IndexOf(c.Id));
 
             foreach (var card in unrevealedCards)
@@ -198,15 +201,17 @@ namespace Snapdragon
                     }
 
                     return g.WithEvent(new CardRevealedEvent(g.Turn, c));
-                });
+                }
+            );
 
-            return ProcessEvents(game);
+            return game.ProcessEvents();
         }
 
         Game ProcessPlayerActions(
             Game game,
             IReadOnlyList<IPlayerAction> topPlayerActions,
-            IReadOnlyList<IPlayerAction> bottomPlayerActions)
+            IReadOnlyList<IPlayerAction> bottomPlayerActions
+        )
         {
             // Sanity check - ensure that the Actions are for the correct Player
             ValidatePlayerActions(topPlayerActions, Side.Top);
@@ -226,7 +231,7 @@ namespace Snapdragon
                 game = action.Apply(game);
             }
 
-            return ProcessEvents(game);
+            return game.ProcessEvents();
         }
 
         void ValidatePlayerActions(IReadOnlyList<IPlayerAction> actions, Side side)
@@ -234,30 +239,10 @@ namespace Snapdragon
             if (actions.Any(a => a.Side != side))
             {
                 var invalidAction = actions.First(a => a.Side != side);
-                throw new InvalidOperationException($"{side} player action specified a Side of {invalidAction.Side}");
+                throw new InvalidOperationException(
+                    $"{side} player action specified a Side of {invalidAction.Side}"
+                );
             }
-        }
-
-        /// <summary>
-        /// Processes any <see cref="Event"/>s in the <see cref="Game.NewEvents"/> list, moving them to the <see
-        /// cref="Game.PastEvents"/> list when finished.  Also has the side effect of recalculating the current power of
-        /// all <see cref="Card"/>s.
-        /// </summary>
-        /// <returns>The new state with the appropriate changes applied.</returns>
-        private Game ProcessEvents(Game game)
-        {
-            while (game.NewEvents.Count > 0)
-            {
-                // TODO: Feed events to triggers
-                var nextEvent = game.NewEvents[0];
-                this.logger.LogEvent(nextEvent);
-
-                game = game.ProcessNextEvent();
-            }
-
-            game = game.RecalculateOngoingEffects();
-
-            return game;
         }
     }
 }
