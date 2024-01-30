@@ -1,9 +1,7 @@
-﻿using System.Collections.Immutable;
-using System.Linq;
+﻿namespace Snapdragon.GeneticAlgorithm;
 
-namespace Snapdragon.GeneticAlgorithm;
-
-public class Genetics
+public abstract class Genetics<T>
+    where T : IGeneSequence<T>
 {
     /// <summary>
     /// Generates an initial set of cards for use with a basic genetic algorithm.  In practice this will be 12 each of
@@ -39,28 +37,26 @@ public class Genetics
     }
 
     /// <summary>
-    /// Gets a random set of <see cref="Deck"/>s drawn from the specified pool of <see cref="CardDefinition"/>s.
+    /// Gets a random member of the population, based on the overall possible genes.
     /// </summary>
-    public IReadOnlyList<Deck> GetRandomDecks(
-        IReadOnlyList<CardDefinition> cardDefinitions,
-        int deckCount
-    )
+    public IReadOnlyList<T> GetRandomPopulation(int itemCount)
     {
-        if (deckCount % 4 != 0)
+        if (itemCount % 4 != 0)
         {
-            throw new ArgumentException($"Deck count must be divisible by 4 (was {deckCount}).");
+            throw new ArgumentException($"Item count must be divisible by 4 (was {itemCount}).");
         }
 
-        var decks = new List<Deck>();
+        var population = new List<T>();
 
-        for (var i = 0; i < deckCount; i++)
+        for (var i = 0; i < itemCount; i++)
         {
-            var cards = cardDefinitions.OrderBy(c => Random.Next()).Take(12).ToImmutableList();
-            decks.Add(new Deck(cards));
+            population.Add(this.GetRandomItem());
         }
 
-        return decks;
+        return population;
     }
+
+    public abstract T GetRandomItem();
 
     public List<(int First, int Second)> GetRandomPairs(int populationSize, int pairsPerItem)
     {
@@ -99,51 +95,47 @@ public class Genetics
         return pairs;
     }
 
+    public abstract PlayerConfiguration GetPlayerConfiguration(T item, int index);
+
     /// <summary>
     /// Runs the specified number of games with each <see cref="Deck"/>, pairing them randomly against each other.
     /// </summary>
     /// <returns>The number of wins per each <see cref="Deck"/>.</returns>
     public IReadOnlyList<int> RunPopulationGames(
-        IReadOnlyList<Deck> decks,
+        IReadOnlyList<T> population,
         Engine engine,
         int gamesPerDeck = 5
     )
     {
-        var pairs = GetRandomPairs(decks.Count, gamesPerDeck);
+        var pairs = GetRandomPairs(population.Count, gamesPerDeck);
 
-        var totalGamesWon = decks.Select(d => 0).ToList();
+        var totalGamesWon = population.Select(d => 0).ToList();
 
         foreach (var pair in pairs)
         {
-            var topDeckIndex = pair.First;
-            var bottomDeckIndex = pair.Second;
+            var topIndex = pair.First;
+            var bottomIndex = pair.Second;
 
-            var topPlayerConfig = new PlayerConfiguration(
-                $"Deck {topDeckIndex}",
-                decks[topDeckIndex],
-                new RandomPlayerController()
-            );
-            var bottomPlayerConfig = new PlayerConfiguration(
-                $"Deck {bottomDeckIndex}",
-                decks[bottomDeckIndex],
-                new RandomPlayerController()
+            var topPlayerConfig = this.GetPlayerConfiguration(population[topIndex], topIndex);
+            var bottomPlayerConfig = this.GetPlayerConfiguration(
+                population[bottomIndex],
+                bottomIndex
             );
 
-            // TODO: Play game, assign winner, track wins
             var game = engine.CreateGame(topPlayerConfig, bottomPlayerConfig);
-            game = engine.PlayGame(game);
+            game = game.PlayGame();
 
-            // For the moment we will only count victories.
+            // For the moment we will only count victories, not ties.
             var winner = game.GetLeader();
             if (winner != null)
             {
                 switch (winner)
                 {
                     case Side.Top:
-                        totalGamesWon[topDeckIndex] += 1;
+                        totalGamesWon[topIndex] += 1;
                         break;
                     case Side.Bottom:
-                        totalGamesWon[bottomDeckIndex] += 1;
+                        totalGamesWon[bottomIndex] += 1;
                         break;
                     default:
                         throw new NotImplementedException();
@@ -154,125 +146,28 @@ public class Genetics
         return totalGamesWon;
     }
 
-    public IReadOnlyList<Deck> ReproducePopulation(
-        IReadOnlyList<Deck> decks,
-        IReadOnlyList<int> wins,
-        IReadOnlyList<CardDefinition> allPossibleCards,
-        int mutationPer = 100,
-        Func<CardDefinition, int>? orderBy = null
+    public IReadOnlyList<T> ReproducePopulation(
+        IReadOnlyList<T> population,
+        IReadOnlyList<int> wins
     )
     {
-        var decksByDescendingWins = decks
-            .Select((d, i) => (Deck: d, Wins: wins[i]))
-            .OrderByDescending(decksAndWins => decksAndWins.Wins)
-            .Select(decksAndWins => decksAndWins.Deck)
+        var itemsByDescendingWins = population
+            .Select((item, index) => (Item: item, Wins: wins[index]))
+            .OrderByDescending(itemsAndWins => itemsAndWins.Wins)
+            .Select(itemsAndWins => itemsAndWins.Item)
             .ToList();
 
-        var survivingDecks = decksByDescendingWins.Take(decksByDescendingWins.Count / 2).ToList();
+        var survivingItems = itemsByDescendingWins.Take(itemsByDescendingWins.Count / 2).ToList();
 
-        var pairs = GetRandomPairs(survivingDecks.Count, 4);
+        var pairs = GetRandomPairs(survivingItems.Count, 4);
 
-        var nextGeneration = new List<Deck>();
+        var nextGeneration = new List<T>();
 
         foreach (var pair in pairs)
         {
-            nextGeneration.Add(
-                Cross(
-                    survivingDecks[pair.First],
-                    survivingDecks[pair.Second],
-                    allPossibleCards,
-                    mutationPer,
-                    orderBy
-                )
-            );
+            nextGeneration.Add(survivingItems[pair.First].Cross(survivingItems[pair.Second]));
         }
 
         return nextGeneration;
-    }
-
-    /// <summary>
-    /// Gets the "offspring" of two <see cref="Decks"/> by randomly picking one <see cref="CardDefinition"/> from either
-    /// Deck at each position.  Can optionally specify a method to re-order the <see cref="Deck"/>s before crossing.
-    /// Also, at each position, there is a random chance of (1 / mutationPer) that it will instead take a random <see
-    /// cref="CardDefinition"/> from the entire possible genome instead.
-    /// </summary>
-    /// <param name="first"></param>
-    /// <param name="second"></param>
-    /// <param name="allPossibleCards"></param>
-    /// <param name=""></param>
-    /// <returns></returns>
-    public Deck Cross(
-        Deck first,
-        Deck second,
-        IReadOnlyList<CardDefinition> allPossibleCards,
-        int mutationPer = 100,
-        Func<CardDefinition, int>? orderBy = null
-    )
-    {
-        var allPresentCards = first.Cards.Concat(second.Cards).ToList();
-        var allPresentCardNames = allPresentCards.Select(c => c.Name).Distinct().ToList();
-
-        // Don't allow duplicates (by name)
-        var usedCards = new HashSet<string>();
-
-        var newDeckCards = new List<CardDefinition>();
-
-        if (orderBy != null)
-        {
-            first = new Deck(first.Cards.OrderBy(orderBy).ToImmutableList());
-            second = new Deck(second.Cards.OrderBy(orderBy).ToImmutableList());
-        }
-
-        for (var i = 0; i < 12; i++)
-        {
-            var f = first.Cards[i];
-            var s = second.Cards[i];
-
-            if (Random.Next(mutationPer) == 0)
-            {
-                // "Mutate" - get a random CardDefinition from all cards, instead of the normal logic
-                var mutantGene = Random.Of(
-                    allPossibleCards.Where(c => !usedCards.Contains(c.Name)).ToList()
-                );
-                newDeckCards.Add(mutantGene);
-                usedCards.Add(mutantGene.Name);
-                continue;
-            }
-
-            // The logic when one or more cards is already present
-            // probably has some implications for the population.
-            // Should look into this later.
-            if (!usedCards.Contains(f.Name) && !usedCards.Contains(s.Name))
-            {
-                var choice = Random.NextBool() ? f : s;
-
-                usedCards.Add(choice.Name);
-                newDeckCards.Add(choice);
-            }
-            else if (!usedCards.Contains(f.Name))
-            {
-                usedCards.Add(f.Name);
-                newDeckCards.Add(f);
-            }
-            else if (!usedCards.Contains(s.Name))
-            {
-                usedCards.Add(s.Name);
-                newDeckCards.Add(s);
-            }
-        }
-
-        if (newDeckCards.Count < 12)
-        {
-            var randomCards = allPresentCardNames
-                .Where(n => !usedCards.Contains(n))
-                .ToList()
-                .OrderBy(n => Random.Next())
-                .Take(12 - newDeckCards.Count)
-                .Select(n => allPresentCards.First(c => string.Equals(c.Name, n)));
-
-            newDeckCards.AddRange(randomCards);
-        }
-
-        return new Deck(newDeckCards.ToImmutableList());
     }
 }

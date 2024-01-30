@@ -33,5 +33,13 @@ namespace Snapdragon
                 return this;
             }
         }
+
+        public Player WithController(IPlayerController controller)
+        {
+            return this with
+            {
+                Configuration = this.Configuration with { Controller = controller }
+            };
+        }
     }
 }

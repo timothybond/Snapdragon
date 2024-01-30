@@ -3,7 +3,7 @@ using Snapdragon.PlayerActions;
 
 namespace Snapdragon.Tests
 {
-    public class EngineTests
+    public class GameTests
     {
         [SetUp]
         public void Setup() { }
@@ -94,10 +94,10 @@ namespace Snapdragon.Tests
 
             for (var i = 0; i < turn - 1; i++)
             {
-                game = engine.PlaySingleTurn(game);
+                game = game.PlaySingleTurn();
             }
 
-            game = engine.StartNextTurn(game);
+            game = game.StartNextTurn();
 
             Assert.That(game.Top.Energy, Is.EqualTo(turn));
             Assert.That(game.Bottom.Energy, Is.EqualTo(turn));
@@ -123,10 +123,10 @@ namespace Snapdragon.Tests
 
             for (var i = 0; i < turn - 1; i++)
             {
-                game = engine.PlaySingleTurn(game);
+                game = game.PlaySingleTurn();
             }
 
-            game = engine.StartNextTurn(game);
+            game = game.StartNextTurn();
 
             Assert.That(game.Left.Revealed, Is.EqualTo(leftRevealed));
             Assert.That(game.Middle.Revealed, Is.EqualTo(middleRevealed));
@@ -144,10 +144,10 @@ namespace Snapdragon.Tests
 
             for (var i = 0; i < turn - 1; i++)
             {
-                game = engine.PlaySingleTurn(game);
+                game = game.PlaySingleTurn();
             }
 
-            game = engine.StartNextTurn(game);
+            game = game.StartNextTurn();
 
             var lastReveal = game.PastEvents.OfType<LocationRevealedEvent>().Last();
 
@@ -173,7 +173,7 @@ namespace Snapdragon.Tests
 
             var game = engine.CreateGame(topPlayerConfig, bottomPlayerConfig, false);
 
-            game = engine.StartNextTurn(game);
+            game = game.StartNextTurn();
 
             // Note: Start of game gives three cards, as tested elsewhere.
             Assert.That(game.Top.Hand.Count, Is.EqualTo(4));
@@ -211,7 +211,7 @@ namespace Snapdragon.Tests
                 new PlayCardAction(Side.Top, game.Top.Hand[0], column)
             };
 
-            game = engine.PlaySingleTurn(game);
+            game = game.PlaySingleTurn();
 
             Assert.That(game[column].TopPlayerCards.Count, Is.EqualTo(1));
         }
@@ -244,7 +244,7 @@ namespace Snapdragon.Tests
                 new PlayCardAction(Side.Top, game.Top.Hand[0], column)
             };
 
-            game = engine.PlaySingleTurn(game);
+            game = game.PlaySingleTurn();
 
             Assert.That(game[column].TopPlayerCards[0].State, Is.EqualTo(CardState.InPlay));
         }
@@ -290,7 +290,7 @@ namespace Snapdragon.Tests
                 };
             }
 
-            game = engine.PlaySingleTurn(game);
+            game = game.PlaySingleTurn();
 
             Assert.That(game.FirstRevealed, Is.EqualTo(side));
         }
@@ -323,7 +323,7 @@ namespace Snapdragon.Tests
                 new PlayCardAction(Side.Top, game.Top.Hand[0], column)
             };
 
-            game = engine.PlaySingleTurn(game);
+            game = game.PlaySingleTurn();
 
             var cardRevealedEvent = game.PastEvents.SingleOrDefault(e =>
                 e.Type == EventType.CardRevealed
@@ -343,7 +343,7 @@ namespace Snapdragon.Tests
             var engine = new Engine(new NullLogger());
             var game = GetInitialGame(engine);
 
-            game = engine.PlayGame(game);
+            game = game.PlayGame();
 
             Assert.That(game.Turn, Is.EqualTo(6));
         }
@@ -354,7 +354,7 @@ namespace Snapdragon.Tests
             var engine = new Engine(new NullLogger());
             var game = GetInitialGame(engine);
 
-            game = engine.PlayGame(game);
+            game = game.PlayGame();
 
             Assert.That(game.GameOver, Is.True);
         }

@@ -53,7 +53,7 @@ namespace Snapdragon.Tests
 
             for (var i = 1; i < turn; i++)
             {
-                game = engine.PlaySingleTurn(game);
+                game = game.PlaySingleTurn();
             }
 
             game = game with
@@ -67,7 +67,7 @@ namespace Snapdragon.Tests
                 )
             };
 
-            game = engine.PlaySingleTurn(game);
+            game = game.PlaySingleTurn();
 
             return game;
         }
@@ -112,7 +112,7 @@ namespace Snapdragon.Tests
 
             for (var i = 1; i < turn - game.Turn; i++)
             {
-                game = engine.PlaySingleTurn(game);
+                game = game.PlaySingleTurn();
             }
 
             game = game with
@@ -126,7 +126,7 @@ namespace Snapdragon.Tests
                 )
             };
 
-            game = engine.PlaySingleTurn(game);
+            game = game.PlaySingleTurn();
 
             return game;
         }

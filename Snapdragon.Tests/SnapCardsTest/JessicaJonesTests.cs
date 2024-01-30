@@ -16,7 +16,7 @@
             );
 
             var engine = new Engine(new NullLogger());
-            game = engine.PlaySingleTurn(game);
+            game = game.PlaySingleTurn();
 
             Assert.That(game[column][side].Count, Is.EqualTo(1));
 

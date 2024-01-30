@@ -1,4 +1,5 @@
 ﻿using Snapdragon.PlayerActions;
+using static Snapdragon.ControllerUtilities;
 
 namespace Snapdragon
 {
@@ -7,54 +8,21 @@ namespace Snapdragon
     /// </summary>
     public class RandomPlayerController : IPlayerController
     {
-        public IReadOnlyList<IPlayerAction> GetActions(Game game, Side player)
+        public IReadOnlyList<IPlayerAction> GetActions(Game game, Side side)
         {
-            var cardsToPlay = GetRandomPlayableCards(game[player]);
+            // TODO: Also have Move actions
+            var playableCardSets = GetPlayableCardSets(game[side]);
+            var availableSlots = GetAvailableCardSlots(game, side);
+            var totalSlots = availableSlots.Left + availableSlots.Middle + availableSlots.Right;
 
-            var availableColumns = new List<Column>();
+            // Ignore card sets with too many cards (note than an empty set is always present)
+            playableCardSets = playableCardSets.Where(s => s.Count <= totalSlots).ToList();
 
-            // Still need to avoid trying to play over full lanes
-            foreach (var column in new[] { Column.Left, Column.Middle, Column.Right })
-            {
-                for (var i = 0; i < 4 - game[column][player].Count; i++)
-                {
-                    availableColumns.Add(column);
-                }
-            }
+            var cardsToPlay = Random.Of(playableCardSets);
 
-            availableColumns = availableColumns.OrderBy(c => Random.Next()).ToList();
-            cardsToPlay = cardsToPlay.Take(availableColumns.Count).ToList();
+            var columns = GetRandomColumns(cardsToPlay.Count, availableSlots);
 
-            return cardsToPlay
-                .Select((c, i) => new PlayCardAction(player, c, availableColumns[i]))
-                .ToList();
-        }
-
-        private IReadOnlyList<Card> GetRandomPlayableCards(Player player)
-        {
-            var cardsToPlay = new List<Card>();
-            var energy = player.Energy;
-            var hand = player.Hand;
-
-            var playableCards = hand.Where(c => c.Cost <= energy)
-                .OrderBy(c => Random.Next())
-                .ToList();
-
-            while (playableCards.Count > 0)
-            {
-                var card = playableCards.First();
-                energy = energy - card.Cost;
-
-                cardsToPlay.Add(card);
-
-                playableCards = playableCards
-                    .Skip(1)
-                    .Where(c => c.Cost <= energy)
-                    .OrderBy(c => Random.Next())
-                    .ToList();
-            }
-
-            return cardsToPlay;
+            return cardsToPlay.Select((c, i) => new PlayCardAction(side, c, columns[i])).ToList();
         }
     }
 }

@@ -1,7 +1,4 @@
-﻿using System.Data.Common;
-using System.Drawing;
-
-namespace Snapdragon.Tests.SnapCardsTest
+﻿namespace Snapdragon.Tests.SnapCardsTest
 {
     public class IronheartTests
     {
@@ -13,7 +10,7 @@ namespace Snapdragon.Tests.SnapCardsTest
             var game = TestHelpers.PlayCards(6, side, new[] { ("Ironheart", column) });
 
             var engine = new Engine(new NullLogger());
-            game = engine.PlaySingleTurn(game);
+            game = game.PlaySingleTurn();
             Assert.That(game[column][side].Count, Is.EqualTo(1));
 
             var ironheart = game[column][side][0];

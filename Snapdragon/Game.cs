@@ -18,13 +18,7 @@ namespace Snapdragon
         bool GameOver = false
     )
     {
-        /// <summary>
-        /// Gets a modified state with the specified new <see cref="Event"/> added.
-        /// </summary>
-        public Game WithEvent(Event e)
-        {
-            return this with { NewEvents = this.NewEvents.Add(e) };
-        }
+        #region Accessors
 
         /// <summary>
         /// Gets the <see cref="Location"/> in the given <see cref="Column"/>.
@@ -84,6 +78,35 @@ namespace Snapdragon
             this
                 .Left.TemporaryCardEffects.Concat(this.Middle.TemporaryCardEffects)
                 .Concat(this.Right.TemporaryCardEffects);
+
+        public IEnumerable<(IOngoingAbility<Card> Ability, Card Source)> GetCardOngoingAbilities()
+        {
+            foreach (var column in All.Columns)
+            {
+                foreach (var side in All.Sides)
+                {
+                    foreach (var card in this[column][side])
+                    {
+                        if (card.Ongoing != null)
+                        {
+                            yield return (card.Ongoing, card);
+                        }
+                    }
+                }
+            }
+        }
+
+        #endregion
+
+        #region Direct Manipulation
+
+        /// <summary>
+        /// Gets a modified state with the specified new <see cref="Event"/> added.
+        /// </summary>
+        public Game WithEvent(Event e)
+        {
+            return this with { NewEvents = this.NewEvents.Add(e) };
+        }
 
         /// <summary>
         /// Gets a modified state that includes the passed-in <see cref="Player"/> as appropriate.
@@ -271,6 +294,220 @@ namespace Snapdragon
             return newGame;
         }
 
+        #endregion
+
+        #region Game Progression Logic
+
+        /// <summary>
+        /// Plays the game until it finishes.
+        /// </summary>
+        public Game PlayGame()
+        {
+            var game = this;
+
+            while (!game.GameOver)
+            {
+                game = game.PlaySingleTurn();
+            }
+
+            return game;
+        }
+
+        /// <summary>
+        /// Processes a single Turn, including all <see cref="Player"/> actions and any triggered effects.
+        /// </summary>
+        /// <returns>The <see cref="Game"/> at the end of the new Turn.</returns>
+        public Game PlaySingleTurn()
+        {
+            var lastTurn = this.Turn;
+
+            // Don't continue if the game is over.
+            // TODO: Consider throwing an error
+            if (lastTurn >= 6)
+            {
+                // TODO: Allow for abilities that alter the number of turns
+                return this;
+            }
+
+            var game = this.StartNextTurn();
+
+            // Get player actions
+            var topPlayerActions = game.Top.Controller.GetActions(game, Side.Top);
+            var bottomPlayerActions = game.Bottom.Controller.GetActions(game, Side.Bottom);
+
+            // Resolve player actions
+            game = game.ProcessPlayerActions(topPlayerActions, bottomPlayerActions);
+
+            // Reveal cards
+            game = this.RevealCards(game);
+
+            game = game.EndTurn();
+            game = game.ProcessEvents();
+
+            this.Logger.LogGameState(game);
+
+            // TODO: Allow for abilities that alter the number of turns
+            if (game.Turn >= 6)
+            {
+                game = game with { GameOver = true };
+            }
+
+            // Get which player to resolve first next turn
+            var firstRevealed = game.GetLeader() ?? Random.Side();
+            return game with { FirstRevealed = firstRevealed };
+        }
+
+        Game ProcessPlayerActions(
+            IReadOnlyList<IPlayerAction> topPlayerActions,
+            IReadOnlyList<IPlayerAction> bottomPlayerActions
+        )
+        {
+            // Sanity check - ensure that the Actions are for the correct Player
+            ValidatePlayerActions(topPlayerActions, Side.Top);
+            ValidatePlayerActions(bottomPlayerActions, Side.Bottom);
+
+            // TODO: Apply any constraints to actions (such as, cannot play cards at a given space)
+            var game = this;
+
+            // TODO: Figure out how Nightcrawler is resolved when moving,
+            // and whether there are any similar exceptions
+            foreach (var action in topPlayerActions)
+            {
+                game = action.Apply(game);
+            }
+
+            foreach (var action in bottomPlayerActions)
+            {
+                game = action.Apply(game);
+            }
+
+            return game.ProcessEvents();
+        }
+
+        void ValidatePlayerActions(IReadOnlyList<IPlayerAction> actions, Side side)
+        {
+            if (actions.Any(a => a.Side != side))
+            {
+                var invalidAction = actions.First(a => a.Side != side);
+                throw new InvalidOperationException(
+                    $"{side} player action specified a Side of {invalidAction.Side}"
+                );
+            }
+        }
+
+        Game RevealCards(Game game)
+        {
+            game = RevealCardsForOneSide(game, game.FirstRevealed);
+            game = RevealCardsForOneSide(game, game.FirstRevealed.OtherSide());
+
+            return game;
+        }
+
+        /// <summary>
+        /// Helper function that reveals only one Player's cards. Called in order by <see cref="RevealCards"/>.
+        /// </summary>
+        private Game RevealCardsForOneSide(Game game, Side side)
+        {
+            // TODO: Handle anything that delays revealing cards
+            // Note all instances of CardPlayedEvent in the previous phase
+            // should be processed now, because we call ProcessEvent in ProcessPlayerActions first.
+            var cardPlayOrder = game
+                .PastEvents.Where(e => e.Type == EventType.CardPlayed)
+                .Cast<CardPlayedEvent>()
+                .Select(cpe => cpe.Card.Id)
+                .ToList();
+
+            // Cards are revealed in the order they were played
+            var unrevealedCards = game
+                .AllCardsIncludingUnrevealed.Where(c =>
+                    c.Side == side && c.State == CardState.PlayedButNotRevealed
+                )
+                .OrderBy(c => cardPlayOrder.IndexOf(c.Id));
+
+            foreach (var card in unrevealedCards)
+            {
+                game = game.RevealCard(card);
+            }
+
+            return game;
+        }
+
+        /// <summary>
+        /// Helper function that reveals a single card, then processes any triggered events.
+        /// </summary>
+        private Game RevealCard(Card card)
+        {
+            var game = this.WithModifiedCard(
+                card,
+                c => c with { State = CardState.InPlay },
+                (g, c) =>
+                {
+                    if (c.OnReveal != null)
+                    {
+                        g = c.OnReveal.Activate(g, c);
+                    }
+
+                    return g.WithEvent(new CardRevealedEvent(g.Turn, c));
+                }
+            );
+
+            return game.ProcessEvents();
+        }
+
+        /// <summary>
+        /// Processes the beginning of a Turn.  Used inside <see cref="PlaySingleTurn()"/>, but exposed here for
+        /// unit-testing purposes.
+        /// </summary>
+        /// <param name="game">The <see cref="Game"/> at the end of the previous Turn.</param>
+        /// <returns>
+        /// The <see cref="Game"/> at the start of the new Turn, before any <see cref="PlayerConfiguration"/> actions.
+        /// </returns>
+        public Game StartNextTurn()
+        {
+            // Note the check for Games going over is in PlaySingleTurn
+            var game = this with
+            {
+                Turn = this.Turn + 1
+            };
+            game = game.RevealLocation();
+            game = game.ProcessEvents();
+
+            // Each Player draws a card, and gets an amount of energy equal to the turn count
+            var topPlayer = game.Top.DrawCard() with
+            {
+                Energy = game.Turn
+            };
+            var bottomPlayer = game.Bottom.DrawCard() with { Energy = game.Turn };
+
+            game = game with { Top = topPlayer, Bottom = bottomPlayer };
+
+            // Raise an event for the start of the turn
+            game = game.WithEvent(new TurnStartedEvent(game.Turn));
+            game = game.ProcessEvents();
+
+            return game;
+        }
+
+        /// <summary>
+        /// Helper that reveals the <see cref="Location"/> for the given turn, assuming it's turn 1-3.  For all other
+        /// turns, just returns the input <see cref="Game"/>.
+        /// </summary>
+        private Game RevealLocation()
+        {
+            // TODO: Handle any effects that alter the reveal (are there any?)
+            switch (this.Turn)
+            {
+                case 1:
+                    return this.WithRevealedLocation(Column.Left);
+                case 2:
+                    return this.WithRevealedLocation(Column.Middle);
+                case 3:
+                    return this.WithRevealedLocation(Column.Right);
+                default:
+                    return this;
+            }
+        }
+
         /// <summary>
         /// Gets the modified state after ending the current turn and processing any raised events.
         /// </summary>
@@ -331,23 +568,6 @@ namespace Snapdragon
             return game;
         }
 
-        public IEnumerable<(IOngoingAbility<Card> Ability, Card Source)> GetCardOngoingAbilities()
-        {
-            foreach (var column in All.Columns)
-            {
-                foreach (var side in All.Sides)
-                {
-                    foreach (var card in this[column][side])
-                    {
-                        if (card.Ongoing != null)
-                        {
-                            yield return (card.Ongoing, card);
-                        }
-                    }
-                }
-            }
-        }
-
         public Game RecalculateOngoingEffects()
         {
             var ongoingCardAbilities = this.GetCardOngoingAbilities().ToList();
@@ -362,6 +582,10 @@ namespace Snapdragon
             return this.WithCards(recalculatedCards);
         }
 
+        /// <summary>
+        /// Calculates the total power adjustment to the given <see cref="Card"/>
+        /// based on the pased-in list of all active ongoing abilities
+        /// </summary>
         private int? GetPowerAdjustment(
             Card card,
             IReadOnlyList<(IOngoingAbility<Card> Ability, Card Source)> ongoingCardAbilities,
@@ -386,6 +610,10 @@ namespace Snapdragon
 
             return any ? total : null;
         }
+
+        #endregion
+
+        #region Scoring
 
         public CurrentScores GetCurrentScores()
         {
@@ -451,5 +679,7 @@ namespace Snapdragon
 
             return scores.Leader;
         }
+
+        #endregion
     }
 }
