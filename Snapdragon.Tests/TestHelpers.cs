@@ -1,5 +1,5 @@
-﻿using Snapdragon.PlayerActions;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
+using Snapdragon.PlayerActions;
 
 namespace Snapdragon.Tests
 {
@@ -12,7 +12,11 @@ namespace Snapdragon.Tests
         /// <param name="side">Which side to play cards for.</param>
         /// <param name="cards">Cards for the given player to play on the given turn.</param>
         /// <returns>The game state after the given turn has elapsed and all effects have resolved.</returns>
-        public static Game PlayCards(int turn, Side side, IEnumerable<(string CardName, Column Column)> cards)
+        public static Game PlayCards(
+            int turn,
+            Side side,
+            IEnumerable<(string CardName, Column Column)> cards
+        )
         {
             switch (side)
             {
@@ -35,7 +39,8 @@ namespace Snapdragon.Tests
         public static Game PlayCards(
             int turn,
             IEnumerable<(string CardName, Column Column)> topPlayerCards,
-            IEnumerable<(string CardName, Column Column)> bottomPlayerCards)
+            IEnumerable<(string CardName, Column Column)> bottomPlayerCards
+        )
         {
             var engine = new Engine(new NullLogger());
             var topController = new TestPlayerController();
@@ -43,7 +48,8 @@ namespace Snapdragon.Tests
 
             var game = engine.CreateGame(
                 new PlayerConfiguration("Top", new Deck([]), topController),
-                new PlayerConfiguration("Bottom", new Deck([]), bottomController));
+                new PlayerConfiguration("Bottom", new Deck([]), bottomController)
+            );
 
             for (var i = 1; i < turn; i++)
             {
@@ -53,7 +59,12 @@ namespace Snapdragon.Tests
             game = game with
             {
                 Top = GetPlayerWithCardsToPlay(topPlayerCards, topController, Side.Top, game),
-                Bottom = GetPlayerWithCardsToPlay(bottomPlayerCards, bottomController, Side.Bottom, game)
+                Bottom = GetPlayerWithCardsToPlay(
+                    bottomPlayerCards,
+                    bottomController,
+                    Side.Bottom,
+                    game
+                )
             };
 
             game = engine.PlaySingleTurn(game);
@@ -73,12 +84,14 @@ namespace Snapdragon.Tests
             Game game,
             int turn,
             IEnumerable<(string CardName, Column Column)> topPlayerCards,
-            IEnumerable<(string CardName, Column Column)> bottomPlayerCards)
+            IEnumerable<(string CardName, Column Column)> bottomPlayerCards
+        )
         {
             if (turn <= game.Turn)
             {
                 throw new ArgumentException(
-                    $"Game already played to turn {game.Turn}, but tried to play cards on turn {turn}.");
+                    $"Game already played to turn {game.Turn}, but tried to play cards on turn {turn}."
+                );
             }
 
             var engine = new Engine(new NullLogger());
@@ -87,13 +100,11 @@ namespace Snapdragon.Tests
 
             game = game with
             {
-                Top =
-                    game.Top with
+                Top = game.Top with
                 {
                     Configuration = game.Top.Configuration with { Controller = topController }
                 },
-                Bottom =
-                    game.Bottom with
+                Bottom = game.Bottom with
                 {
                     Configuration = game.Bottom.Configuration with { Controller = bottomController }
                 }
@@ -107,7 +118,12 @@ namespace Snapdragon.Tests
             game = game with
             {
                 Top = GetPlayerWithCardsToPlay(topPlayerCards, topController, Side.Top, game),
-                Bottom = GetPlayerWithCardsToPlay(bottomPlayerCards, bottomController, Side.Bottom, game)
+                Bottom = GetPlayerWithCardsToPlay(
+                    bottomPlayerCards,
+                    bottomController,
+                    Side.Bottom,
+                    game
+                )
             };
 
             game = engine.PlaySingleTurn(game);
@@ -127,7 +143,8 @@ namespace Snapdragon.Tests
             Game game,
             int turn,
             Side side,
-            IEnumerable<(string CardName, Column Column)> cardsToPlay)
+            IEnumerable<(string CardName, Column Column)> cardsToPlay
+        )
         {
             switch (side)
             {
@@ -148,7 +165,8 @@ namespace Snapdragon.Tests
             IEnumerable<(string CardName, Column Column)> cardsToPlay,
             TestPlayerController controller,
             Side side,
-            Game game)
+            Game game
+        )
         {
             var playerHand = new List<Card>();
             var playerActions = new List<IPlayerAction>();

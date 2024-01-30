@@ -36,7 +36,9 @@ namespace Snapdragon
             var energy = player.Energy;
             var hand = player.Hand;
 
-            var playableCards = hand.Where(c => c.Cost <= energy).OrderBy(c => Random.Next()).ToList();
+            var playableCards = hand.Where(c => c.Cost <= energy)
+                .OrderBy(c => Random.Next())
+                .ToList();
 
             while (playableCards.Count > 0)
             {

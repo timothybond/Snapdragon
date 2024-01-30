@@ -7,20 +7,15 @@ namespace Snapdragon
         Side Side,
         int Energy,
         Library Library,
-        ImmutableList<Card> Hand)
+        ImmutableList<Card> Hand
+    )
     {
         /// <summary>
         /// Constructor only suitable for the start of the game, where the rest of the parameters can be derived from
         /// those passed in.
         /// </summary>
-        public Player(PlayerConfiguration configuration, Side side, bool shuffle = true) : this(
-            configuration,
-            side,
-            0,
-            configuration.Deck.ToLibrary(side, shuffle),
-            [])
-        {
-        }
+        public Player(PlayerConfiguration configuration, Side side, bool shuffle = true)
+            : this(configuration, side, 0, configuration.Deck.ToLibrary(side, shuffle), []) { }
 
         public IPlayerController Controller => this.Configuration.Controller;
 
@@ -32,7 +27,8 @@ namespace Snapdragon
                 var newLibrary = new Library(Library.Cards.RemoveAt(0));
 
                 return new Player(Configuration, Side, Energy, newLibrary, newHand);
-            } else
+            }
+            else
             {
                 return this;
             }

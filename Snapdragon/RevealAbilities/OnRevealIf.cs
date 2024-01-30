@@ -1,6 +1,7 @@
 ﻿namespace Snapdragon.RevealAbilities
 {
-    public record OnRevealIf(ICardCondition Condition, IRevealAbility<Card> TriggeredAbility) : IRevealAbility<Card>
+    public record OnRevealIf(ICardCondition Condition, IRevealAbility<Card> TriggeredAbility)
+        : IRevealAbility<Card>
     {
         public Game Activate(Game game, Card source)
         {

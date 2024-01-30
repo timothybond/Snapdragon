@@ -1,6 +1,4 @@
 ﻿namespace Snapdragon
 {
-    public interface IAbility<T>
-    {
-    }
+    public interface IAbility<T> { }
 }

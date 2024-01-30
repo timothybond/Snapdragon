@@ -5,16 +5,18 @@
         public TemporaryEffect<Card> Build(Game game, Card source)
         {
             var column =
-                source.Column ??
-                throw new InvalidOperationException(
-                    "Attempted to build a temporary effect from a card that isn't in play.");
+                source.Column
+                ?? throw new InvalidOperationException(
+                    "Attempted to build a temporary effect from a card that isn't in play."
+                );
 
             var temporaryEffect = new TemporaryEffect<Card>(
                 Ids.GetNext<TemporaryEffect<Card>>(),
                 column,
                 source.Side,
                 source,
-                null);
+                null
+            );
 
             var ability = AbilityBuilder.Build(game, temporaryEffect);
             temporaryEffect = temporaryEffect with { Ability = ability };

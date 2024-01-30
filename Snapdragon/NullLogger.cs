@@ -5,12 +5,8 @@
     /// </summary>
     public class NullLogger : IGameLogger
     {
-        public void LogEvent(Event e)
-        {
-        }
+        public void LogEvent(Event e) { }
 
-        public void LogGameState(Game game)
-        {
-        }
+        public void LogGameState(Game game) { }
     }
 }

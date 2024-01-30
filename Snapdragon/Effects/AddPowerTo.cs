@@ -10,8 +10,7 @@
         {
             var power = Amount.GetValue(game);
             var cards = game
-                .AllCards
-                .Where(c => Targets.Applies(c, game))
+                .AllCards.Where(c => Targets.Applies(c, game))
                 .Select(c => c with { Power = c.Power + power });
 
             return game.WithCards(cards);

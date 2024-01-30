@@ -28,7 +28,9 @@ public class Genetics
                 {
                     var actualPower = cost + power;
 
-                    cards.Add(new CardDefinition($"{cost}{actualPower}{labels[i]}", cost, actualPower));
+                    cards.Add(
+                        new CardDefinition($"{cost}{actualPower}{labels[i]}", cost, actualPower)
+                    );
                 }
             }
         }
@@ -39,7 +41,10 @@ public class Genetics
     /// <summary>
     /// Gets a random set of <see cref="Deck"/>s drawn from the specified pool of <see cref="CardDefinition"/>s.
     /// </summary>
-    public IReadOnlyList<Deck> GetRandomDecks(IReadOnlyList<CardDefinition> cardDefinitions, int deckCount)
+    public IReadOnlyList<Deck> GetRandomDecks(
+        IReadOnlyList<CardDefinition> cardDefinitions,
+        int deckCount
+    )
     {
         if (deckCount % 4 != 0)
         {
@@ -76,8 +81,8 @@ public class Genetics
             // so it will only pair with itself at that point.
             var secondIndex =
                 indexesRemaining.Count == 1
-                ? indexesRemaining[0]
-                : indexesRemaining.Skip(1 + Random.Next(indexesRemaining.Count - 1)).First();
+                    ? indexesRemaining[0]
+                    : indexesRemaining.Skip(1 + Random.Next(indexesRemaining.Count - 1)).First();
 
             pairs.Add((firstIndex, secondIndex));
 
@@ -98,7 +103,11 @@ public class Genetics
     /// Runs the specified number of games with each <see cref="Deck"/>, pairing them randomly against each other.
     /// </summary>
     /// <returns>The number of wins per each <see cref="Deck"/>.</returns>
-    public IReadOnlyList<int> RunPopulationGames(IReadOnlyList<Deck> decks, Engine engine, int gamesPerDeck = 5)
+    public IReadOnlyList<int> RunPopulationGames(
+        IReadOnlyList<Deck> decks,
+        Engine engine,
+        int gamesPerDeck = 5
+    )
     {
         var pairs = GetRandomPairs(decks.Count, gamesPerDeck);
 
@@ -112,11 +121,13 @@ public class Genetics
             var topPlayerConfig = new PlayerConfiguration(
                 $"Deck {topDeckIndex}",
                 decks[topDeckIndex],
-                new RandomPlayerController());
+                new RandomPlayerController()
+            );
             var bottomPlayerConfig = new PlayerConfiguration(
                 $"Deck {bottomDeckIndex}",
                 decks[bottomDeckIndex],
-                new RandomPlayerController());
+                new RandomPlayerController()
+            );
 
             // TODO: Play game, assign winner, track wins
             var game = engine.CreateGame(topPlayerConfig, bottomPlayerConfig);
@@ -148,7 +159,8 @@ public class Genetics
         IReadOnlyList<int> wins,
         IReadOnlyList<CardDefinition> allPossibleCards,
         int mutationPer = 100,
-        Func<CardDefinition, int>? orderBy = null)
+        Func<CardDefinition, int>? orderBy = null
+    )
     {
         var decksByDescendingWins = decks
             .Select((d, i) => (Deck: d, Wins: wins[i]))
@@ -165,7 +177,14 @@ public class Genetics
         foreach (var pair in pairs)
         {
             nextGeneration.Add(
-                Cross(survivingDecks[pair.First], survivingDecks[pair.Second], allPossibleCards, mutationPer, orderBy));
+                Cross(
+                    survivingDecks[pair.First],
+                    survivingDecks[pair.Second],
+                    allPossibleCards,
+                    mutationPer,
+                    orderBy
+                )
+            );
         }
 
         return nextGeneration;
@@ -173,7 +192,7 @@ public class Genetics
 
     /// <summary>
     /// Gets the "offspring" of two <see cref="Decks"/> by randomly picking one <see cref="CardDefinition"/> from either
-    /// Deck at each position.  Can optionally specify a method to re-order the <see cref="Deck"/>s before crossing. 
+    /// Deck at each position.  Can optionally specify a method to re-order the <see cref="Deck"/>s before crossing.
     /// Also, at each position, there is a random chance of (1 / mutationPer) that it will instead take a random <see
     /// cref="CardDefinition"/> from the entire possible genome instead.
     /// </summary>
@@ -187,7 +206,8 @@ public class Genetics
         Deck second,
         IReadOnlyList<CardDefinition> allPossibleCards,
         int mutationPer = 100,
-        Func<CardDefinition, int>? orderBy = null)
+        Func<CardDefinition, int>? orderBy = null
+    )
     {
         var allPresentCards = first.Cards.Concat(second.Cards).ToList();
         var allPresentCardNames = allPresentCards.Select(c => c.Name).Distinct().ToList();
@@ -211,7 +231,9 @@ public class Genetics
             if (Random.Next(mutationPer) == 0)
             {
                 // "Mutate" - get a random CardDefinition from all cards, instead of the normal logic
-                var mutantGene = Random.Of(allPossibleCards.Where(c => !usedCards.Contains(c.Name)).ToList());
+                var mutantGene = Random.Of(
+                    allPossibleCards.Where(c => !usedCards.Contains(c.Name)).ToList()
+                );
                 newDeckCards.Add(mutantGene);
                 usedCards.Add(mutantGene.Name);
                 continue;
@@ -226,11 +248,13 @@ public class Genetics
 
                 usedCards.Add(choice.Name);
                 newDeckCards.Add(choice);
-            } else if (!usedCards.Contains(f.Name))
+            }
+            else if (!usedCards.Contains(f.Name))
             {
                 usedCards.Add(f.Name);
                 newDeckCards.Add(f);
-            } else if (!usedCards.Contains(s.Name))
+            }
+            else if (!usedCards.Contains(s.Name))
             {
                 usedCards.Add(s.Name);
                 newDeckCards.Add(s);

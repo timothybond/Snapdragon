@@ -9,9 +9,13 @@
     public class ExpiringTriggeredTemporaryEffectBuilder(
         int Turns,
         ITriggerBuilder<TemporaryEffect<Card>> TriggerBuilder,
-        IEffectBuilder<TemporaryEffect<Card>> EffectBuilder) : ITriggeredAbilityBuilder<TemporaryEffect<Card>>
+        IEffectBuilder<TemporaryEffect<Card>> EffectBuilder
+    ) : ITriggeredAbilityBuilder<TemporaryEffect<Card>>
     {
-        public TriggeredAbility<TemporaryEffect<Card>> Build(Game game, TemporaryEffect<Card> source)
+        public TriggeredAbility<TemporaryEffect<Card>> Build(
+            Game game,
+            TemporaryEffect<Card> source
+        )
         {
             var innerTrigger = TriggerBuilder.Build(game, source);
             var innerEffect = EffectBuilder.Build(game, source);

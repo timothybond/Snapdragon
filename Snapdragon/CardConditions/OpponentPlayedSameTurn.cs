@@ -11,12 +11,12 @@ namespace Snapdragon.CardConditions
         public bool IsMet(Game game, Card source)
         {
             var otherCardsPlayed = game
-                .PastEvents
-                .Where(e => e.Turn == game.Turn && e.Type == EventType.CardPlayed)
+                .PastEvents.Where(e => e.Turn == game.Turn && e.Type == EventType.CardPlayed)
                 .Cast<CardPlayedEvent>();
 
-            return otherCardsPlayed.Any(
-                cpe => cpe.Card.Side == source.Side.OtherSide() && cpe.Card.Column == source.Column);
+            return otherCardsPlayed.Any(cpe =>
+                cpe.Card.Side == source.Side.OtherSide() && cpe.Card.Column == source.Column
+            );
         }
     }
 }
