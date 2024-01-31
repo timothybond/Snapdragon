@@ -7,7 +7,7 @@ namespace Snapdragon
         Column Column,
         ImmutableList<Card> TopPlayerCards,
         ImmutableList<Card> BottomPlayerCards,
-        ImmutableList<Sensor<Card>> TemporaryCardEffects,
+        ImmutableList<Sensor<Card>> Sensors,
         bool Revealed = false
     )
     {

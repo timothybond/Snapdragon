@@ -1,6 +1,6 @@
 ﻿namespace Snapdragon.Sensors
 {
-    public record ExpiringTemporaryEffectTriggeredAbility(
+    public record ExpiringSensorTriggeredAbility(
         int Turn,
         Sensor<Card> Source,
         TriggeredSensorAbility<Sensor<Card>> Inner

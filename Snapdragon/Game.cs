@@ -1,6 +1,6 @@
-﻿using Snapdragon.Events;
+﻿using System.Collections.Immutable;
+using Snapdragon.Events;
 using Snapdragon.OngoingAbilities;
-using System.Collections.Immutable;
 
 namespace Snapdragon
 {
@@ -74,7 +74,7 @@ namespace Snapdragon
         public IEnumerable<Card> AllCardsIncludingUnrevealed =>
             this.Left.AllCards.Concat(this.Middle.AllCards).Concat(this.Right.AllCards);
 
-        public IEnumerable<Sensor<Card>> AllCardTemporaryEffects =>
+        public IEnumerable<Sensor<Card>> AllSensors =>
             this
                 .Left.TemporaryCardEffects.Concat(this.Middle.TemporaryCardEffects)
                 .Concat(this.Right.TemporaryCardEffects);
@@ -581,7 +581,7 @@ namespace Snapdragon
                 }
             }
 
-            foreach (var temporaryCardEffect in AllCardTemporaryEffects)
+            foreach (var temporaryCardEffect in AllSensors)
             {
                 game = temporaryCardEffect.Ability?.ProcessEvent(game, nextEvent) ?? game;
             }

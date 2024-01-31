@@ -1,10 +1,10 @@
 ﻿namespace Snapdragon.TargetFilters
 {
-    public class ParentCard(Sensor<Card> TemporaryEffect) : ICardFilter
+    public class ParentCard(Sensor<Card> Sensor) : ICardFilter
     {
         public bool Applies(Card card, Game game)
         {
-            return (card.Id == TemporaryEffect.Source.Id);
+            return (card.Id == Sensor.Source.Id);
         }
     }
 }

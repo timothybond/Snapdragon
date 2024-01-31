@@ -10,7 +10,7 @@
                     "Attempted to build a temporary effect from a card that isn't in play."
                 );
 
-            var temporaryEffect = new Sensor<Card>(
+            var sensor = new Sensor<Card>(
                 Ids.GetNext<Sensor<Card>>(),
                 column,
                 source.Side,
@@ -18,10 +18,10 @@
                 null
             );
 
-            var ability = AbilityBuilder.Build(game, temporaryEffect);
-            temporaryEffect = temporaryEffect with { Ability = ability };
+            var ability = AbilityBuilder.Build(game, sensor);
+            sensor = sensor with { Ability = ability };
 
-            return temporaryEffect;
+            return sensor;
         }
     }
 }
