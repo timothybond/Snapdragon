@@ -338,6 +338,7 @@ namespace Snapdragon
 
             game = game.EndTurn();
             game = game.ProcessEvents();
+            game = game.RecalculateOngoingEffects();
 
             this.Logger.LogGameState(game);
 
@@ -537,8 +538,7 @@ namespace Snapdragon
 
         /// <summary>
         /// Processes any <see cref="Event"/>s in the <see cref="Game.NewEvents"/> list, moving them to the <see
-        /// cref="Game.PastEvents"/> list when finished. Also has the side effect of recalculating the current power of
-        /// all <see cref="Card"/>s.
+        /// cref="Game.PastEvents"/> list when finished.
         /// </summary>
         /// <returns>The new state with the appropriate changes applied.</returns>
         public Game ProcessEvents()
@@ -549,8 +549,6 @@ namespace Snapdragon
             {
                 game = game.ProcessNextEvent();
             }
-
-            game = game.RecalculateOngoingEffects();
 
             return game;
         }
@@ -575,7 +573,10 @@ namespace Snapdragon
             // TODO: Determine if we need to stack-order events for triggers
             foreach (var cardWithTrigger in AllCards.Where(c => c.Triggered != null))
             {
-                game = cardWithTrigger.Triggered?.ProcessEvent(game, nextEvent) ?? game;
+                if (cardWithTrigger.State == CardState.InPlay)
+                {
+                    game = cardWithTrigger.Triggered?.ProcessEvent(game, nextEvent) ?? game;
+                }
             }
 
             foreach (var temporaryCardEffect in AllCardTemporaryEffects)

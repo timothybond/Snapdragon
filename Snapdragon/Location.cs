@@ -30,8 +30,7 @@ namespace Snapdragon
             }
         }
 
-        public IReadOnlyList<Card> AllCards =>
-            this.TopPlayerCards.Concat(this.BottomPlayerCards).ToList();
+        public IEnumerable<Card> AllCards => this.TopPlayerCards.Concat(this.BottomPlayerCards);
 
         public Location WithPlayedCard(Card card, Side side)
         {

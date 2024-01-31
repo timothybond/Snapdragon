@@ -111,39 +111,53 @@ public abstract class Genetics<T>
 
         var totalGamesWon = population.Select(d => 0).ToList();
 
-        foreach (var pair in pairs)
-        {
-            var topIndex = pair.First;
-            var bottomIndex = pair.Second;
-
-            var topPlayerConfig = this.GetPlayerConfiguration(population[topIndex], topIndex);
-            var bottomPlayerConfig = this.GetPlayerConfiguration(
-                population[bottomIndex],
-                bottomIndex
-            );
-
-            var game = engine.CreateGame(topPlayerConfig, bottomPlayerConfig);
-            game = game.PlayGame();
-
-            // For the moment we will only count victories, not ties.
-            var winner = game.GetLeader();
-            if (winner != null)
+        Parallel.ForEach(
+            pairs,
+            pair =>
             {
-                switch (winner)
+                var winner = PlayGameAndGetWinnerIndex(population, pair);
+                if (winner >= 0)
                 {
-                    case Side.Top:
-                        totalGamesWon[topIndex] += 1;
-                        break;
-                    case Side.Bottom:
-                        totalGamesWon[bottomIndex] += 1;
-                        break;
-                    default:
-                        throw new NotImplementedException();
+                    lock (totalGamesWon)
+                    {
+                        totalGamesWon[winner] += 1;
+                    }
                 }
+            }
+        );
+
+        return totalGamesWon;
+    }
+
+    private int PlayGameAndGetWinnerIndex(IReadOnlyList<T> population, (int First, int Second) pair)
+    {
+        var engine = new Engine(new NullLogger());
+
+        var topIndex = pair.First;
+        var bottomIndex = pair.Second;
+
+        var topPlayerConfig = this.GetPlayerConfiguration(population[topIndex], topIndex);
+        var bottomPlayerConfig = this.GetPlayerConfiguration(population[bottomIndex], bottomIndex);
+
+        var game = engine.CreateGame(topPlayerConfig, bottomPlayerConfig);
+        game = game.PlayGame();
+
+        // For the moment we will only count victories, not ties.
+        var winner = game.GetLeader();
+        if (winner != null)
+        {
+            switch (winner)
+            {
+                case Side.Top:
+                    return topIndex;
+                case Side.Bottom:
+                    return bottomIndex;
+                default:
+                    throw new NotImplementedException();
             }
         }
 
-        return totalGamesWon;
+        return -1;
     }
 
     public IReadOnlyList<T> ReproducePopulation(

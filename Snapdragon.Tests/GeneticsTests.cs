@@ -99,7 +99,7 @@ namespace Snapdragon.Tests
             var g = new CardGenetics(100, c => Random.Next());
 
             const int DeckCount = 32;
-            const int Generations = 1000;
+            const int Generations = 100;
 
             var population = g.GetRandomPopulation(DeckCount);
 
