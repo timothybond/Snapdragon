@@ -21,7 +21,7 @@ namespace Snapdragon
 
         public Player DrawCard()
         {
-            if (Library.Count > 0)
+            if (Library.Count > 0 && Hand.Count < 7)
             {
                 var newHand = Hand.Add(Library[0]);
                 var newLibrary = new Library(Library.Cards.RemoveAt(0));
