@@ -24,6 +24,7 @@ namespace Snapdragon
                 null,
                 new OngoingAdjustPower<Card>(new SelfIfLocationFull(), new ConstantPower(3))
             ),
+            new("Agent 13", 1, 2, new AddRandomCardToHand()),
             new("Misty Knight", 1, 2),
             new(
                 "Rocket Raccoon",
@@ -46,6 +47,14 @@ namespace Snapdragon
                 2,
                 2,
                 new OnRevealIf(new OpponentPlayedSameTurn(), new AddPowerSelf(3))
+            ),
+            new(
+                "Agent Coulson",
+                3,
+                4,
+                new AddRandomCardToHand(new CardDefinitionFilters.CardsWithCost(4)).And(
+                    new AddRandomCardToHand(new CardDefinitionFilters.CardsWithCost(5))
+                )
             ),
             new("Cyclops", 3, 4),
             new(
@@ -72,18 +81,25 @@ namespace Snapdragon
                     )
                 )
             ),
-            new("Gamora", 5, 7, new OnRevealIf(new OpponentPlayedSameTurn(), new AddPowerSelf(5))),
             new(
                 "Ka-Zar",
                 4,
                 4,
                 null,
                 new OngoingAdjustPower<Card>(
-                    new CardsWithCost(1).And(new SameSide()),
+                    new TargetFilters.CardsWithCost(1).And(new SameSide()),
                     new ConstantPower(1)
                 )
             ),
             new("The Thing", 4, 6),
+            new CardDefinition(
+                "Jessica Jones",
+                4,
+                5,
+                new CreateTemporaryEffect(
+                    new(new(new NoCardPlayedHereNextTurn(), new GiveParentPowerBuilder(4)))
+                )
+            ),
             new CardDefinition(
                 "Blue Marvel",
                 5,
@@ -94,14 +110,7 @@ namespace Snapdragon
                     new ConstantPower(1)
                 )
             ),
-            new CardDefinition(
-                "Jessica Jones",
-                4,
-                5,
-                new CreateTemporaryEffect(
-                    new(new(new NoCardPlayedHereNextTurn(), new GiveParentPowerBuilder(4)))
-                )
-            ),
+            new("Gamora", 5, 7, new OnRevealIf(new OpponentPlayedSameTurn(), new AddPowerSelf(5))),
             new(
                 "Klaw",
                 5,
