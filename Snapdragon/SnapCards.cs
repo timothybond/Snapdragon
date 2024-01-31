@@ -42,6 +42,12 @@ namespace Snapdragon
                     new(new(new CardPlayedHereNextTurn(), new GiveParentPowerBuilder(3)))
                 )
             ),
+            new(
+                "Mantis",
+                2,
+                2,
+                new OnRevealIf(new OpponentPlayedSameTurn(), new DrawOpponentCard())
+            ),
             new("Medusa", 2, 2, new OnRevealIf(new InLocation(Column.Middle), new AddPowerSelf(3))),
             new("Shocker", 2, 3),
             new(
@@ -74,6 +80,7 @@ namespace Snapdragon
                 null,
                 new TriggeredAbility<Card>(new OnPlayCardSameSide(), new AddPowerToSource(1))
             ),
+            new("Cable", 3, 4, new DrawOpponentCard()),
             new("Cyclops", 3, 4),
             new(
                 "Ironheart",

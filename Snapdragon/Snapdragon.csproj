@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <Folder Include="CardAbilities\" />
+    <Folder Include="HandFilters\" />
   </ItemGroup>
 
 </Project>

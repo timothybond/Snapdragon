@@ -6,8 +6,8 @@
     ) : ITriggeredAbility<T>
     {
         public bool InHand => false;
-
         public bool InDeck => false;
+        public bool DiscardedOrDestroyed => false;
 
         public Game ProcessEvent(Game game, Event e, T source)
         {

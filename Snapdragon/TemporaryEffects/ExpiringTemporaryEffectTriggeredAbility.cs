@@ -9,6 +9,7 @@
         // TODO: See if we can remove the need for these
         public bool InHand => false;
         public bool InDeck => false;
+        public bool DiscardedOrDestroyed => false;
 
         public Game ProcessEvent(Game game, Event e)
         {

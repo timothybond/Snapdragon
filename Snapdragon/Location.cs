@@ -46,6 +46,34 @@ namespace Snapdragon
             }
         }
 
+        /// <summary>
+        /// Removes a given <see cref="Card"/> from the Location.
+        ///
+        /// Note that this does not apply any other game logic - it should be called
+        /// by something that's orchestrating whatever is supposed to happen with the <see cref="Card"/>.
+        ///
+        /// Note also that the <see cref="Card"/> is matched by Id to ensure nothing weird happens.
+        /// </summary>
+        public Location WithRemovedCard(Card card)
+        {
+            // TODO: Consider checking that the Card.State is correct
+            switch (card.Side)
+            {
+                case Side.Top:
+                    return this with
+                    {
+                        TopPlayerCards = this.TopPlayerCards.RemoveAll(c => c.Id == card.Id)
+                    };
+                case Side.Bottom:
+                    return this with
+                    {
+                        BottomPlayerCards = this.BottomPlayerCards.RemoveAll(c => c.Id == card.Id)
+                    };
+                default:
+                    throw new NotImplementedException();
+            }
+        }
+
         public Location WithTemporaryCardEffect(TemporaryEffect<Card> temporaryCardEffect)
         {
             return this with

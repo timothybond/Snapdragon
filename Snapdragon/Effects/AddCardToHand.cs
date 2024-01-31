@@ -1,7 +1,7 @@
 ﻿namespace Snapdragon.Effects
 {
     /// <summary>
-    /// Effect that adds a specific card to the given player's hand.
+    /// Adds a specific card to the given player's hand.
     /// </summary>
     public record AddCardToHand(CardDefinition Definition, Side Side) : IEffect
     {

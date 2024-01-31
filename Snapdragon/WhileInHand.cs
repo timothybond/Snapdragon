@@ -8,6 +8,7 @@
     {
         public bool InHand => true;
         public bool InDeck => false;
+        public bool DiscardedOrDestroyed => false;
 
         public Game ProcessEvent(Game game, Event e, Card source)
         {

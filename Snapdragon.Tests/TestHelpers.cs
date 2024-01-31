@@ -1,5 +1,5 @@
-﻿using System.Collections.Immutable;
-using Snapdragon.PlayerActions;
+﻿using Snapdragon.PlayerActions;
+using System.Collections.Immutable;
 
 namespace Snapdragon.Tests
 {
@@ -94,7 +94,6 @@ namespace Snapdragon.Tests
                 );
             }
 
-            var engine = new Engine(new NullLogger());
             var topController = new TestPlayerController();
             var bottomController = new TestPlayerController();
 
