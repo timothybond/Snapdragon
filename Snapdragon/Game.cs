@@ -1,6 +1,6 @@
-﻿using System.Collections.Immutable;
-using Snapdragon.Events;
+﻿using Snapdragon.Events;
 using Snapdragon.OngoingAbilities;
+using System.Collections.Immutable;
 
 namespace Snapdragon
 {
@@ -74,7 +74,7 @@ namespace Snapdragon
         public IEnumerable<Card> AllCardsIncludingUnrevealed =>
             this.Left.AllCards.Concat(this.Middle.AllCards).Concat(this.Right.AllCards);
 
-        public IEnumerable<TemporaryEffect<Card>> AllCardTemporaryEffects =>
+        public IEnumerable<Sensor<Card>> AllCardTemporaryEffects =>
             this
                 .Left.TemporaryCardEffects.Concat(this.Middle.TemporaryCardEffects)
                 .Concat(this.Right.TemporaryCardEffects);
@@ -151,10 +151,10 @@ namespace Snapdragon
         }
 
         /// <summary>
-        /// Gets a modified state with the given <see cref="TemporaryEffect{Card}"/>.  Note that unlike <see
+        /// Gets a modified state with the given <see cref="Sensor{Card}"/>.  Note that unlike <see
         /// cref="WithCard(Card)"/>, this adds a new effect rather than modifying an existing one.
         /// </summary>
-        public Game WithTemporaryCardEffect(TemporaryEffect<Card> temporaryCardEffect)
+        public Game WithTemporaryCardEffect(Sensor<Card> temporaryCardEffect)
         {
             var location = this[temporaryCardEffect.Column];
 
@@ -162,7 +162,7 @@ namespace Snapdragon
         }
 
         /// <summary>
-        /// Gets a modified state with the given <see cref="TemporaryEffect{Card}"/>.  Note that unlike <see
+        /// Gets a modified state with the given <see cref="Sensor{Card}"/>.  Note that unlike <see
         /// cref="WithCard(Card)"/>, this adds a new effect rather than modifying an existing one.
         /// </summary>
         public Game WithTemporaryCardEffectDeleted(int temporaryCardEffectId)

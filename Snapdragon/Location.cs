@@ -7,7 +7,7 @@ namespace Snapdragon
         Column Column,
         ImmutableList<Card> TopPlayerCards,
         ImmutableList<Card> BottomPlayerCards,
-        ImmutableList<TemporaryEffect<Card>> TemporaryCardEffects,
+        ImmutableList<Sensor<Card>> TemporaryCardEffects,
         bool Revealed = false
     )
     {
@@ -74,7 +74,7 @@ namespace Snapdragon
             }
         }
 
-        public Location WithTemporaryCardEffect(TemporaryEffect<Card> temporaryCardEffect)
+        public Location WithTemporaryCardEffect(Sensor<Card> temporaryCardEffect)
         {
             return this with
             {

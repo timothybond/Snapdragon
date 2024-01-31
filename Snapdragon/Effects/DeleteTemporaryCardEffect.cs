@@ -1,6 +1,6 @@
 ﻿namespace Snapdragon.Effects
 {
-    public record DeleteTemporaryCardEffect(TemporaryEffect<Card> TemporaryCardEffect) : IEffect
+    public record DeleteTemporaryCardEffect(Sensor<Card> TemporaryCardEffect) : IEffect
     {
         public Game Apply(Game game)
         {

@@ -1,8 +1,8 @@
-﻿namespace Snapdragon.TemporaryEffects
+﻿namespace Snapdragon.Sensors
 {
-    public record TemporaryEffectBuilder(TemporaryEffectTriggeredAbilityBuilder AbilityBuilder)
+    public record SensorBuilder(SensorTriggeredAbilityBuilder AbilityBuilder)
     {
-        public TemporaryEffect<Card> Build(Game game, Card source)
+        public Sensor<Card> Build(Game game, Card source)
         {
             var column =
                 source.Column
@@ -10,8 +10,8 @@
                     "Attempted to build a temporary effect from a card that isn't in play."
                 );
 
-            var temporaryEffect = new TemporaryEffect<Card>(
-                Ids.GetNext<TemporaryEffect<Card>>(),
+            var temporaryEffect = new Sensor<Card>(
+                Ids.GetNext<Sensor<Card>>(),
                 column,
                 source.Side,
                 source,

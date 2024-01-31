@@ -1,7 +1,7 @@
 ﻿namespace Snapdragon
 {
-    public record TriggeredEffectAbility<T>(ITrigger Trigger, IEffect Effect)
-        : ITriggeredEffectAbility
+    public record TriggeredSensorAbility<T>(ITrigger Trigger, IEffect Effect)
+        : ITriggeredSensorAbility
     {
         public Game ProcessEvent(Game game, Event e)
         {

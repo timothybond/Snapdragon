@@ -1,11 +1,11 @@
 ﻿using Snapdragon.Events;
 using Snapdragon.Triggers;
 
-namespace Snapdragon.TemporaryEffects
+namespace Snapdragon.Sensors
 {
-    public record NoCardPlayedHereNextTurn : ITriggerBuilder<TemporaryEffect<Card>>
+    public record NoCardPlayedHereNextTurn : ITriggerBuilder<Sensor<Card>>
     {
-        public ITrigger Build(Game game, TemporaryEffect<Card> source)
+        public ITrigger Build(Game game, Sensor<Card> source)
         {
             var location = source.Column;
             var side = source.Side;

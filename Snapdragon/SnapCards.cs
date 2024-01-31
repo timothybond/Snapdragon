@@ -4,8 +4,8 @@ using Snapdragon.CardTriggers;
 using Snapdragon.LocationFilters;
 using Snapdragon.OngoingAbilities;
 using Snapdragon.RevealAbilities;
+using Snapdragon.Sensors;
 using Snapdragon.TargetFilters;
-using Snapdragon.TemporaryEffects;
 using Snapdragon.TriggeredEffects;
 
 namespace Snapdragon
@@ -38,7 +38,7 @@ namespace Snapdragon
                 "Hawkeye",
                 1,
                 1,
-                new CreateTemporaryEffect(
+                new CreateSensor(
                     new(new(new CardPlayedHereNextTurn(), new GiveParentPowerBuilder(3)))
                 )
             ),
@@ -121,7 +121,7 @@ namespace Snapdragon
                 "Jessica Jones",
                 4,
                 5,
-                new CreateTemporaryEffect(
+                new CreateSensor(
                     new(new(new NoCardPlayedHereNextTurn(), new GiveParentPowerBuilder(4)))
                 )
             ),

@@ -1,11 +1,11 @@
 ﻿using Snapdragon.Effects;
 
-namespace Snapdragon.TemporaryEffects
+namespace Snapdragon.Sensors
 {
-    public class DeleteOnTrigger(IEffectBuilder<TemporaryEffect<Card>> EffectBuilder)
-        : IEffectBuilder<TemporaryEffect<Card>>
+    public class DeleteOnTrigger(IEffectBuilder<Sensor<Card>> EffectBuilder)
+        : IEffectBuilder<Sensor<Card>>
     {
-        public IEffect Build(Game game, TemporaryEffect<Card> source)
+        public IEffect Build(Game game, Sensor<Card> source)
         {
             var baseEffect = EffectBuilder.Build(game, source);
             var deleteEffect = new DeleteTemporaryCardEffect(source);

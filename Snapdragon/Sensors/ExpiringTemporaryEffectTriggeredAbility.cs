@@ -1,10 +1,10 @@
-﻿namespace Snapdragon.TemporaryEffects
+﻿namespace Snapdragon.Sensors
 {
     public record ExpiringTemporaryEffectTriggeredAbility(
         int Turn,
-        TemporaryEffect<Card> Source,
-        TriggeredEffectAbility<TemporaryEffect<Card>> Inner
-    ) : ITriggeredAbility<TemporaryEffect<Card>>
+        Sensor<Card> Source,
+        TriggeredSensorAbility<Sensor<Card>> Inner
+    ) : ITriggeredAbility<Sensor<Card>>
     {
         // TODO: See if we can remove the need for these
         public bool InHand => false;
@@ -24,7 +24,7 @@
             return game;
         }
 
-        public Game ProcessEvent(Game game, Event e, TemporaryEffect<Card> source)
+        public Game ProcessEvent(Game game, Event e, Sensor<Card> source)
         {
             throw new NotImplementedException();
         }

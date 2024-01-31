@@ -1,6 +1,6 @@
-﻿namespace Snapdragon.TemporaryEffects
+﻿namespace Snapdragon.Sensors
 {
-    public record CreateTemporaryEffect(TemporaryEffectBuilder Builder) : IRevealAbility<Card>
+    public record CreateSensor(SensorBuilder Builder) : IRevealAbility<Card>
     {
         public Game Activate(Game game, Card source)
         {
