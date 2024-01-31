@@ -4,7 +4,7 @@
     {
         public Player ToPlayer(Side side, bool shuffle = true)
         {
-            return new Player(this, side, 0, Deck.ToLibrary(side, shuffle), []);
+            return new Player(this, side, 0, Deck.ToLibrary(side, shuffle), [], [], []);
         }
     }
 }

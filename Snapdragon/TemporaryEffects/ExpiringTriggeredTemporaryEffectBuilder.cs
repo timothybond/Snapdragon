@@ -12,7 +12,7 @@
         IEffectBuilder<TemporaryEffect<Card>> EffectBuilder
     ) : ITriggeredAbilityBuilder<TemporaryEffect<Card>>
     {
-        public TriggeredAbility<TemporaryEffect<Card>> Build(
+        public TriggeredEffectAbility<TemporaryEffect<Card>> Build(
             Game game,
             TemporaryEffect<Card> source
         )

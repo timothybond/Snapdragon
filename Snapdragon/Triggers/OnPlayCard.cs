@@ -3,7 +3,9 @@
 namespace Snapdragon.Triggers
 {
     /// <summary>
-    /// A trigger that fires when a card is played.  If specified, the attributes narrow down what card plays actually
+    /// A trigger that fires when a card is played.
+    ///
+    /// If specified, the attributes narrow down what card plays actually
     /// fire the trigger.
     /// </summary>
     /// <param name="Column"></param>

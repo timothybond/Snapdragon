@@ -16,7 +16,9 @@
                 Side.Top,
                 4,
                 new Library([]),
-                [oneOne, oneTwo, twoOne, twoTwo]
+                [oneOne, oneTwo, twoOne, twoTwo],
+                [],
+                []
             );
 
             var playableCardSets = ControllerUtilities.GetPlayableCardSets(player);

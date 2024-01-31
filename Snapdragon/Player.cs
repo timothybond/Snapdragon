@@ -7,7 +7,9 @@ namespace Snapdragon
         Side Side,
         int Energy,
         Library Library,
-        ImmutableList<Card> Hand
+        ImmutableList<Card> Hand,
+        ImmutableList<Card> Discards,
+        ImmutableList<Card> Destroyed
     )
     {
         /// <summary>
@@ -15,7 +17,8 @@ namespace Snapdragon
         /// those passed in.
         /// </summary>
         public Player(PlayerConfiguration configuration, Side side, bool shuffle = true)
-            : this(configuration, side, 0, configuration.Deck.ToLibrary(side, shuffle), []) { }
+            : this(configuration, side, 0, configuration.Deck.ToLibrary(side, shuffle), [], [], [])
+        { }
 
         public IPlayerController Controller => this.Configuration.Controller;
 
@@ -26,7 +29,11 @@ namespace Snapdragon
                 var newHand = Hand.Add(Library[0]);
                 var newLibrary = new Library(Library.Cards.RemoveAt(0));
 
-                return new Player(Configuration, Side, Energy, newLibrary, newHand);
+                return this with
+                {
+                    Hand = newHand,
+                    Library = newLibrary
+                };
             }
             else
             {

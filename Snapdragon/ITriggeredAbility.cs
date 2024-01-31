@@ -2,6 +2,9 @@
 {
     public interface ITriggeredAbility<T> : IAbility<T>
     {
-        Game ProcessEvent(Game game, Event e);
+        bool InHand { get; }
+        bool InDeck { get; }
+
+        Game ProcessEvent(Game game, Event e, T source);
     }
 }

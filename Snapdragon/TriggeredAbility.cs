@@ -1,12 +1,20 @@
 ﻿namespace Snapdragon
 {
-    public record TriggeredAbility<T>(ITrigger Trigger, IEffect Effect) : ITriggeredAbility<T>
+    public record TriggeredAbility<T>(
+        ITrigger<T> Trigger,
+        ISourceTriggeredEffectBuilder<T> EffectBuilder
+    ) : ITriggeredAbility<T>
     {
-        public Game ProcessEvent(Game game, Event e)
+        public bool InHand => false;
+
+        public bool InDeck => false;
+
+        public Game ProcessEvent(Game game, Event e, T source)
         {
-            if (this.Trigger.IsMet(e, game))
+            if (this.Trigger.IsMet(e, game, source))
             {
-                return this.Effect.Apply(game);
+                var effect = EffectBuilder.Build(game, e, source);
+                return effect.Apply(game);
             }
 
             return game;

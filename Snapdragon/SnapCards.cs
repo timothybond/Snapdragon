@@ -1,10 +1,12 @@
 ﻿using Snapdragon.Calculations;
 using Snapdragon.CardConditions;
+using Snapdragon.CardTriggers;
 using Snapdragon.LocationFilters;
 using Snapdragon.OngoingAbilities;
 using Snapdragon.RevealAbilities;
 using Snapdragon.TargetFilters;
 using Snapdragon.TemporaryEffects;
+using Snapdragon.TriggeredEffects;
 
 namespace Snapdragon
 {
@@ -49,12 +51,28 @@ namespace Snapdragon
                 new OnRevealIf(new OpponentPlayedSameTurn(), new AddPowerSelf(3))
             ),
             new(
+                "Angela",
+                2,
+                2,
+                null,
+                null,
+                new TriggeredAbility<Card>(new OnPlayCardHereSameSide(), new AddPowerToSource(1))
+            ),
+            new(
                 "Agent Coulson",
                 3,
                 4,
                 new AddRandomCardToHand(new CardDefinitionFilters.CardsWithCost(4)).And(
                     new AddRandomCardToHand(new CardDefinitionFilters.CardsWithCost(5))
                 )
+            ),
+            new(
+                "Bishop",
+                3,
+                1,
+                null,
+                null,
+                new TriggeredAbility<Card>(new OnPlayCardSameSide(), new AddPowerToSource(1))
             ),
             new("Cyclops", 3, 4),
             new(

@@ -5,6 +5,6 @@
         Column Column,
         Side Side,
         T Source,
-        ITriggeredAbility<TemporaryEffect<T>>? Ability
+        ITriggeredEffectAbility? Ability
     ) { }
 }

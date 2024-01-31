@@ -575,7 +575,9 @@ namespace Snapdragon
             {
                 if (cardWithTrigger.State == CardState.InPlay)
                 {
-                    game = cardWithTrigger.Triggered?.ProcessEvent(game, nextEvent) ?? game;
+                    game =
+                        cardWithTrigger.Triggered?.ProcessEvent(game, nextEvent, cardWithTrigger)
+                        ?? game;
                 }
             }
 
