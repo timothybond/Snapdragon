@@ -23,6 +23,64 @@ namespace Snapdragon.Tests
         }
 
         [Test]
+        public void ControllerPopulationTest()
+        {
+            var g = new CardAndControllerGenetics(100, c => Random.Next());
+
+            const int DeckCount = 4;
+            const int Generations = 1;
+
+            var population = g.GetRandomPopulation(DeckCount);
+
+            var engine = new Engine(new NullLogger());
+
+            for (var i = 0; i < Generations; i++)
+            {
+                var wins = g.RunPopulationGames(population, engine, 2);
+                population = g.ReproducePopulation(population, wins);
+            }
+
+            var monteCarloControllers = population
+                .Where(p => p.Controller.Controller is MonteCarloSearchController)
+                .Count();
+
+            var cardCounts = new Dictionary<string, int>();
+
+            foreach (var sequence in population)
+            {
+                foreach (var card in sequence.Cards.Cards)
+                {
+                    // Card names are ##A, where A (actually A-L) is just to distinguish copies as "unique".
+                    // We only care about the numbers, which are Cost and Power.
+                    var relevantName = card.Name.Substring(0, 2);
+
+                    if (!cardCounts.ContainsKey(relevantName))
+                    {
+                        cardCounts[relevantName] = 0;
+                    }
+
+                    cardCounts[relevantName] += 1;
+                }
+            }
+
+            var keys = cardCounts.Keys.OrderBy(k => k).ToList();
+
+            var results = new StringBuilder();
+            results.AppendLine(
+                $"Monte Carlo Controllers: {monteCarloControllers} / {population.Count}."
+            );
+            results.AppendLine();
+
+            foreach (var key in keys)
+            {
+                results.AppendLine($"Card {key}: {cardCounts[key]}");
+            }
+
+            Assert.That(population.Count, Is.EqualTo(DeckCount));
+            Assert.Pass(results.ToString());
+        }
+
+        [Test]
         public void PopulationTest()
         {
             // This is just a basic sanity check of the genetic algorithm.
@@ -38,10 +96,10 @@ namespace Snapdragon.Tests
             //
             // Note also that because this test can take a long time to run if you do
             // a lot of generations, by default it is set to only run a few.
-            var g = new CardGenetics(1000, c => Random.Next());
+            var g = new CardGenetics(100, c => Random.Next());
 
             const int DeckCount = 32;
-            const int Generations = 10;
+            const int Generations = 1000;
 
             var population = g.GetRandomPopulation(DeckCount);
 

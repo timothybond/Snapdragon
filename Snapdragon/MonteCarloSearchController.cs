@@ -15,8 +15,8 @@
 
         public IReadOnlyList<IPlayerAction> GetActions(Game game, Side side)
         {
-            List<IReadOnlyList<IPlayerAction>> bestActionSets =
-                new List<IReadOnlyList<IPlayerAction>>();
+            IReadOnlyList<IPlayerAction> noActions = new List<IPlayerAction>();
+            var bestActionSets = new List<IReadOnlyList<IPlayerAction>> { noActions };
             var bestActionVictories = 0;
 
             var possibleActionLists = ControllerUtilities.GetPossibleActionSets(game, side);
@@ -86,6 +86,8 @@
                 Top = game.Top.WithController(topController),
                 Bottom = game.Bottom.WithController(bottomController)
             };
+
+            game = game.PlayAlreadyStartedTurn();
 
             while (!game.GameOver)
             {

@@ -314,22 +314,17 @@ namespace Snapdragon
         }
 
         /// <summary>
-        /// Processes a single Turn, including all <see cref="Player"/> actions and any triggered effects.
+        /// Somewhat-weird method that plays a turn from the state after <see cref="StartNextTurn"/> is called.
+        ///
+        /// This normally will be called inside <see cref="PlaySingleTurn"/>, but is exposed because
+        /// it's useful for any <see cref="IPlayerController"/> that might explore future pathways
+        /// off of the current state, and therefore need to be able to play without duplicatively
+        /// triggering the start-of-turn logic.
         /// </summary>
-        /// <returns>The <see cref="Game"/> at the end of the new Turn.</returns>
-        public Game PlaySingleTurn()
+        /// <returns></returns>
+        public Game PlayAlreadyStartedTurn()
         {
-            var lastTurn = this.Turn;
-
-            // Don't continue if the game is over.
-            // TODO: Consider throwing an error
-            if (lastTurn >= 6)
-            {
-                // TODO: Allow for abilities that alter the number of turns
-                return this;
-            }
-
-            var game = this.StartNextTurn();
+            var game = this;
 
             // Get player actions
             var topPlayerActions = game.Top.Controller.GetActions(game, Side.Top);
@@ -355,6 +350,29 @@ namespace Snapdragon
             // Get which player to resolve first next turn
             var firstRevealed = game.GetLeader() ?? Random.Side();
             return game with { FirstRevealed = firstRevealed };
+        }
+
+        /// <summary>
+        /// Processes a single Turn, including all <see cref="Player"/> actions and any triggered effects.
+        /// </summary>
+        /// <returns>The <see cref="Game"/> at the end of the new Turn.</returns>
+        public Game PlaySingleTurn()
+        {
+            var lastTurn = this.Turn;
+
+            // Don't continue if the game is over.
+            // TODO: Consider throwing an error
+            if (lastTurn >= 6)
+            {
+                // TODO: Allow for abilities that alter the number of turns
+                return this;
+            }
+
+            var game = this.StartNextTurn();
+
+            game = game.PlayAlreadyStartedTurn();
+
+            return game;
         }
 
         Game ProcessPlayerActions(

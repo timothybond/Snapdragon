@@ -6,7 +6,6 @@ namespace Snapdragon.GeneticAlgorithm
     {
         private readonly int mutationPer;
         private readonly Func<CardDefinition, int>? orderBy;
-
         private readonly IReadOnlyList<CardDefinition> allPossibleCards;
 
         public CardGenetics(int mutationPer = 100, Func<CardDefinition, int>? orderBy = null)

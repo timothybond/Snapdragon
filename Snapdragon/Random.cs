@@ -36,6 +36,11 @@
 
         public static T Of<T>(IReadOnlyList<T> items)
         {
+            if (items.Count == 0)
+            {
+                throw new ArgumentException("Tried to get a random item from an empty list.");
+            }
+
             var index = random.Next(items.Count);
             return items[index];
         }
