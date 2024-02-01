@@ -6,14 +6,19 @@ namespace Snapdragon.RevealAbilities
         : IRevealAbility<Card>
     {
         public AddPower(ICardFilter<Card> Filter, int Power)
-            : this(Filter, new ConstantPower(Power)) { }
+            : this(Filter, new ConstantPower<Card>(Power)) { }
 
         public Game Activate(Game game, Card source)
         {
-            var cards = game
-                .AllCards.Where(c => Filter.Applies(c, source, game))
-                .Select(c => c with { Power = c.Power + Power.GetValue(game, source, c) });
-            return game.WithCards(cards);
+            var cards = game.AllCards.Where(c => Filter.Applies(c, source, game));
+
+            var effects = cards.Select(c =>
+            {
+                var power = Power.GetValue(game, source, c);
+                return new Effects.AddPowerToCard(c, power);
+            });
+
+            return effects.Aggregate(game, (g, e) => e.Apply(g));
         }
     }
 }

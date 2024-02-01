@@ -10,7 +10,21 @@
                 return null;
             }
 
-            return Amount.GetValue(game, source, target);
+            var blockedEffects = game.GetBlockedEffects(target);
+
+            if (blockedEffects.Contains(EffectType.AdjustPower))
+            {
+                return null;
+            }
+
+            var amount = Amount.GetValue(game, source, target);
+
+            if (amount < 0 && blockedEffects.Contains(EffectType.ReducePower))
+            {
+                return null;
+            }
+
+            return amount;
         }
     }
 }

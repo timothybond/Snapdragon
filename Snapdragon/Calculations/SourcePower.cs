@@ -1,8 +1,8 @@
 ﻿namespace Snapdragon.Calculations
 {
-    public record ConstantPower(int Value) : IPowerCalculation<Card>
+    public record ConstantPower<T>(int Value) : IPowerCalculation<T>
     {
-        public int GetValue(Game game, Card source, Card target)
+        public int GetValue(Game game, T source, Card target)
         {
             return this.Value;
         }

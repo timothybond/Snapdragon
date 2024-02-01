@@ -1,4 +1,6 @@
-﻿namespace Snapdragon
+﻿using System.Collections.Immutable;
+
+namespace Snapdragon
 {
     public record Card(
         int Id,
@@ -12,7 +14,8 @@
         int? PowerAdjustment,
         IRevealAbility<Card>? OnReveal = null,
         IOngoingAbility<Card>? Ongoing = null,
-        ITriggeredAbility<Card>? Triggered = null
+        ITriggeredAbility<Card>? Triggered = null,
+        ImmutableList<EffectType>? Disallowed = null
     )
     {
         public Card(CardDefinition definition, Side side, CardState state = CardState.InLibrary)
@@ -28,7 +31,8 @@
                 null,
                 definition.OnReveal,
                 definition.Ongoing,
-                definition.Triggered
+                definition.Triggered,
+                definition.Disallowed
             ) { }
 
         public int AdjustedPower => this.Power + (this.PowerAdjustment ?? 0);

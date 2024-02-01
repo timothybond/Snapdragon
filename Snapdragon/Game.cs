@@ -1,6 +1,6 @@
-﻿using System.Collections.Immutable;
-using Snapdragon.Events;
+﻿using Snapdragon.Events;
 using Snapdragon.OngoingAbilities;
+using System.Collections.Immutable;
 
 namespace Snapdragon
 {
@@ -75,9 +75,7 @@ namespace Snapdragon
             this.Left.AllCards.Concat(this.Middle.AllCards).Concat(this.Right.AllCards);
 
         public IEnumerable<Sensor<Card>> AllSensors =>
-            this
-                .Left.TemporaryCardEffects.Concat(this.Middle.TemporaryCardEffects)
-                .Concat(this.Right.TemporaryCardEffects);
+            this.Left.Sensors.Concat(this.Middle.Sensors).Concat(this.Right.Sensors);
 
         public IEnumerable<(IOngoingAbility<Card> Ability, Card Source)> GetCardOngoingAbilities()
         {
@@ -94,6 +92,57 @@ namespace Snapdragon
                     }
                 }
             }
+        }
+
+        public IReadOnlySet<EffectType> GetBlockedEffects(Column column)
+        {
+            var set = new HashSet<EffectType>();
+            var location = this[column];
+
+            foreach (var source in AllCards)
+            {
+                if (source.Ongoing is OngoingBlockLocationEffect<Card> blockLocationEffect)
+                {
+                    if (blockLocationEffect.Applies(location, source, this))
+                    {
+                        set.Add(blockLocationEffect.EffectType);
+                    }
+                }
+            }
+
+            return set;
+        }
+
+        public IReadOnlySet<EffectType> GetBlockedEffects(Card card)
+        {
+            var set = new HashSet<EffectType>();
+
+            if (card.Column.HasValue)
+            {
+                // This is a little gross but it's co-located with the method we're abusing
+                set = (HashSet<EffectType>)GetBlockedEffects(card.Column.Value);
+            }
+
+            foreach (var source in AllCards)
+            {
+                if (source.Ongoing is OngoingBlockCardEffect<Card> blockCardEffect)
+                {
+                    if (blockCardEffect.Applies(card, source, this))
+                    {
+                        set.Add(blockCardEffect.EffectType);
+                    }
+                }
+            }
+
+            if (card.Disallowed != null)
+            {
+                foreach (var selfDisallowed in card.Disallowed)
+                {
+                    set.Add(selfDisallowed);
+                }
+            }
+
+            return set;
         }
 
         #endregion
@@ -158,7 +207,7 @@ namespace Snapdragon
         {
             var location = this[temporaryCardEffect.Column];
 
-            return this.WithLocation(location.WithTemporaryCardEffect(temporaryCardEffect));
+            return this.WithLocation(location.WithSensor(temporaryCardEffect));
         }
 
         /// <summary>
@@ -169,9 +218,9 @@ namespace Snapdragon
         {
             return this with
             {
-                Left = this.Left.WithTemporaryCardEffectDeleted(temporaryCardEffectId),
-                Middle = this.Middle.WithTemporaryCardEffectDeleted(temporaryCardEffectId),
-                Right = this.Right.WithTemporaryCardEffectDeleted(temporaryCardEffectId),
+                Left = this.Left.WithSensorDeleted(temporaryCardEffectId),
+                Middle = this.Middle.WithSensorDeleted(temporaryCardEffectId),
+                Right = this.Right.WithSensorDeleted(temporaryCardEffectId),
             };
         }
 

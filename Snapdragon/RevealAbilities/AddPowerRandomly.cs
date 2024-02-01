@@ -2,24 +2,52 @@
 
 namespace Snapdragon.RevealAbilities
 {
-    public record AddPowerRandomly(
-        ICardFilter<Card> Filter,
-        IPowerCalculation<Card> Power,
-        int Count
-    ) : IRevealAbility<Card>
+    public record AddPowerRandomly<T>(ICardFilter<T> Filter, IPowerCalculation<T> Power, int Count)
+        : IRevealAbility<T>
     {
-        public AddPowerRandomly(ICardFilter<Card> filter, int power, int count)
-            : this(filter, new ConstantPower(power), count) { }
+        public AddPowerRandomly(ICardFilter<T> filter, int power, int count)
+            : this(filter, new ConstantPower<T>(power), count) { }
 
-        public Game Activate(Game game, Card source)
+        public Game Activate(Game game, T source)
         {
             var cards = game
-                .AllCards.Where(c => Filter.Applies(c, source, game))
-                .OrderBy(c => Random.Next())
-                .Take(Count)
-                .Select(c => c with { Power = c.Power + Power.GetValue(game, source, c) });
+                .AllCards.Where(c =>
+                {
+                    if (!Filter.Applies(c, source, game))
+                    {
+                        return false;
+                    }
 
-            return game.WithCards(cards);
+                    // This looks redundant, because the AddPower effect also does this check,
+                    // but I believe random power additions (e.g. Ironheart) should get three
+                    // cards that CAN have their power adjusted, rather than potentially
+                    // selecting a card that doesn't and "using up" one of the adjustments.
+                    //
+                    // However, I don't think I've actually seen this case in play, so I could be wrong.
+                    var blockedEffects = game.GetBlockedEffects(c);
+
+                    if (blockedEffects.Contains(EffectType.AdjustPower))
+                    {
+                        return false;
+                    }
+
+                    var power = Power.GetValue(game, source, c);
+                    if (blockedEffects.Contains(EffectType.ReducePower) && power < 0)
+                    {
+                        return false;
+                    }
+
+                    return true;
+                })
+                .OrderBy(c => Random.Next())
+                .Take(Count);
+
+            var effects = cards.Select(c => new Effects.AddPowerToCard(
+                c,
+                Power.GetValue(game, source, c)
+            ));
+
+            return effects.Aggregate(game, (g, e) => e.Apply(g));
         }
     }
 }

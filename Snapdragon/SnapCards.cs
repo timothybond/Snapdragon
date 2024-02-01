@@ -24,7 +24,7 @@ namespace Snapdragon
                 1,
                 1,
                 null,
-                new OngoingAdjustPower<Card>(new SelfIfLocationFull(), new ConstantPower(3))
+                new OngoingAdjustPower<Card>(new SelfIfLocationFull(), new ConstantPower<Card>(3))
             ),
             new("Agent 13", 1, 2, new AddRandomCardToHand()),
             new("Misty Knight", 1, 2),
@@ -86,14 +86,14 @@ namespace Snapdragon
                 "Ironheart",
                 3,
                 0,
-                new AddPowerRandomly(new SameSide().And(new OtherCards()), 2, 3)
+                new AddPowerRandomly<Card>(new SameSide().And(new OtherCards()), 2, 3)
             ),
             new(
                 "Mister Fantastic",
                 3,
                 2,
                 null,
-                new OngoingAddLocationPower<Card>(new AdjacentToCard(), new ConstantPower(2))
+                new OngoingAddLocationPower<Card>(new AdjacentToCard(), new ConstantPower<Card>(2))
             ),
             new(
                 "Wolfsbane",
@@ -113,7 +113,7 @@ namespace Snapdragon
                 null,
                 new OngoingAdjustPower<Card>(
                     new TargetFilters.CardsWithCost(1).And(new SameSide()),
-                    new ConstantPower(1)
+                    new ConstantPower<Card>(1)
                 )
             ),
             new("The Thing", 4, 6),
@@ -132,7 +132,7 @@ namespace Snapdragon
                 null,
                 new OngoingAdjustPower<Card>(
                     new OtherCards().And(new SameSide()),
-                    new ConstantPower(1)
+                    new ConstantPower<Card>(1)
                 )
             ),
             new("Gamora", 5, 7, new OnRevealIf(new OpponentPlayedSameTurn(), new AddPowerSelf(5))),
@@ -141,7 +141,7 @@ namespace Snapdragon
                 5,
                 4,
                 null,
-                new OngoingAddLocationPower<Card>(new ToTheRight(), new ConstantPower(6))
+                new OngoingAddLocationPower<Card>(new ToTheRight(), new ConstantPower<Card>(6))
             ),
             new("Iron Man", 5, 0, null, new DoubleLocationPower()),
             new CardDefinition(

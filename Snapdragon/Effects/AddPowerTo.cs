@@ -11,7 +11,25 @@
             var power = Amount.GetValue(game);
             var cards = game
                 .AllCards.Where(c => Targets.Applies(c, game))
-                .Select(c => c with { Power = c.Power + power });
+                .Select(c =>
+                {
+                    var blockedEffects = game.GetBlockedEffects(c);
+
+                    if (blockedEffects.Contains(EffectType.AdjustPower))
+                    {
+                        return c;
+                    }
+
+                    if (blockedEffects.Contains(EffectType.ReducePower) && power < 0)
+                    {
+                        return c;
+                    }
+
+                    return c with
+                    {
+                        Power = c.Power + power
+                    };
+                });
 
             return game.WithCards(cards);
         }

@@ -74,22 +74,14 @@ namespace Snapdragon
             }
         }
 
-        public Location WithTemporaryCardEffect(Sensor<Card> temporaryCardEffect)
+        public Location WithSensor(Sensor<Card> sensor)
         {
-            return this with
-            {
-                TemporaryCardEffects = this.TemporaryCardEffects.Add(temporaryCardEffect)
-            };
+            return this with { Sensors = this.Sensors.Add(sensor) };
         }
 
-        public Location WithTemporaryCardEffectDeleted(int temporaryCardEffectId)
+        public Location WithSensorDeleted(int sensorId)
         {
-            return this with
-            {
-                TemporaryCardEffects = this.TemporaryCardEffects.RemoveAll(t =>
-                    t.Id == temporaryCardEffectId
-                )
-            };
+            return this with { Sensors = this.Sensors.RemoveAll(t => t.Id == sensorId) };
         }
     }
 }
