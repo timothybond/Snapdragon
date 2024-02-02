@@ -27,6 +27,7 @@ namespace Snapdragon
                 new OngoingAdjustPower<Card>(new SelfIfLocationFull(), new ConstantPower<Card>(3))
             ),
             new("Agent 13", 1, 2, new AddRandomCardToHand()),
+            new("Blade", 1, 3, new DiscardCard(new RightmostCardInHand<Card>())),
             new(
                 "Elektra",
                 1,
@@ -115,6 +116,7 @@ namespace Snapdragon
                 0,
                 new AddPowerRandomly<Card>(new SameSide().And(new OtherCards()), 2, 3)
             ),
+            new("Lady Sif", 3, 5, new DiscardCard(new TopCostInHand<Card>())),
             new(
                 "Mister Fantastic",
                 3,
@@ -122,6 +124,7 @@ namespace Snapdragon
                 null,
                 new OngoingAddLocationPower<Card>(new AdjacentToCard(), new ConstantPower<Card>(2))
             ),
+            new("Sword Master", 3, 6, new DiscardCard()),
             new(
                 "Wolfsbane",
                 3,
