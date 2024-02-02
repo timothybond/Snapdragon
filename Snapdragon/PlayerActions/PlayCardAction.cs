@@ -35,6 +35,7 @@ namespace Snapdragon.PlayerActions
                 );
             }
 
+            // TODO: Consider making an IEffect for this
             var newPlayerState = player with
             {
                 Energy = player.Energy - Card.Cost,
@@ -43,7 +44,7 @@ namespace Snapdragon.PlayerActions
 
             var newCard = Card with { State = CardState.PlayedButNotRevealed, Column = Column };
 
-            var newLocationState = location.WithPlayedCard(newCard, Side);
+            var newLocationState = location.WithCard(newCard);
 
             return game.WithPlayer(newPlayerState)
                 .WithLocation(newLocationState)

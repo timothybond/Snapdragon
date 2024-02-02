@@ -15,6 +15,7 @@ namespace Snapdragon
         IRevealAbility<Card>? OnReveal = null,
         IOngoingAbility<Card>? Ongoing = null,
         ITriggeredAbility<Card>? Triggered = null,
+        IMoveAbility? MoveAbility = null,
         ImmutableList<EffectType>? Disallowed = null
     )
     {
@@ -32,6 +33,7 @@ namespace Snapdragon
                 definition.OnReveal,
                 definition.Ongoing,
                 definition.Triggered,
+                definition.MoveAbility,
                 definition.Disallowed
             ) { }
 

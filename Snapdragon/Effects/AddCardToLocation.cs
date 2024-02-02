@@ -10,7 +10,7 @@
             if (game[Column][Side].Count < 4)
             {
                 var location = game[Column];
-                location = location.WithPlayedCard(card, Side);
+                location = location.WithCard(card);
 
                 // TODO: Decide what event, if any, to raise for cards that were added but not played
                 return game.WithLocation(location);

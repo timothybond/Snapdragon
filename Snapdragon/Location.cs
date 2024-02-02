@@ -32,10 +32,16 @@ namespace Snapdragon
 
         public IEnumerable<Card> AllCards => this.TopPlayerCards.Concat(this.BottomPlayerCards);
 
-        public Location WithPlayedCard(Card card, Side side)
+        /// <summary>
+        /// Adds a <see cref="Card"/> to the given location.
+        ///
+        /// Note that this does not apply any other game logic - it should be called
+        /// by something that's orchestrating whatever is supposed to happen with the <see cref="Card"/>.
+        /// </summary>
+        public Location WithCard(Card card)
         {
             // TODO: Consider checking that the Card.State is correct
-            switch (side)
+            switch (card.Side)
             {
                 case Side.Top:
                     return this with { TopPlayerCards = this.TopPlayerCards.Add(card) };

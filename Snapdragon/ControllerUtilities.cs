@@ -9,6 +9,118 @@ namespace Snapdragon
             Side side
         )
         {
+            var possibleActionSets = new List<IReadOnlyList<IPlayerAction>>();
+            var possibleMoveSets = GetPossibleMoveActionSets(game, side);
+
+            foreach (var moveSet in possibleMoveSets)
+            {
+                var gameWithMoves = moveSet.Aggregate(game, (g, move) => move.Apply(g));
+                foreach (
+                    var possibleCardPlays in GetPossiblePlayCardActionSets(gameWithMoves, side)
+                )
+                {
+                    yield return moveSet.Concat(possibleCardPlays).ToList();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets all sets of possible <see cref="MoveCardAction"/>s
+        /// that are valid for the given game state and player.
+        /// </summary>
+        public static IEnumerable<IReadOnlyList<IPlayerAction>> GetPossibleMoveActionSets(
+            Game game,
+            Side side
+        )
+        {
+            var moveableCards = game
+                .AllCards.Where(c =>
+                    c.Side == side
+                    && c.MoveAbility?.CanMove(c, game) == true
+                    && c.Column is Column column
+                    && !game.GetBlockedEffects(column).Contains(EffectType.MoveFromLocation)
+                )
+                .ToList();
+
+            var priorMoves = new Stack<IPlayerAction>();
+            var results = new List<IReadOnlyList<IPlayerAction>>();
+
+            GetPossibleMoveActionSetsHelper(moveableCards, game, priorMoves, results);
+
+            return results;
+        }
+
+        public static void GetPossibleMoveActionSetsHelper(
+            IReadOnlyList<Card> moveableCards,
+            Game game,
+            Stack<IPlayerAction> priorMoves,
+            List<IReadOnlyList<IPlayerAction>> results
+        )
+        {
+            if (moveableCards.Count == 0)
+            {
+                results.Add(priorMoves.ToList());
+                return;
+            }
+
+            var currentCard = moveableCards[0];
+
+            if (currentCard.Column == null)
+            {
+                throw new InvalidOperationException(
+                    "Somehow we tried to compute possible move actions for a card without a Column value."
+                );
+            }
+
+            var remaining = moveableCards.Skip(1).ToList();
+
+            // Also always include the possiblity of not moving this card
+            GetPossibleMoveActionSetsHelper(remaining, game, priorMoves, results);
+
+            foreach (var column in All.Columns)
+            {
+                if (column == currentCard.Column)
+                {
+                    continue;
+                }
+
+                if (game.GetBlockedEffects(column).Contains(EffectType.MoveToLocation))
+                {
+                    continue;
+                }
+
+                // TODO: Handle other restrictions on slots
+                if (game[column][currentCard.Side].Count >= 4)
+                {
+                    continue;
+                }
+
+                // Apparently this is a valid move
+                var move = new MoveCardAction(
+                    currentCard.Side,
+                    currentCard,
+                    currentCard.Column.Value,
+                    column
+                );
+                var gameWithThisMove = move.Apply(game);
+
+                priorMoves.Push(move);
+
+                GetPossibleMoveActionSetsHelper(remaining, gameWithThisMove, priorMoves, results);
+
+                priorMoves.Pop();
+            }
+        }
+
+        /// <summary>
+        /// Gets all sets of possible <see cref="PlayCardAction"/>s
+        /// that are valid for the given game state and player.
+        /// </summary>
+        public static IEnumerable<IReadOnlyList<IPlayerAction>> GetPossiblePlayCardActionSets(
+            Game game,
+            Side side
+        )
+        {
             // TODO: Also have Move actions
             var playableCardSets = GetPlayableCardSets(game[side]);
             var availableColumns = GetAvailableCardSlots(game, side);

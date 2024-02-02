@@ -1,7 +1,139 @@
-﻿namespace Snapdragon.Tests
+﻿using Snapdragon.PlayerActions;
+
+namespace Snapdragon.Tests
 {
     public class ControllerUtilitiesTests
     {
+        [Test]
+        [TestCase(Side.Top)]
+        [TestCase(Side.Bottom)]
+        public void GetPossibleActionSets(Side side)
+        {
+            var oneOne = new Card(Cards.OneOne, Side.Top, CardState.InHand);
+            var oneTwo = new Card(Cards.OneTwo, Side.Top, CardState.InHand);
+
+            var game = TestHelpers.NewGame();
+            var player = game[side];
+
+            game = game.WithPlayer(player with { Hand = player.Hand.Add(oneOne).Add(oneTwo) });
+
+            // Need to make sure we have 2 energy
+            game = game.PlaySingleTurn().PlaySingleTurn();
+
+            var possibleActionSets = ControllerUtilities.GetPossibleActionSets(game, side).ToList();
+
+            // We can:
+            // - Do nothing (1)
+            // - Play one card in any of three locations (3)
+            // - Play the other card in any of three locations (3)
+            // - Play both cards, either in any of three locations (9)
+            Assert.That(possibleActionSets.Count, Is.EqualTo(16));
+
+            // "Do nothing" exists
+            Assert.That(possibleActionSets.Count(s => s.Count == 0), Is.EqualTo(1));
+
+            var singleCardPlays = possibleActionSets.Where(s => s.Count == 1).ToList();
+            Assert.That(singleCardPlays.Count, Is.EqualTo(6));
+
+            // Playing the first card only
+            var playOneOne = singleCardPlays
+                .Where(s =>
+                    s[0] is PlayCardAction playAction
+                    && string.Equals(playAction.Card.Name, Cards.OneOne.Name)
+                )
+                .ToList();
+
+            Assert.That(playOneOne.Count, Is.EqualTo(3));
+
+            Assert.That(
+                playOneOne.Any(s =>
+                    s[0] is PlayCardAction playAction && playAction.Column == Column.Left
+                )
+            );
+            Assert.That(
+                playOneOne.Any(s =>
+                    s[0] is PlayCardAction playAction && playAction.Column == Column.Middle
+                )
+            );
+            Assert.That(
+                playOneOne.Any(s =>
+                    s[0] is PlayCardAction playAction && playAction.Column == Column.Right
+                )
+            );
+
+            // Playing the second card only
+            var playOneTwo = singleCardPlays
+                .Where(s =>
+                    s[0] is PlayCardAction playAction
+                    && string.Equals(playAction.Card.Name, Cards.OneOne.Name)
+                )
+                .ToList();
+
+            Assert.That(playOneTwo.Count, Is.EqualTo(3));
+
+            Assert.That(
+                playOneTwo.Any(s =>
+                    s[0] is PlayCardAction playAction && playAction.Column == Column.Left
+                )
+            );
+            Assert.That(
+                playOneTwo.Any(s =>
+                    s[0] is PlayCardAction playAction && playAction.Column == Column.Middle
+                )
+            );
+            Assert.That(
+                playOneTwo.Any(s =>
+                    s[0] is PlayCardAction playAction && playAction.Column == Column.Right
+                )
+            );
+
+            // Playing both cards, all permutations
+            var playBothCards = possibleActionSets.Where(s => s.Count == 2).ToList();
+
+            Assert.That(playBothCards.Count, Is.EqualTo(9));
+
+            // All sets must play both cards
+            Assert.That(
+                playBothCards.All(s =>
+                    s.Cast<PlayCardAction>().Any(p => string.Equals(p.Card.Name, Cards.OneOne.Name))
+                )
+            );
+            Assert.That(
+                playBothCards.All(s =>
+                    s.Cast<PlayCardAction>().Any(p => string.Equals(p.Card.Name, Cards.OneTwo.Name))
+                )
+            );
+
+            // Transform them into the chosen columns (ordered by card power)
+            // to check that all nine are present
+            var columnChoiceSets = playBothCards
+                .Select(s =>
+                    s.Cast<PlayCardAction>()
+                        .OrderBy(p => p.Card.Power)
+                        .Select(p => p.Column)
+                        .ToList()
+                )
+                .ToList();
+
+            AssertHasColumns(columnChoiceSets, Column.Left, Column.Left);
+            AssertHasColumns(columnChoiceSets, Column.Left, Column.Middle);
+            AssertHasColumns(columnChoiceSets, Column.Left, Column.Right);
+            AssertHasColumns(columnChoiceSets, Column.Middle, Column.Left);
+            AssertHasColumns(columnChoiceSets, Column.Middle, Column.Middle);
+            AssertHasColumns(columnChoiceSets, Column.Middle, Column.Right);
+            AssertHasColumns(columnChoiceSets, Column.Right, Column.Left);
+            AssertHasColumns(columnChoiceSets, Column.Right, Column.Middle);
+            AssertHasColumns(columnChoiceSets, Column.Right, Column.Right);
+        }
+
+        private static void AssertHasColumns(
+            IReadOnlyList<IReadOnlyList<Column>> columnSets,
+            params Column[] columns
+        )
+        {
+            Assert.That(columnSets.Any(cols => cols.SequenceEqual(columns)));
+        }
+
         [Test]
         public void GetPlayableCards()
         {
