@@ -21,6 +21,13 @@ namespace Snapdragon.Tests
             return game;
         }
 
+        public static Game WithCardsInHand(this Game game, Side side, params string[] cardNames)
+        {
+            var cards = GetCards(side, cardNames);
+
+            return game.WithPlayer(game[side] with { Hand = game[side].Hand.AddRange(cards) });
+        }
+
         /// <summary>
         /// Helper function for testing what happens when certain cards are played on one side.
         ///
@@ -51,7 +58,12 @@ namespace Snapdragon.Tests
         /// <param name="column">The location to play all of the cards.</param>
         /// <param name="cardNames">The cards to play, in order.</param>
         /// <returns></returns>
-        public static Game PlayCards(Game game, Side side, Column column, params string[] cardNames)
+        public static Game PlayCards(
+            this Game game,
+            Side side,
+            Column column,
+            params string[] cardNames
+        )
         {
             var cards = GetCards(side, cardNames);
 

@@ -2,9 +2,11 @@
 {
     /// <summary>
     /// Returns the given Card to the owner's hand (removing it from play/discard/destroyed if applicable).
+    ///
+    /// Optionally also performs a transformation on the card.
     /// </summary>
     /// <param name="Card"></param>
-    public record ReturnCardToHand(Card Card) : IEffect
+    public record ReturnCardToHand(Card Card, Func<Card, Card>? Transform = null) : IEffect
     {
         public Game Apply(Game game)
         {
@@ -30,6 +32,12 @@
             }
 
             var card = Card with { State = CardState.InHand };
+
+            if (this.Transform != null)
+            {
+                card = this.Transform(card);
+            }
+
             player = player with { Hand = player.Hand.Add(card) };
 
             game = game.WithPlayer(player);

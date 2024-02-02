@@ -1,6 +1,6 @@
-﻿using Snapdragon.Events;
+﻿using System.Collections.Immutable;
+using Snapdragon.Events;
 using Snapdragon.OngoingAbilities;
-using System.Collections.Immutable;
 
 namespace Snapdragon
 {
@@ -510,12 +510,14 @@ namespace Snapdragon
                 c => c with { State = CardState.InPlay },
                 (g, c) =>
                 {
+                    g = g.WithEvent(new CardRevealedEvent(g.Turn, c));
+
                     if (c.OnReveal != null)
                     {
                         g = c.OnReveal.Activate(g, c);
                     }
 
-                    return g.WithEvent(new CardRevealedEvent(g.Turn, c));
+                    return g;
                 }
             );
 
@@ -619,8 +621,19 @@ namespace Snapdragon
 
             var game = this with { PastEvents = oldEvents, NewEvents = remainingEvents };
 
+            // Note: Becuase we modify the game, we need to capture the state of it before this effect triggers.
+            // E.g., if we return a card to somebody's hand, we don't want to fire another trigger on it.
+            var cardsInPlay = AllCards;
+            var cardsInHands = Top.Hand.Concat(Bottom.Hand);
+            var cardsInLibraries = Top.Library.Cards.Concat(Bottom.Library.Cards);
+            var discardedAndDestroyed = Top
+                .Discards.Concat(Bottom.Discards)
+                .Concat(Top.Destroyed)
+                .Concat(Bottom.Destroyed);
+            var sensors = AllSensors;
+
             // TODO: Determine if we need to stack-order events for triggers
-            foreach (var cardWithTrigger in AllCards.Where(c => c.Triggered != null))
+            foreach (var cardWithTrigger in cardsInPlay.Where(c => c.Triggered != null))
             {
                 if (cardWithTrigger.State == CardState.InPlay)
                 {
@@ -630,9 +643,36 @@ namespace Snapdragon
                 }
             }
 
-            foreach (var temporaryCardEffect in AllSensors)
+            foreach (
+                var discardedOrDestroyedCard in discardedAndDestroyed.Where(c =>
+                    c.Triggered?.DiscardedOrDestroyed == true
+                )
+            )
             {
-                game = temporaryCardEffect.Ability?.ProcessEvent(game, nextEvent) ?? game;
+                game =
+                    discardedOrDestroyedCard.Triggered?.ProcessEvent(
+                        game,
+                        nextEvent,
+                        discardedOrDestroyedCard
+                    ) ?? game;
+            }
+
+            foreach (
+                var cardInHand in cardsInHands.Where(c => c.Triggered?.DiscardedOrDestroyed == true)
+            )
+            {
+                game = cardInHand.Triggered?.ProcessEvent(game, nextEvent, cardInHand) ?? game;
+            }
+
+            foreach (var cardInLibrary in cardsInLibraries.Where(c => c.Triggered?.InDeck == true))
+            {
+                game =
+                    cardInLibrary.Triggered?.ProcessEvent(game, nextEvent, cardInLibrary) ?? game;
+            }
+
+            foreach (var sensor in sensors)
+            {
+                game = sensor.Ability?.ProcessEvent(game, nextEvent) ?? game;
             }
 
             return game;

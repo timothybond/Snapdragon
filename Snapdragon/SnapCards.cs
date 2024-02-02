@@ -86,6 +86,14 @@ namespace Snapdragon
                 new TriggeredAbility<Card>(new OnPlayCardHereSameSide(), new AddPowerToSource(1))
             ),
             new(
+                "Swarm",
+                2,
+                3,
+                null,
+                null,
+                new WhenDiscarded(new AddCopiesToHand(2, c => c with { Cost = 0 }))
+            ),
+            new(
                 "Armor",
                 2,
                 3,
@@ -174,12 +182,15 @@ namespace Snapdragon
                 new OngoingAddLocationPower<Card>(new ToTheRight(), new ConstantPower<Card>(6))
             ),
             new("Iron Man", 5, 0, null, new DoubleLocationPower()),
-            new CardDefinition(
-                "Spectrum",
+            new(
+                "Apocalypse",
                 6,
-                7,
-                new AddPower(new SameSide().And(new WithOngoingAbility()), 2)
+                8,
+                null,
+                null,
+                new WhenDiscarded(new ReturnCardToHand(c => c with { Power = c.Power + 4 }))
             ),
+            new("Spectrum", 6, 7, new AddPower(new SameSide().And(new WithOngoingAbility()), 2)),
             new("Hulk", 6, 12)
         };
 
