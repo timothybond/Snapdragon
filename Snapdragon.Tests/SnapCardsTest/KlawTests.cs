@@ -33,9 +33,9 @@
 
             var scores = game.GetCurrentScores();
 
-            Assert.That(scores[Column.Left][side.OtherSide()], Is.EqualTo(0));
-            Assert.That(scores[Column.Middle][side.OtherSide()], Is.EqualTo(0));
-            Assert.That(scores[Column.Right][side.OtherSide()], Is.EqualTo(0));
+            Assert.That(scores[Column.Left][side.Other()], Is.EqualTo(0));
+            Assert.That(scores[Column.Middle][side.Other()], Is.EqualTo(0));
+            Assert.That(scores[Column.Right][side.Other()], Is.EqualTo(0));
         }
     }
 }

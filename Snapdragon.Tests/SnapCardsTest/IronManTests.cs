@@ -75,7 +75,7 @@ namespace Snapdragon.Tests.SnapCardsTest
             game = TestHelpers.PlayCards(game, 2, side, [("Misty Knight", column)]);
             game = TestHelpers.PlayCards(game, 3, side, [("Mister Fantastic", Column.Right)]);
             game = TestHelpers.PlayCards(game, 4, side, [("Ant Man", column)]);
-            game = TestHelpers.PlayCards(game, 5, side.OtherSide(), [("Iron Man", column)]);
+            game = TestHelpers.PlayCards(game, 5, side.Other(), [("Iron Man", column)]);
             game = TestHelpers.PlayCards(game, 6, side, [("Hulk", column)]);
 
             var scores = game.GetCurrentScores();

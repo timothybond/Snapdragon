@@ -8,7 +8,7 @@
         public Game Apply(Game game)
         {
             var player = game[Side];
-            var opponent = game[Side.OtherSide()];
+            var opponent = game[Side.Other()];
 
             if (player.Hand.Count < 7 && opponent.Library.Count > 0)
             {

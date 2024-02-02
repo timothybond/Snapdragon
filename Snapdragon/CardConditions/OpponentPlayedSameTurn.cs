@@ -15,7 +15,7 @@ namespace Snapdragon.CardConditions
                 .Cast<CardPlayedEvent>();
 
             return otherCardsPlayed.Any(cpe =>
-                cpe.Card.Side == source.Side.OtherSide() && cpe.Card.Column == source.Column
+                cpe.Card.Side == source.Side.Other() && cpe.Card.Column == source.Column
             );
         }
     }

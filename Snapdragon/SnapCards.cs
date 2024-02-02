@@ -27,6 +27,15 @@ namespace Snapdragon
                 new OngoingAdjustPower<Card>(new SelfIfLocationFull(), new ConstantPower<Card>(3))
             ),
             new("Agent 13", 1, 2, new AddRandomCardToHand()),
+            new(
+                "Elektra",
+                1,
+                2,
+                new DestroyRandomCardsInPlay<Card>(
+                    new OtherSide().And(new CardsWithCost(1)).And(new SameLocation()),
+                    1
+                )
+            ),
             new("Misty Knight", 1, 2),
             new(
                 "Rocket Raccoon",
@@ -63,6 +72,13 @@ namespace Snapdragon
                 null,
                 null,
                 new TriggeredAbility<Card>(new OnPlayCardHereSameSide(), new AddPowerToSource(1))
+            ),
+            new(
+                "Armor",
+                2,
+                3,
+                null,
+                new OngoingBlockLocationEffect<Card>(EffectType.DestroyCard, new SameLocation())
             ),
             new(
                 "Agent Coulson",

@@ -8,7 +8,7 @@
 
     public static class SideExtensions
     {
-        public static Side OtherSide(this Side side)
+        public static Side Other(this Side side)
         {
             switch (side)
             {

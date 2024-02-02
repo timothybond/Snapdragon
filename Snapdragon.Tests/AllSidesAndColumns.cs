@@ -2,6 +2,10 @@
 
 namespace Snapdragon.Tests
 {
+    /// <summary>
+    /// Helper type for tests to run at every combination of the values of
+    /// <see cref="Side"/> and <see cref="Column"/>;
+    /// </summary>
     public class AllSidesAndColumns : IEnumerable
     {
         public IEnumerator GetEnumerator()

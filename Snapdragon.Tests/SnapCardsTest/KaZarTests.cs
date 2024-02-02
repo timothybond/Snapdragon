@@ -103,9 +103,9 @@ namespace Snapdragon.Tests.SnapCardsTest
                 side == Side.Bottom ? cardsToPlay : opponentCardsToPlay
             );
 
-            Assert.That(game[Column.Right][side.OtherSide()].Count == 1);
+            Assert.That(game[Column.Right][side.Other()].Count == 1);
 
-            var mistyKnight = game[Column.Right][side.OtherSide()][0];
+            var mistyKnight = game[Column.Right][side.Other()][0];
             Assert.That(mistyKnight.Name, Is.EqualTo("Misty Knight"));
 
             Assert.That(mistyKnight.PowerAdjustment, Is.Null);

@@ -466,7 +466,7 @@ namespace Snapdragon
         Game RevealCards(Game game)
         {
             game = RevealCardsForOneSide(game, game.FirstRevealed);
-            game = RevealCardsForOneSide(game, game.FirstRevealed.OtherSide());
+            game = RevealCardsForOneSide(game, game.FirstRevealed.Other());
 
             return game;
         }

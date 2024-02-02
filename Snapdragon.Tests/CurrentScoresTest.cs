@@ -26,9 +26,9 @@
         public void GetsExpectedTotals_NotIncludingOtherSide(Side side)
         {
             var game = TestHelpers.PlayCards(1, side, [("Misty Knight", Column.Left)]);
-            game = TestHelpers.PlayCards(game, 2, side.OtherSide(), [("Wasp", Column.Right)]);
+            game = TestHelpers.PlayCards(game, 2, side.Other(), [("Wasp", Column.Right)]);
             game = TestHelpers.PlayCards(game, 3, side, [("Cyclops", Column.Middle)]);
-            game = TestHelpers.PlayCards(game, 4, side.OtherSide(), [("The Thing", Column.Left)]);
+            game = TestHelpers.PlayCards(game, 4, side.Other(), [("The Thing", Column.Left)]);
             game = TestHelpers.PlayCards(game, 6, side, [("Hulk", Column.Right)]);
 
             var scores = game.GetCurrentScores();

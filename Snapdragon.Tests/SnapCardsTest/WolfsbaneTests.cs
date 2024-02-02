@@ -51,7 +51,7 @@
         {
             var game = TestHelpers.PlayCards(
                 3,
-                side.OtherSide(),
+                side.Other(),
                 otherCardNames.Select(n => (n, Column.Middle))
             );
 

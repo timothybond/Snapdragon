@@ -122,9 +122,9 @@
                 side == Side.Bottom ? playSpectrum : noCards
             );
 
-            Assert.That(game[Column.Left][side.OtherSide()].Count, Is.EqualTo(1));
+            Assert.That(game[Column.Left][side.Other()].Count, Is.EqualTo(1));
 
-            var kaZar = game[Column.Left][side.OtherSide()][0];
+            var kaZar = game[Column.Left][side.Other()][0];
             Assert.That(kaZar.Name, Is.EqualTo("Ka-Zar"));
 
             Assert.That(kaZar.Power, Is.EqualTo(4));

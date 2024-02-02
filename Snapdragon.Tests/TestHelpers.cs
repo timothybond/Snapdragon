@@ -1,10 +1,55 @@
-﻿using Snapdragon.PlayerActions;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
+using Snapdragon.PlayerActions;
 
 namespace Snapdragon.Tests
 {
     public static class TestHelpers
     {
+        /// <summary>
+        /// Helper function for testing what happens when certain cards are played on one side.
+        ///
+        /// Will automatically increment the turn to the first one with enough energy to play the given cards.
+        /// </summary>
+        /// <param name="side">Which side to play cards for.</param>
+        /// <param name="column">The location to play all of the cards.</param>
+        /// <param name="cardNames">The cards to play, in order.</param>
+        /// <returns></returns>
+        public static Game PlayCards(Side side, Column column, params string[] cardNames)
+        {
+            var cards = GetCards(side, cardNames);
+
+            var turn = cards.Select(c => c.Cost).Sum();
+
+            // TODO: Refactor this to avoid getting the cards twice, although it doesn't matter much.
+            return PlayCards(turn, side, cardNames.Select(c => (c, column)));
+        }
+
+        /// <summary>
+        /// Helper function for testing what happens when certain cards are played on one side.
+        ///
+        /// Will automatically increment the turn to the first one with enough energy to play the given cards,
+        /// or the next available turn if it's already high enough.
+        /// </summary>
+        /// <param name="game">The prior game state.</param>
+        /// <param name="side">Which side to play cards for.</param>
+        /// <param name="column">The location to play all of the cards.</param>
+        /// <param name="cardNames">The cards to play, in order.</param>
+        /// <returns></returns>
+        public static Game PlayCards(Game game, Side side, Column column, params string[] cardNames)
+        {
+            var cards = GetCards(side, cardNames);
+
+            var turn = cards.Select(c => c.Cost).Sum();
+
+            while (game.Turn < turn - 1)
+            {
+                game = game.PlaySingleTurn();
+            }
+
+            // TODO: Refactor this to avoid getting the cards twice, although it doesn't matter much.
+            return PlayCards(game, game.Turn + 1, side, cardNames.Select(c => (c, column)));
+        }
+
         /// <summary>
         /// Helper function for testing what happens when certain cards are played on one side.
         /// </summary>
@@ -154,6 +199,31 @@ namespace Snapdragon.Tests
                 default:
                     throw new NotImplementedException();
             }
+        }
+
+        /// <summary>
+        /// Gets cards to be played (so, <see cref="Card.State"/> is set to <see cref="CardState.InHand"/>).
+        /// </summary>
+        /// <param name="side">Player side that will play the cards.</param>
+        /// <param name="cardNames">Names of the cards.</param>
+        /// <returns></returns>
+        private static IReadOnlyList<Card> GetCards(Side side, params string[] cardNames)
+        {
+            // Somewhat pointless cast, but I didn't want to independently implement both methods.
+            return GetCards(side, cardNames.ToList());
+        }
+
+        /// <summary>
+        /// Gets cards to be played (so, <see cref="Card.State"/> is set to <see cref="CardState.InHand"/>).
+        /// </summary>
+        /// <param name="side">Player side that will play the cards.</param>
+        /// <param name="cardNames">Names of the cards.</param>
+        /// <returns></returns>
+        private static IReadOnlyList<Card> GetCards(Side side, IEnumerable<string> cardNames)
+        {
+            return cardNames
+                .Select(name => new Card(SnapCards.ByName[name], side, CardState.InHand))
+                .ToList();
         }
 
         /// <summary>

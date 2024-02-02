@@ -4,7 +4,7 @@
     {
         public bool Applies(Card card, Card source, Game game)
         {
-            return (card.Side.OtherSide() == source.Side);
+            return (card.Side.Other() == source.Side);
         }
     }
 }

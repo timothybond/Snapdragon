@@ -74,7 +74,7 @@
         public void CardPlayedOtherSide_DoesNotAddToPower(Side side, Column column)
         {
             var game = TestHelpers.PlayCards(3, side, [("Bishop", column)]);
-            game = TestHelpers.PlayCards(game, 4, side.OtherSide(), [("Ant Man", column)]);
+            game = TestHelpers.PlayCards(game, 4, side.Other(), [("Ant Man", column)]);
             game = game.PlaySingleTurn();
             game = game.PlaySingleTurn();
 
