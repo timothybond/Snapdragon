@@ -53,6 +53,17 @@ namespace Snapdragon
                 )
             ),
             new(
+                "Squirrel Girl",
+                1,
+                2,
+                new AddCardsToLocations<Card>(
+                    new CardDefinition("Squirrel", 1, 1),
+                    new OtherLocations(),
+                    new SideFilters.SameSide(),
+                    1
+                )
+            ),
+            new(
                 "America Chavez",
                 2,
                 3,
@@ -181,6 +192,7 @@ namespace Snapdragon
                 null,
                 new OngoingAddLocationPower<Card>(new ToTheRight(), new ConstantPower<Card>(6))
             ),
+            new("White Tiger", 5, 1, new AddCardToRandomLocation(new CardDefinition("Tiger Spirit", 5, 8), new OtherLocations())),
             new("Iron Man", 5, 0, null, new DoubleLocationPower()),
             new(
                 "Apocalypse",

@@ -1,6 +1,6 @@
-﻿using System.Collections.Immutable;
-using Snapdragon.Events;
+﻿using Snapdragon.Events;
 using Snapdragon.OngoingAbilities;
+using System.Collections.Immutable;
 
 namespace Snapdragon
 {
@@ -56,6 +56,16 @@ namespace Snapdragon
                     default:
                         throw new NotImplementedException();
                 }
+            }
+        }
+
+        public IEnumerable<Location> Locations
+        {
+            get
+            {
+                yield return Left;
+                yield return Middle;
+                yield return Right;
             }
         }
 
