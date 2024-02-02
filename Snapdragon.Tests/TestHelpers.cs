@@ -5,6 +5,22 @@ namespace Snapdragon.Tests
 {
     public static class TestHelpers
     {
+        public static Game NewGame()
+        {
+            var engine = new Engine(new NullLogger());
+
+            // Note other TestHelper functions assume these are instances of TestPlayerController
+            var topController = new TestPlayerController();
+            var bottomController = new TestPlayerController();
+
+            var game = engine.CreateGame(
+                new PlayerConfiguration("Top", new Deck([]), topController),
+                new PlayerConfiguration("Bottom", new Deck([]), bottomController)
+            );
+
+            return game;
+        }
+
         /// <summary>
         /// Helper function for testing what happens when certain cards are played on one side.
         ///
@@ -87,14 +103,7 @@ namespace Snapdragon.Tests
             IEnumerable<(string CardName, Column Column)> bottomPlayerCards
         )
         {
-            var engine = new Engine(new NullLogger());
-            var topController = new TestPlayerController();
-            var bottomController = new TestPlayerController();
-
-            var game = engine.CreateGame(
-                new PlayerConfiguration("Top", new Deck([]), topController),
-                new PlayerConfiguration("Bottom", new Deck([]), bottomController)
-            );
+            var game = NewGame();
 
             for (var i = 1; i < turn; i++)
             {
@@ -103,10 +112,15 @@ namespace Snapdragon.Tests
 
             game = game with
             {
-                Top = GetPlayerWithCardsToPlay(topPlayerCards, topController, Side.Top, game),
+                Top = GetPlayerWithCardsToPlay(
+                    topPlayerCards,
+                    (TestPlayerController)game[Side.Top].Controller,
+                    Side.Top,
+                    game
+                ),
                 Bottom = GetPlayerWithCardsToPlay(
                     bottomPlayerCards,
-                    bottomController,
+                    (TestPlayerController)game[Side.Bottom].Controller,
                     Side.Bottom,
                     game
                 )
@@ -229,6 +243,9 @@ namespace Snapdragon.Tests
         /// <summary>
         /// Helper function. Puts the cards to be played into the hand of the returned <see cref="Player"/> and sets up
         /// the <see cref="TestPlayerController"/> to actually play them.
+        ///
+        /// This will leave the player's current hand, which in some cases may violate the assumption
+        /// that no player has more than 7 cards in their hand.
         /// </summary>
         private static Player GetPlayerWithCardsToPlay(
             IEnumerable<(string CardName, Column Column)> cardsToPlay,
@@ -237,14 +254,25 @@ namespace Snapdragon.Tests
             Game game
         )
         {
-            var playerHand = new List<Card>();
+            var playerHand = game[side].Hand.ToList();
             var playerActions = new List<IPlayerAction>();
 
-            foreach (var topPlay in cardsToPlay)
+            var cardsNeeded = cardsToPlay.Where(nameAndLocation =>
+                !playerHand.Any(cardInHand =>
+                    string.Equals(cardInHand.Name, nameAndLocation.CardName)
+                )
+            );
+
+            foreach (var absentCard in cardsNeeded)
             {
-                var card = new Card(SnapCards.ByName[topPlay.CardName], side, CardState.InHand);
+                var card = new Card(SnapCards.ByName[absentCard.CardName], side, CardState.InHand);
                 playerHand.Add(card);
-                var playCardAction = new PlayCardAction(side, card, topPlay.Column);
+            }
+
+            foreach (var play in cardsToPlay)
+            {
+                var card = playerHand.First(c => string.Equals(c.Name, play.CardName));
+                var playCardAction = new PlayCardAction(side, card, play.Column);
                 playerActions.Add(playCardAction);
             }
 

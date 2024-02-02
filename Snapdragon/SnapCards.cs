@@ -52,12 +52,23 @@ namespace Snapdragon
                 )
             ),
             new(
+                "America Chavez",
+                2,
+                3,
+                new AddPower(
+                    new TopCardInLibrary<Card>().And(new SameSide()),
+                    2,
+                    CardState.InLibrary
+                )
+            ),
+            new(
                 "Mantis",
                 2,
                 2,
                 new OnRevealIf(new OpponentPlayedSameTurn(), new DrawOpponentCard())
             ),
             new("Medusa", 2, 2, new OnRevealIf(new InLocation(Column.Middle), new AddPowerSelf(3))),
+            new("Okoye", 2, 2, new AddPower(new SameSide(), 1, CardState.InLibrary)),
             new("Shocker", 2, 3),
             new(
                 "Star-Lord",
