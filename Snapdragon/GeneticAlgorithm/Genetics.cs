@@ -1,6 +1,8 @@
-﻿namespace Snapdragon.GeneticAlgorithm;
+﻿using System.Collections.Immutable;
 
-public abstract class Genetics<T>
+namespace Snapdragon.GeneticAlgorithm;
+
+public abstract record Genetics<T>
     where T : IGeneSequence<T>
 {
     /// <summary>
@@ -12,7 +14,7 @@ public abstract class Genetics<T>
     /// copies of each.
     /// </summary>
     /// <returns></returns>
-    public IReadOnlyList<CardDefinition> GetInitialCardDefinitions()
+    public static ImmutableList<CardDefinition> GetInitialCardDefinitions()
     {
         const string labels = "ABCDEFGHIJKL";
 
@@ -33,7 +35,7 @@ public abstract class Genetics<T>
             }
         }
 
-        return cards;
+        return cards.ToImmutableList();
     }
 
     /// <summary>
@@ -129,6 +131,49 @@ public abstract class Genetics<T>
         return totalGamesWon;
     }
 
+    /// <summary>
+    /// Runs the specified number of games with each <see cref="Deck"/>, pairing them randomly against each other.
+    ///
+    /// Members of the different populations are all intermixed for the purposes of competition,
+    /// although it is expected that they will reproduce separately.
+    /// </summary>
+    /// <returns>The number of wins per each <see cref="Deck"/>.</returns>
+    public IReadOnlyList<IReadOnlyList<int>> RunMixedPopulationGames(
+        IReadOnlyList<IReadOnlyList<T>> populations,
+        Engine engine,
+        int gamesPerDeck = 5
+    )
+    {
+        if (populations.Count == 0)
+        {
+            return new List<IReadOnlyList<int>>();
+        }
+
+        for (var i = 1; i < populations.Count; i++)
+        {
+            if (populations[i].Count != populations[0].Count)
+            {
+                throw new InvalidOperationException(
+                    "All populations must have the same number of items."
+                );
+            }
+        }
+
+        var combinedPopulation = populations.SelectMany(p => p).ToList();
+        var wins = RunPopulationGames(combinedPopulation, engine, gamesPerDeck);
+
+        var winsByPopulation = new List<IReadOnlyList<int>>();
+
+        for (var i = 0; i < populations.Count; i++)
+        {
+            winsByPopulation.Add(
+                wins.Skip(i * populations[0].Count).Take(populations[0].Count).ToList()
+            );
+        }
+
+        return winsByPopulation;
+    }
+
     private int PlayGameAndGetWinnerIndex(IReadOnlyList<T> population, (int First, int Second) pair)
     {
         var engine = new Engine(new NullLogger());
@@ -160,9 +205,19 @@ public abstract class Genetics<T>
         return -1;
     }
 
+    /// <summary>
+    /// Gets the next generation of the given population, by reproducing the top half in random pairs.
+    /// </summary>
+    /// <param name="population">The prior generation.</param>
+    /// <param name="wins">The number of wins for each item in the prior generation.</param>
+    /// <param name="pinTopX">
+    /// If greater than 0, the top [this many] items are copied into the next generation,
+    /// to avoid losing what might be particularly good decks.</param>
+    /// <returns></returns>
     public IReadOnlyList<T> ReproducePopulation(
         IReadOnlyList<T> population,
-        IReadOnlyList<int> wins
+        IReadOnlyList<int> wins,
+        int pinTopX = 0
     )
     {
         var itemsByDescendingWins = population
@@ -176,6 +231,12 @@ public abstract class Genetics<T>
         var pairs = GetRandomPairs(survivingItems.Count, 4);
 
         var nextGeneration = new List<T>();
+
+        if (pinTopX > 0)
+        {
+            nextGeneration.AddRange(survivingItems.Take(pinTopX));
+            pairs = pairs.Skip(pinTopX).ToList();
+        }
 
         foreach (var pair in pairs)
         {

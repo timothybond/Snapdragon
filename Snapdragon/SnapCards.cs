@@ -1,4 +1,5 @@
-﻿using Snapdragon.Calculations;
+﻿using System.Collections.Immutable;
+using Snapdragon.Calculations;
 using Snapdragon.CardConditions;
 using Snapdragon.CardTriggers;
 using Snapdragon.LocationFilters;
@@ -15,10 +16,9 @@ namespace Snapdragon
     /// </summary>
     public static class SnapCards
     {
-        public static IReadOnlyList<CardDefinition> All = new List<CardDefinition>
+        public static ImmutableList<CardDefinition> All = new List<CardDefinition>
         {
             new("Wasp", 0, 1),
-            new("Squirrel", 1, 1),
             new(
                 "Ant Man",
                 1,
@@ -192,7 +192,15 @@ namespace Snapdragon
                 null,
                 new OngoingAddLocationPower<Card>(new ToTheRight(), new ConstantPower<Card>(6))
             ),
-            new("White Tiger", 5, 1, new AddCardToRandomLocation(new CardDefinition("Tiger Spirit", 5, 8), new OtherLocations())),
+            new(
+                "White Tiger",
+                5,
+                1,
+                new AddCardToRandomLocation(
+                    new CardDefinition("Tiger Spirit", 5, 8),
+                    new OtherLocations()
+                )
+            ),
             new("Iron Man", 5, 0, null, new DoubleLocationPower()),
             new(
                 "Apocalypse",
@@ -204,7 +212,10 @@ namespace Snapdragon
             ),
             new("Spectrum", 6, 7, new AddPower(new SameSide().And(new WithOngoingAbility()), 2)),
             new("Hulk", 6, 12)
-        };
+        }
+            .OrderBy(c => c.Cost)
+            .ThenBy(c => c.Name)
+            .ToImmutableList();
 
         public static IReadOnlyDictionary<string, CardDefinition> ByName = All.ToDictionary(cd =>
             cd.Name

@@ -2,30 +2,13 @@
 
 namespace Snapdragon.GeneticAlgorithm
 {
-    public class CardAndControllerGenetics : Genetics<CardAndControllerGeneSequence>
+    public record CardAndControllerGenetics(
+        ImmutableList<CardDefinition> AllPossibleCards,
+        ImmutableList<IPlayerController> AllControllers,
+        Func<CardDefinition, int>? OrderBy = null,
+        int MutationPer = 100
+    ) : Genetics<CardAndControllerGeneSequence>
     {
-        private readonly List<IPlayerController> allControllers;
-        private readonly int mutationPer;
-        private readonly Func<CardDefinition, int>? orderBy;
-
-        private readonly IReadOnlyList<CardDefinition> allPossibleCards;
-
-        public CardAndControllerGenetics(
-            int mutationPer = 100,
-            Func<CardDefinition, int>? orderBy = null,
-            int monteCarloSimulationCount = 5
-        )
-        {
-            this.allControllers = new List<IPlayerController>
-            {
-                new RandomPlayerController(),
-                new MonteCarloSearchController(monteCarloSimulationCount)
-            };
-            this.allPossibleCards = GetInitialCardDefinitions();
-            this.mutationPer = mutationPer;
-            this.orderBy = orderBy;
-        }
-
         public override PlayerConfiguration GetPlayerConfiguration(
             CardAndControllerGeneSequence item,
             int index
@@ -41,14 +24,14 @@ namespace Snapdragon.GeneticAlgorithm
         public override CardAndControllerGeneSequence GetRandomItem()
         {
             var cardSequence = new CardGeneSequence(
-                this.allPossibleCards.OrderBy(c => Random.Next()).Take(12).ToList(),
-                this.allPossibleCards,
-                this.mutationPer,
-                this.orderBy
+                this.AllPossibleCards.OrderBy(c => Random.Next()).Take(12).ToList(),
+                this.AllPossibleCards,
+                this.MutationPer,
+                this.OrderBy
             );
             var controllerSequence = new ControllerGeneSequence(
-                Random.Of(allControllers),
-                allControllers
+                Random.Of(AllControllers),
+                AllControllers
             );
             return new CardAndControllerGeneSequence(cardSequence, controllerSequence);
         }

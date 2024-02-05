@@ -1,4 +1,6 @@
-﻿namespace Snapdragon.GeneticAlgorithm
+﻿using System.Collections.Immutable;
+
+namespace Snapdragon.GeneticAlgorithm
 {
     /// <summary>
     /// A "gene sequence" that just represents what <see cref="IPlayerController"/> to use.
@@ -8,7 +10,7 @@
     /// <param name="MutationPer">Mutation rate (given as the denominator of a fraction, 1 / [this value]).</param>
     public record ControllerGeneSequence(
         IPlayerController Controller,
-        IReadOnlyList<IPlayerController> AllControllers,
+        ImmutableList<IPlayerController> AllControllers,
         int MutationPer = 100
     ) : IGeneSequence<ControllerGeneSequence>
     {

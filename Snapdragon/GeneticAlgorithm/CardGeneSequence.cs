@@ -16,6 +16,12 @@
     {
         public CardGeneSequence Cross(CardGeneSequence other)
         {
+            if (other.Cards.Count != this.Cards.Count)
+            {
+                throw new InvalidOperationException(
+                    "Cannot cross two CardGeneSequences of different lengths."
+                );
+            }
             var allPresentCards = this.Cards.Concat(other.Cards).ToList();
             var allPresentCardNames = allPresentCards.Select(c => c.Name).Distinct().ToList();
 
@@ -33,7 +39,7 @@
                 second = second.OrderBy(OrderBy).ToList();
             }
 
-            for (var i = 0; i < 12; i++)
+            for (var i = 0; i < first.Count; i++)
             {
                 var f = first[i];
                 var s = second[i];
@@ -71,13 +77,13 @@
                 }
             }
 
-            if (newDeckCards.Count < 12)
+            if (newDeckCards.Count < this.Cards.Count)
             {
                 var randomCards = allPresentCardNames
                     .Where(n => !usedCards.Contains(n))
                     .ToList()
                     .OrderBy(n => Random.Next())
-                    .Take(12 - newDeckCards.Count)
+                    .Take(this.Cards.Count - newDeckCards.Count)
                     .Select(n => allPresentCards.First(c => string.Equals(c.Name, n)));
 
                 newDeckCards.AddRange(randomCards);
