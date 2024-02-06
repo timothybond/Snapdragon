@@ -29,6 +29,36 @@ namespace Snapdragon.Tests
         }
 
         /// <summary>
+        /// Helper function for testing what happens when certain cards are moved.
+        ///
+        /// Note this will take any matching cards by name/side/location, even duplicates,
+        /// and will ignore it if there are some names that don't match.
+        /// </summary>
+        /// <param name="game">Prior game state.</param>
+        /// <param name="side">Which side to move cards for.</param>
+        /// <param name="from">Start location for moved cards.</param>
+        /// <param name="to">End location for moved cards.</param>
+        /// <param name="cardNames">Names of cards to move.</param>
+        /// <returns></returns>
+        public static Game MoveCards(
+            this Game game,
+            Side side,
+            Column from,
+            Column to,
+            params string[] cardNames
+        )
+        {
+            var cards = game[from][side].Where(c => cardNames.Contains(c.Name));
+
+            var moveActions = cards.Select(c => new MoveCardAction(side, c, from, to)).ToList();
+
+            var controller = (TestPlayerController)game[side].Controller;
+            controller.Actions = moveActions;
+
+            return game.PlaySingleTurn();
+        }
+
+        /// <summary>
         /// Helper function for testing what happens when certain cards are played on one side.
         ///
         /// Will automatically increment the turn to the first one with enough energy to play the given cards.
@@ -76,6 +106,23 @@ namespace Snapdragon.Tests
 
             // TODO: Refactor this to avoid getting the cards twice, although it doesn't matter much.
             return PlayCards(game, game.Turn + 1, side, cardNames.Select(c => (c, column)));
+        }
+
+        /// <summary>
+        /// Helper function for testing what happens when certain cards are played on one side.
+        ///
+        /// Will automatically increment the turn to the first one with enough energy to play the given cards,
+        /// or the next available turn if it's already high enough.
+        /// </summary>
+        /// <param name="side">Which side to play cards for.</param>
+        /// <param name="cards">Cards for the given player to play on the given turn.</param>
+        /// <returns>The game state after the given turn has elapsed and all effects have resolved.</returns>
+        public static Game PlayCards(Side side, IEnumerable<(string CardName, Column Column)> cards)
+        {
+            var cardsToPlay = cards.ToList();
+            var turn = GetCards(side, cards.Select(c => c.CardName)).Select(c => c.Cost).Sum();
+
+            return PlayCards(turn, side, cards);
         }
 
         /// <summary>

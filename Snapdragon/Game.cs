@@ -155,6 +155,67 @@ namespace Snapdragon
             return set;
         }
 
+        /// <summary>
+        /// Determines if the given card can be moved to the specified column,
+        /// based on whatever abilities it has or other cards have.
+        ///
+        /// This will also check for blocked movement effects,
+        /// but will NOT check for how many columns are in use at the destination.
+        /// </summary>
+        public bool CanMove(Card card, Column destination)
+        {
+            var actualCard = AllCards.SingleOrDefault(c => c.Id == card.Id);
+
+            if (actualCard == null)
+            {
+                return false;
+            }
+
+            if (card.Column == null)
+            {
+                throw new InvalidOperationException("Somehow a card in play has no Column set.");
+            }
+
+            var blockedEffects = GetBlockedEffects(actualCard);
+            if (blockedEffects.Contains(EffectType.MoveCard))
+            {
+                return false;
+            }
+
+            var blockedAtFrom = GetBlockedEffects(card.Column.Value);
+            if (blockedAtFrom.Contains(EffectType.MoveFromLocation))
+            {
+                return false;
+            }
+
+            var blockedAtTo = GetBlockedEffects(destination);
+            if (blockedAtTo.Contains(EffectType.MoveToLocation))
+            {
+                return false;
+            }
+
+            foreach (var cardInPlay in AllCards)
+            {
+                if (
+                    cardInPlay.MoveAbility?.CanMove(actualCard, cardInPlay, destination, this)
+                    ?? false
+                )
+                {
+                    return true;
+                }
+            }
+
+            foreach (var sensor in AllSensors)
+            {
+                if (sensor.MoveAbility?.CanMove(actualCard, sensor, destination, this) ?? false)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         #endregion
 
         #region Direct Manipulation
@@ -682,7 +743,7 @@ namespace Snapdragon
 
             foreach (var sensor in sensors)
             {
-                game = sensor.Ability?.ProcessEvent(game, nextEvent) ?? game;
+                game = sensor.TriggeredAbility?.ProcessEvent(game, nextEvent) ?? game;
             }
 
             return game;

@@ -1,10 +1,10 @@
 ﻿namespace Snapdragon.Calculations
 {
-    public record ConstantPower<T>(int Value) : IPowerCalculation<T>
+    public record SourcePower(int Value) : IPowerCalculation<Card>
     {
-        public int GetValue(Game game, T source, Card target)
+        public int GetValue(Game game, Card source, Card target)
         {
-            return this.Value;
+            return source.Power;
         }
     }
 }

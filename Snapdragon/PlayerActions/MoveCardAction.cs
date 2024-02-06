@@ -12,9 +12,7 @@
                 throw new InvalidOperationException("Card was not found in play.");
             }
 
-            // TODO: Handle other effects that may grant move abilities
-            var canMove = actualCard.MoveAbility?.CanMove(actualCard, game) ?? false;
-            if (!canMove)
+            if (!game.CanMove(actualCard, To))
             {
                 throw new InvalidOperationException(
                     "Card does not have a currently-usable move ability."

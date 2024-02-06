@@ -2,7 +2,18 @@
 
 namespace Snapdragon.Effects
 {
-    public record MoveCard(Card Card, Column From, Column To) : IEffect
+    /// <summary>
+    /// Moves a <see cref="Card"/> from one <see cref="Column"/> to another.
+    ///
+    /// Validates that the card is in the given <see cref="Column"/> initially,
+    /// there are slots open in the destination <see cref="Column"/>,
+    /// there are no active effects blocking the move, and that there is
+    /// some move ability that applies here, although that final check
+    /// can be overridden with the "Forced" argument, which is for cases
+    /// where some instantly-triggered effect (usually a reveal effect)
+    /// moves things rather than a <see cref="PlayerActions.MoveCardAction"/>.
+    /// </summary>
+    public record MoveCard(Card Card, Column From, Column To, bool Forced = false) : IEffect
     {
         public Game Apply(Game game)
         {
@@ -21,6 +32,11 @@ namespace Snapdragon.Effects
 
             // TODO: handle restrictions on number of cards
             if (game[To][Card.Side].Count >= 4)
+            {
+                return game;
+            }
+
+            if (!game.CanMove(actualCard, To) && !Forced)
             {
                 return game;
             }

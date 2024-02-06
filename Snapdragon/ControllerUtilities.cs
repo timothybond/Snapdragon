@@ -36,8 +36,8 @@ namespace Snapdragon
             var moveableCards = game
                 .AllCards.Where(c =>
                     c.Side == side
-                    && c.MoveAbility?.CanMove(c, game) == true
                     && c.Column is Column column
+                    && c.Column.Value.Others().Any(col => game.CanMove(c, col))
                     && !game.GetBlockedEffects(column).Contains(EffectType.MoveFromLocation)
                 )
                 .ToList();
@@ -84,7 +84,7 @@ namespace Snapdragon
                     continue;
                 }
 
-                if (game.GetBlockedEffects(column).Contains(EffectType.MoveToLocation))
+                if (!game.CanMove(currentCard, column))
                 {
                     continue;
                 }

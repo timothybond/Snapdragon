@@ -1,7 +1,7 @@
 ﻿namespace Snapdragon
 {
-    public interface IMoveAbility
+    public interface IMoveAbility<T>
     {
-        bool CanMove(Card self, Game game);
+        bool CanMove(Card target, T source, Column destination, Game game);
     }
 }

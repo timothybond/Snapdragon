@@ -6,7 +6,7 @@ namespace Snapdragon.RevealAbilities
         : IRevealAbility<T>
     {
         public AddPowerRandomly(ICardFilter<T> filter, int power, int count)
-            : this(filter, new ConstantPower<T>(power), count) { }
+            : this(filter, new Constant<T>(power), count) { }
 
         public Game Activate(Game game, T source)
         {

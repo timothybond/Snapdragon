@@ -1,10 +1,22 @@
 ﻿namespace Snapdragon.Sensors
 {
+    /// <summary>
+    /// A triggered ability for a sensor that deletes itself up
+    /// after the specified turn.
+    /// 
+    /// Can optionally have another triggered ability nested inside of it,
+    /// if it's a sensor that has a triggered ability AND an expiration,
+    /// but it's also valid to omit that if the sensor has some non-triggered
+    /// ability but also goes away.
+    /// </summary>
+    /// <param name="Turn"></param>
+    /// <param name="Source"></param>
+    /// <param name="Inner"></param>
     public record ExpiringSensorTriggeredAbility(
         int Turn,
         Sensor<Card> Source,
-        TriggeredSensorAbility<Sensor<Card>> Inner
-    ) : ITriggeredAbility<Sensor<Card>>
+        TriggeredSensorAbility<Sensor<Card>>? Inner
+    ) : ISensorTriggeredAbility
     {
         // TODO: See if we can remove the need for these
         public bool InHand => false;
@@ -14,7 +26,7 @@
         public Game ProcessEvent(Game game, Event e)
         {
             // Note: We trigger the inner effect first because Jessica Jones triggers on "nothing played"
-            game = this.Inner.ProcessEvent(game, e);
+            game = this.Inner?.ProcessEvent(game, e) ?? game;
 
             if (e.Type == EventType.TurnEnded && e.Turn == this.Turn)
             {

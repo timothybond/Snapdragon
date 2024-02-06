@@ -8,16 +8,34 @@
     /// <param name="EffectBuilder">Builds the main effect to be potentially triggered.</param>
     public class ExpiringTriggeredSensorBuilder(
         int Turns,
-        ITriggerBuilder<Sensor<Card>> TriggerBuilder,
-        IEffectBuilder<Sensor<Card>> EffectBuilder
-    ) : ITriggeredSensorAbilityBuilder<Sensor<Card>>
+        ITriggerBuilder<Sensor<Card>>? TriggerBuilder = null,
+        IEffectBuilder<Sensor<Card>>? EffectBuilder = null
+    ) : ISensorTriggeredAbilityBuilder<Sensor<Card>>
     {
-        public TriggeredSensorAbility<Sensor<Card>> Build(Game game, Sensor<Card> source)
+        public ISensorTriggeredAbility Build(Game game, Sensor<Card> source)
         {
+            var expiresAtTurn = game.Turn + Turns;
+
+            if (TriggerBuilder == null && EffectBuilder == null)
+            {
+                return new ExpiringSensorTriggeredAbility(expiresAtTurn, source, null);
+            }
+
+            if (TriggerBuilder == null || EffectBuilder == null)
+            {
+                throw new InvalidOperationException(
+                    "Created an ExpiringTriggeredSensorBuilder with a null TriggerBuilder or EffectBuilder, but not both."
+                );
+            }
+
             var innerTrigger = TriggerBuilder.Build(game, source);
             var innerEffect = EffectBuilder.Build(game, source);
 
-            throw new NotImplementedException();
+            return new ExpiringSensorTriggeredAbility(
+                expiresAtTurn,
+                source,
+                new TriggeredSensorAbility<Sensor<Card>>(innerTrigger, innerEffect)
+            );
         }
     }
 }

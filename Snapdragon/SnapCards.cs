@@ -3,14 +3,21 @@ using Snapdragon.Calculations;
 using Snapdragon.CardConditions;
 using Snapdragon.CardTriggers;
 using Snapdragon.LocationFilters;
+using Snapdragon.MoveAbilities;
 using Snapdragon.OngoingAbilities;
 using Snapdragon.RevealAbilities;
 using Snapdragon.Sensors;
 using Snapdragon.TargetFilters;
 using Snapdragon.TriggeredEffects;
+using Snapdragon.Triggers;
 
 namespace Snapdragon
 {
+    // Note: In general I have tried to put cards here in order of cost,
+    // with cards of equal cost sorted by name, for convenience.
+    //
+    // This might not be perfect, depending on how careful I was at the time.
+
     /// <summary>
     /// A collection of all of the defined cards for the actual game.
     /// </summary>
@@ -24,7 +31,7 @@ namespace Snapdragon
                 1,
                 1,
                 null,
-                new OngoingAdjustPower<Card>(new SelfIfLocationFull(), new ConstantPower<Card>(3))
+                new OngoingAdjustPower<Card>(new SelfIfLocationFull(), new Constant<Card>(3))
             ),
             new("Agent 13", 1, 2, new AddRandomCardToHand()),
             new("Blade", 1, 3, new DiscardCard(new RightmostCardInHand<Card>())),
@@ -37,20 +44,34 @@ namespace Snapdragon
                     1
                 )
             ),
+            new(
+                "Hawkeye",
+                1,
+                1,
+                new CreateSensor(
+                    new(
+                        new SensorTriggeredAbilityBuilder(
+                            new CardPlayedHereNextTurn(),
+                            new GiveParentPowerBuilder(3)
+                        )
+                    )
+                )
+            ),
+            new(
+                "Human Torch",
+                1,
+                2,
+                null,
+                null,
+                new TriggeredAbility<Card>(new OnMoved(), new DoubleSourcePower())
+            ),
             new("Misty Knight", 1, 2),
+            new("Nightcrawler", 1, 2, null, null, null, new CanMoveOnce()),
             new(
                 "Rocket Raccoon",
                 1,
                 2,
                 new OnRevealIf(new OpponentPlayedSameTurn(), new AddPowerSelf(2))
-            ),
-            new CardDefinition(
-                "Hawkeye",
-                1,
-                1,
-                new CreateSensor(
-                    new(new(new CardPlayedHereNextTurn(), new GiveParentPowerBuilder(3)))
-                )
             ),
             new(
                 "Squirrel Girl",
@@ -97,19 +118,47 @@ namespace Snapdragon
                 new TriggeredAbility<Card>(new OnPlayCardHereSameSide(), new AddPowerToSource(1))
             ),
             new(
+                "Armor",
+                2,
+                3,
+                null,
+                new OngoingBlockLocationEffect<Card>(EffectType.DestroyCard, new SameLocation())
+            ),
+            new(
+                "Cloak",
+                2,
+                4,
+                new CreateSensor(
+                    new(
+                        new ExpiringTriggeredSensorBuilder(1),
+                        new CanMoveToHereNextTurnBuilder<Card>()
+                    )
+                )
+            ),
+            new("Doctor Strange", 2, 3, new MoveCardsToSelf(new OtherHighestPowerCards())),
+            new(
+                "Kraven",
+                2,
+                2,
+                null,
+                null,
+                new TriggeredAbility<Card>(new OnCardMovedHere(), new AddPowerToSource(2))
+            ),
+            new(
+                "Multiple Man",
+                2,
+                3,
+                null,
+                null,
+                new TriggeredAbility<Card>(new OnMoved(), new AddCopyToOldLocation())
+            ),
+            new(
                 "Swarm",
                 2,
                 3,
                 null,
                 null,
                 new WhenDiscarded(new AddCopiesToHand(2, c => c with { Cost = 0 }))
-            ),
-            new(
-                "Armor",
-                2,
-                3,
-                null,
-                new OngoingBlockLocationEffect<Card>(EffectType.DestroyCard, new SameLocation())
             ),
             new(
                 "Agent Coulson",
@@ -141,9 +190,17 @@ namespace Snapdragon
                 3,
                 2,
                 null,
-                new OngoingAddLocationPower<Card>(new AdjacentToCard(), new ConstantPower<Card>(2))
+                new OngoingAddLocationPower<Card>(new AdjacentToCard(), new Constant<Card>(2))
             ),
             new("Sword Master", 3, 6, new DiscardCard()),
+            new(
+                "Vulture",
+                3,
+                3,
+                null,
+                null,
+                new TriggeredAbility<Card>(new OnMoved(), new AddPowerToSource(5))
+            ),
             new(
                 "Wolfsbane",
                 3,
@@ -161,8 +218,8 @@ namespace Snapdragon
                 4,
                 null,
                 new OngoingAdjustPower<Card>(
-                    new TargetFilters.CardsWithCost(1).And(new SameSide()),
-                    new ConstantPower<Card>(1)
+                    new CardsWithCost(1).And(new SameSide()),
+                    new Constant<Card>(1)
                 )
             ),
             new("The Thing", 4, 6),
@@ -171,7 +228,12 @@ namespace Snapdragon
                 4,
                 5,
                 new CreateSensor(
-                    new(new(new NoCardPlayedHereNextTurn(), new GiveParentPowerBuilder(4)))
+                    new(
+                        new SensorTriggeredAbilityBuilder(
+                            new NoCardPlayedHereNextTurn(),
+                            new GiveParentPowerBuilder(4)
+                        )
+                    )
                 )
             ),
             new CardDefinition(
@@ -181,7 +243,7 @@ namespace Snapdragon
                 null,
                 new OngoingAdjustPower<Card>(
                     new OtherCards().And(new SameSide()),
-                    new ConstantPower<Card>(1)
+                    new Constant<Card>(1)
                 )
             ),
             new("Gamora", 5, 7, new OnRevealIf(new OpponentPlayedSameTurn(), new AddPowerSelf(5))),
@@ -190,7 +252,7 @@ namespace Snapdragon
                 5,
                 4,
                 null,
-                new OngoingAddLocationPower<Card>(new ToTheRight(), new ConstantPower<Card>(6))
+                new OngoingAddLocationPower<Card>(new ToTheRight(), new Constant<Card>(6))
             ),
             new(
                 "White Tiger",

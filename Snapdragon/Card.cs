@@ -15,9 +15,9 @@ namespace Snapdragon
         IRevealAbility<Card>? OnReveal = null,
         IOngoingAbility<Card>? Ongoing = null,
         ITriggeredAbility<Card>? Triggered = null,
-        IMoveAbility? MoveAbility = null,
+        IMoveAbility<Card>? MoveAbility = null,
         ImmutableList<EffectType>? Disallowed = null
-    )
+    ) : IObjectWithColumn
     {
         public Card(CardDefinition definition, Side side, CardState state = CardState.InLibrary)
             : this(
@@ -35,7 +35,8 @@ namespace Snapdragon
                 definition.Triggered,
                 definition.MoveAbility,
                 definition.Disallowed
-            ) { }
+            )
+        { }
 
         public int AdjustedPower => this.Power + (this.PowerAdjustment ?? 0);
     }

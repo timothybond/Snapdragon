@@ -9,10 +9,12 @@ namespace Snapdragon
         ImmutableList<Card> BottomPlayerCards,
         ImmutableList<Sensor<Card>> Sensors,
         bool Revealed = false
-    )
+    ) : IObjectWithColumn
     {
         public Location(string Name, Column Column)
             : this(Name, Column, [], [], []) { }
+
+        Column? IObjectWithColumn.Column => this.Column;
 
         public ImmutableList<Card> this[Side side]
         {

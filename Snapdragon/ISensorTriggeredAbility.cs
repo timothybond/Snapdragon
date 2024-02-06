@@ -1,6 +1,6 @@
 ﻿namespace Snapdragon
 {
-    public interface ITriggeredSensorAbility
+    public interface ISensorTriggeredAbility
     {
         Game ProcessEvent(Game game, Event e);
     }

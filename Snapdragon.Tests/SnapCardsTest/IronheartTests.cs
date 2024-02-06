@@ -64,7 +64,7 @@
         [TestCase(Side.Bottom)]
         public void DoesNotAddToFourthCard(Side side)
         {
-            var cardNames = new[] { "Ant Man", "Wasp", "Hawkeye", "Squirrel" };
+            var cardNames = new[] { "Agent 13", "Misty Knight", "Rocket Raccoon", "Nightcrawler" };
 
             var game = TestHelpers.PlayCards(
                 5,
@@ -75,11 +75,11 @@
 
             Assert.That(game[Column.Left][side].Count, Is.EqualTo(4));
 
-            var cardsWithThreePower = game[Column.Left][side].Where(c => c.Power == 3);
-            var cardsWithOnePower = game[Column.Left][side].Where(c => c.Power == 1);
+            var cardsWithFourPower = game[Column.Left][side].Where(c => c.Power == 4);
+            var cardsWithTwoPower = game[Column.Left][side].Where(c => c.Power == 2);
 
-            Assert.That(cardsWithThreePower.Count(), Is.EqualTo(3));
-            Assert.That(cardsWithOnePower.Count(), Is.EqualTo(1));
+            Assert.That(cardsWithFourPower.Count(), Is.EqualTo(3));
+            Assert.That(cardsWithTwoPower.Count(), Is.EqualTo(1));
         }
     }
 }

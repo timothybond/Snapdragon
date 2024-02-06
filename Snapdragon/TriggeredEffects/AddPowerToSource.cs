@@ -1,4 +1,5 @@
-﻿using Snapdragon.TargetFilters;
+﻿using Snapdragon.Calculations;
+using Snapdragon.TargetFilters;
 
 namespace Snapdragon.TriggeredEffects
 {
@@ -8,7 +9,7 @@ namespace Snapdragon.TriggeredEffects
         {
             return new Effects.AddPowerTo(
                 new SpecificCard(source),
-                new ConstantCalculation(Amount)
+                new Constant(Amount)
             );
         }
     }

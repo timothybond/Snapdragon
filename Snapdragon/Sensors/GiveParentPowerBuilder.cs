@@ -1,4 +1,5 @@
-﻿using Snapdragon.Effects;
+﻿using Snapdragon.Calculations;
+using Snapdragon.Effects;
 using Snapdragon.TargetFilters;
 
 namespace Snapdragon.Sensors
@@ -7,7 +8,7 @@ namespace Snapdragon.Sensors
     {
         public IEffect Build(Game game, Sensor<Card> source)
         {
-            return new AddPowerTo(new ParentCard(source), new ConstantCalculation(this.Amount));
+            return new AddPowerTo(new ParentCard(source), new Constant(this.Amount));
         }
     }
 }

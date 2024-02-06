@@ -1,6 +1,9 @@
 ﻿namespace Snapdragon.Sensors
 {
-    public record SensorBuilder(SensorTriggeredAbilityBuilder AbilityBuilder)
+    public record SensorBuilder(
+        ISensorTriggeredAbilityBuilder<Sensor<Card>> AbilityBuilder,
+        ISensorMoveAbilityBuilder<Card>? MoveAbilityBuilder = null
+    )
     {
         public Sensor<Card> Build(Game game, Card source)
         {
@@ -15,11 +18,12 @@
                 column,
                 source.Side,
                 source,
-                null
+                null,
+                MoveAbilityBuilder?.Build(game, source)
             );
 
             var ability = AbilityBuilder.Build(game, sensor);
-            sensor = sensor with { Ability = ability };
+            sensor = sensor with { TriggeredAbility = ability };
 
             return sensor;
         }

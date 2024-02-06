@@ -4,9 +4,9 @@
         ITriggerBuilder<Sensor<Card>> TriggerBuilder,
         IEffectBuilder<Sensor<Card>> EffectBuilder,
         bool DeleteOnActivation = true
-    ) : ITriggeredSensorAbilityBuilder<Sensor<Card>>
+    ) : ISensorTriggeredAbilityBuilder<Sensor<Card>>
     {
-        public TriggeredSensorAbility<Sensor<Card>> Build(Game game, Sensor<Card> source)
+        public ISensorTriggeredAbility Build(Game game, Sensor<Card> source)
         {
             if (DeleteOnActivation)
             {
