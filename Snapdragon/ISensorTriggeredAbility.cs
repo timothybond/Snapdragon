@@ -2,6 +2,6 @@
 {
     public interface ISensorTriggeredAbility
     {
-        Game ProcessEvent(Game game, Event e);
+        Game ProcessEvent(Game game, Event e, Sensor<Card> source);
     }
 }

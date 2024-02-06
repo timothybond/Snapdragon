@@ -9,7 +9,7 @@
     public class ExpiringTriggeredSensorBuilder(
         int Turns,
         ITriggerBuilder<Sensor<Card>>? TriggerBuilder = null,
-        IEffectBuilder<Sensor<Card>>? EffectBuilder = null
+        ISourceTriggeredEffectBuilder<Sensor<Card>>? EffectBuilder = null
     ) : ISensorTriggeredAbilityBuilder<Sensor<Card>>
     {
         public ISensorTriggeredAbility Build(Game game, Sensor<Card> source)
@@ -29,12 +29,11 @@
             }
 
             var innerTrigger = TriggerBuilder.Build(game, source);
-            var innerEffect = EffectBuilder.Build(game, source);
 
             return new ExpiringSensorTriggeredAbility(
                 expiresAtTurn,
                 source,
-                new TriggeredSensorAbility<Sensor<Card>>(innerTrigger, innerEffect)
+                new TriggeredSensorAbility(innerTrigger, EffectBuilder)
             );
         }
     }

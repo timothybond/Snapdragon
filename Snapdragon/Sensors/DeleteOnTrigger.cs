@@ -2,12 +2,12 @@
 
 namespace Snapdragon.Sensors
 {
-    public class DeleteOnTrigger(IEffectBuilder<Sensor<Card>> EffectBuilder)
-        : IEffectBuilder<Sensor<Card>>
+    public class DeleteOnTrigger(ISourceTriggeredEffectBuilder<Sensor<Card>> EffectBuilder)
+        : ISourceTriggeredEffectBuilder<Sensor<Card>>
     {
-        public IEffect Build(Game game, Sensor<Card> source)
+        public IEffect Build(Game game, Event e, Sensor<Card> source)
         {
-            var baseEffect = EffectBuilder.Build(game, source);
+            var baseEffect = EffectBuilder.Build(game, e, source);
             var deleteEffect = new DeleteTemporaryCardEffect(source);
             return new AndEffect(baseEffect, deleteEffect);
         }

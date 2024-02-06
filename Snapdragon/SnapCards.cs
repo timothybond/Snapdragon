@@ -65,6 +65,19 @@ namespace Snapdragon
                 null,
                 new TriggeredAbility<Card>(new OnMoved(), new DoubleSourcePower())
             ),
+            new(
+                "Iron Fist",
+                1,
+                2,
+                new CreateSensor(
+                    new(
+                        new SensorTriggeredAbilityBuilder(
+                            new CardRevealed(),
+                            new MoveNextRevealedCardLeft<Sensor<Card>>()
+                        )
+                    )
+                )
+            ),
             new("Misty Knight", 1, 2),
             new("Nightcrawler", 1, 2, null, null, null, new CanMoveOnce()),
             new(
@@ -273,14 +286,14 @@ namespace Snapdragon
                 new WhenDiscarded(new ReturnCardToHand(c => c with { Power = c.Power + 4 }))
             ),
             new("Spectrum", 6, 7, new AddPower(new SameSide().And(new WithOngoingAbility()), 2)),
+            new("Heimdall", 6, 9, new MoveCardsLeft(new OtherCards().And(new SameSide()))),
             new("Hulk", 6, 12)
         }
             .OrderBy(c => c.Cost)
             .ThenBy(c => c.Name)
             .ToImmutableList();
 
-        public static IReadOnlyDictionary<string, CardDefinition> ByName = All.ToDictionary(cd =>
-            cd.Name
-        );
+        public static ImmutableDictionary<string, CardDefinition> ByName =
+            All.ToImmutableDictionary(cd => cd.Name);
     }
 }

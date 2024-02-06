@@ -1,5 +1,5 @@
-﻿using System.Collections.Immutable;
-using Snapdragon.PlayerActions;
+﻿using Snapdragon.PlayerActions;
+using System.Collections.Immutable;
 
 namespace Snapdragon.Tests
 {
@@ -117,7 +117,7 @@ namespace Snapdragon.Tests
         /// <param name="side">Which side to play cards for.</param>
         /// <param name="cards">Cards for the given player to play on the given turn.</param>
         /// <returns>The game state after the given turn has elapsed and all effects have resolved.</returns>
-        public static Game PlayCards(Side side, IEnumerable<(string CardName, Column Column)> cards)
+        public static Game PlayCards(Side side, params (string CardName, Column Column)[] cards)
         {
             var cardsToPlay = cards.ToList();
             var turn = GetCards(side, cards.Select(c => c.CardName)).Select(c => c.Cost).Sum();

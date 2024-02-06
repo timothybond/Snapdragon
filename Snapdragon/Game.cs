@@ -749,7 +749,7 @@ namespace Snapdragon
 
             foreach (var sensor in sensors)
             {
-                game = sensor.TriggeredAbility?.ProcessEvent(game, nextEvent) ?? game;
+                game = sensor.TriggeredAbility?.ProcessEvent(game, nextEvent, sensor) ?? game;
             }
 
             return game;

@@ -2,7 +2,7 @@
 {
     public record SensorTriggeredAbilityBuilder(
         ITriggerBuilder<Sensor<Card>> TriggerBuilder,
-        IEffectBuilder<Sensor<Card>> EffectBuilder,
+        ISourceTriggeredEffectBuilder<Sensor<Card>> EffectBuilder,
         bool DeleteOnActivation = true
     ) : ISensorTriggeredAbilityBuilder<Sensor<Card>>
     {
@@ -10,16 +10,16 @@
         {
             if (DeleteOnActivation)
             {
-                return new TriggeredSensorAbility<Sensor<Card>>(
+                return new TriggeredSensorAbility(
                     TriggerBuilder.Build(game, source),
-                    new DeleteOnTrigger(EffectBuilder).Build(game, source)
+                    new DeleteOnTrigger(EffectBuilder)
                 );
             }
             else
             {
-                return new TriggeredSensorAbility<Sensor<Card>>(
+                return new TriggeredSensorAbility(
                     TriggerBuilder.Build(game, source),
-                    EffectBuilder.Build(game, source)
+                    EffectBuilder
                 );
             }
         }

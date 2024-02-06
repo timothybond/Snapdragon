@@ -3,7 +3,7 @@
 namespace Snapdragon.Triggers
 {
     /// <summary>
-    /// A trigger that fires when a card is played (not revealed).
+    /// A trigger that fires when a card is revealed.
     ///
     /// If specified, the attributes narrow down what card plays actually
     /// fire the trigger.
@@ -11,16 +11,24 @@ namespace Snapdragon.Triggers
     /// <param name="Column"></param>
     /// <param name="Side"></param>
     /// <param name="Turn"></param>
-    public record OnPlayCard(Column? Column, Side? Side, int? Turn) : ITrigger
+    /// <param name="Ignored">If specified, this card is ignored.
+    /// Used for scenarios where we don't want to trigger a card's
+    /// ability by revealing itself (which is most cases).</param>
+    public record OnRevealCard(Column? Column, Side? Side, int? Turn, Card? Ignored) : ITrigger
     {
         public bool IsMet(Event e, Game game)
         {
-            if (e.Type != EventType.CardPlayed)
+            if (e.Type != EventType.CardRevealed)
             {
                 return false;
             }
 
-            CardPlayedEvent cardPlayed = (CardPlayedEvent)e;
+            CardRevealedEvent cardPlayed = (CardRevealedEvent)e;
+
+            if (cardPlayed.Card.Id == Ignored?.Id)
+            {
+                return false;
+            }
 
             if (this.Column.HasValue && this.Column.Value != cardPlayed.Card.Column)
             {
