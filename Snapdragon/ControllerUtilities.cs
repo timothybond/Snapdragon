@@ -63,7 +63,7 @@ namespace Snapdragon
 
             if (moveableCards.Count == 0)
             {
-                results.Add(priorMoves.ToList());
+                results.Add(priorMoves.Reverse().ToList());
                 return;
             }
 

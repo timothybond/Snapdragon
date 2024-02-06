@@ -5,9 +5,35 @@ namespace Snapdragon.Tests
     public class ControllerUtilitiesTests
     {
         [Test]
+        public void GetPossibleMoveActionSets_ComplexMove()
+        {
+            // This is a test case to examine a bug I ran into with move actions.
+            // (It ended up being pretty simple - I was calling ToList on a Stack
+            // and needed to reverse it first.)
+
+            // In any event, MoveActions throw an error if they can't be applied,
+            // so this test will fail if this situation ends up producing
+            // any sets of move actions that are incoherent.
+            var game = TestHelpers
+                .PlayCards(Side.Top, Column.Middle, "Squirrel Girl")
+                .PlayCards(Side.Top, Column.Right, "Misty Knight")
+                .PlayCards(Side.Top, Column.Right, "Cable")
+                .PlayCards(new[] { ("Cloak", Column.Left) }, new[] { ("Cloak", Column.Middle) });
+
+            game = game.StartNextTurn();
+
+            var moveSets = ControllerUtilities.GetPossibleActionSets(game, Side.Top);
+
+            foreach (var moveSet in moveSets)
+            {
+                var gameWithMoves = moveSet.Aggregate(game, (g, m) => m.Apply(g));
+            }
+        }
+
+        [Test]
         [TestCase(Side.Top)]
         [TestCase(Side.Bottom)]
-        public void GetPossibleActionSets(Side side)
+        public void GetPossibleActionSets_GetsExpectedValues(Side side)
         {
             var oneOne = new Card(Cards.OneOne, Side.Top, CardState.InHand);
             var oneTwo = new Card(Cards.OneTwo, Side.Top, CardState.InHand);
