@@ -164,11 +164,17 @@ namespace Snapdragon
         /// </summary>
         public bool CanMove(Card card, Column destination)
         {
-            var actualCard = AllCards.SingleOrDefault(c => c.Id == card.Id);
-
-            if (actualCard == null)
+            // Note: This weird scope exists because I didn't feel like keeping around two references to the same thing,
+            // but I couldn't directly replace "card" until I verified that it wasn't null.
             {
-                return false;
+                var actualCard = AllCards.SingleOrDefault(c => c.Id == card.Id);
+
+                if (actualCard == null)
+                {
+                    return false;
+                }
+
+                card = actualCard;
             }
 
             if (card.Column == null)
@@ -176,7 +182,7 @@ namespace Snapdragon
                 throw new InvalidOperationException("Somehow a card in play has no Column set.");
             }
 
-            var blockedEffects = GetBlockedEffects(actualCard);
+            var blockedEffects = GetBlockedEffects(card);
             if (blockedEffects.Contains(EffectType.MoveCard))
             {
                 return false;
@@ -197,7 +203,7 @@ namespace Snapdragon
             foreach (var cardInPlay in AllCards)
             {
                 if (
-                    cardInPlay.MoveAbility?.CanMove(actualCard, cardInPlay, destination, this)
+                    cardInPlay.MoveAbility?.CanMove(card, cardInPlay, destination, this)
                     ?? false
                 )
                 {
@@ -207,7 +213,7 @@ namespace Snapdragon
 
             foreach (var sensor in AllSensors)
             {
-                if (sensor.MoveAbility?.CanMove(actualCard, sensor, destination, this) ?? false)
+                if (sensor.MoveAbility?.CanMove(card, sensor, destination, this) ?? false)
                 {
                     return true;
                 }

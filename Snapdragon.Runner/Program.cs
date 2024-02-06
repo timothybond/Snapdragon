@@ -5,7 +5,7 @@ using Snapdragon.GeneticAlgorithm;
 using Snapdragon.Runner;
 
 const int DeckCount = 64;
-const int Generations = 20;
+const int Generations = 50;
 
 var g = new CardGenetics(
     SnapCards.All,
@@ -24,7 +24,7 @@ cardCounts.Add(Log.GetCardCounts(population));
 for (var i = 0; i < Generations; i++)
 {
     var wins = g.RunPopulationGames(population, engine, 5);
-    population = g.ReproducePopulation(population, wins);
+    population = g.ReproducePopulation(population, wins, 4);
 
     Log.LogBestDeck(i, population, wins);
 

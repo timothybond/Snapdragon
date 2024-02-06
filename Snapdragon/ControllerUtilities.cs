@@ -33,30 +33,34 @@ namespace Snapdragon
             Side side
         )
         {
+            var priorMoves = new Stack<MoveCardAction>();
+            var skippedCards = new Stack<Card>();
+            var results = new List<IReadOnlyList<IPlayerAction>>();
+
+            GetPossibleMoveActionSetsHelper(game, side, priorMoves, skippedCards, results);
+
+            return results;
+        }
+
+        public static void GetPossibleMoveActionSetsHelper(
+            Game game,
+            Side side,
+            Stack<MoveCardAction> priorMoves,
+            Stack<Card> skippedCards,
+            List<IReadOnlyList<IPlayerAction>> results
+        )
+        {
             var moveableCards = game
                 .AllCards.Where(c =>
                     c.Side == side
                     && c.Column is Column column
                     && c.Column.Value.Others().Any(col => game.CanMove(c, col))
                     && !game.GetBlockedEffects(column).Contains(EffectType.MoveFromLocation)
+                    && !skippedCards.Any(sk => sk.Id == c.Id)
+                    && !priorMoves.Any(m => m.Card.Id == c.Id)
                 )
                 .ToList();
 
-            var priorMoves = new Stack<IPlayerAction>();
-            var results = new List<IReadOnlyList<IPlayerAction>>();
-
-            GetPossibleMoveActionSetsHelper(moveableCards, game, priorMoves, results);
-
-            return results;
-        }
-
-        public static void GetPossibleMoveActionSetsHelper(
-            IReadOnlyList<Card> moveableCards,
-            Game game,
-            Stack<IPlayerAction> priorMoves,
-            List<IReadOnlyList<IPlayerAction>> results
-        )
-        {
             if (moveableCards.Count == 0)
             {
                 results.Add(priorMoves.ToList());
@@ -72,10 +76,12 @@ namespace Snapdragon
                 );
             }
 
-            var remaining = moveableCards.Skip(1).ToList();
+            skippedCards.Push(currentCard);
 
             // Also always include the possiblity of not moving this card
-            GetPossibleMoveActionSetsHelper(remaining, game, priorMoves, results);
+            GetPossibleMoveActionSetsHelper(game, side, priorMoves, skippedCards, results);
+
+            skippedCards.Pop();
 
             foreach (var column in All.Columns)
             {
@@ -106,7 +112,13 @@ namespace Snapdragon
 
                 priorMoves.Push(move);
 
-                GetPossibleMoveActionSetsHelper(remaining, gameWithThisMove, priorMoves, results);
+                GetPossibleMoveActionSetsHelper(
+                    gameWithThisMove,
+                    side,
+                    priorMoves,
+                    skippedCards,
+                    results
+                );
 
                 priorMoves.Pop();
             }
