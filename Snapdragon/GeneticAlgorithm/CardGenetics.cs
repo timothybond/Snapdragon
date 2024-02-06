@@ -10,7 +10,7 @@ namespace Snapdragon.GeneticAlgorithm
         int Length = 12
     ) : Genetics<CardGeneSequence>
     {
-        public override PlayerConfiguration GetPlayerConfiguration(CardGeneSequence item, int index)
+        public PlayerConfiguration GetPlayerConfiguration(CardGeneSequence item, int index)
         {
             return new PlayerConfiguration(
                 $"Deck {index}",
@@ -25,7 +25,8 @@ namespace Snapdragon.GeneticAlgorithm
                 this.AllPossibleCards.OrderBy(c => Random.Next()).Take(Length).ToList(),
                 this.AllPossibleCards,
                 this.MutationPer,
-                this.OrderBy
+                this.OrderBy,
+                this.Controller
             );
         }
     }

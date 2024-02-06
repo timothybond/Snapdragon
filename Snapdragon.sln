@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Snapdragon", "Snapdragon\Sn
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Snapdragon.Tests", "Snapdragon.Tests\Snapdragon.Tests.csproj", "{8C53E40C-7827-4A87-8F5E-CC734DFFC900}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Snapdragon.Runner", "Snapdragon.Runner\Snapdragon.Runner.csproj", "{98288B9D-6CA9-42DB-84E7-0D61369C48EA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Snapdragon.Runner", "Snapdragon.Runner\Snapdragon.Runner.csproj", "{98288B9D-6CA9-42DB-84E7-0D61369C48EA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -24,7 +24,6 @@ Global
 		{8C53E40C-7827-4A87-8F5E-CC734DFFC900}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8C53E40C-7827-4A87-8F5E-CC734DFFC900}.Release|Any CPU.Build.0 = Release|Any CPU
 		{98288B9D-6CA9-42DB-84E7-0D61369C48EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{98288B9D-6CA9-42DB-84E7-0D61369C48EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{98288B9D-6CA9-42DB-84E7-0D61369C48EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{98288B9D-6CA9-42DB-84E7-0D61369C48EA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection

@@ -1,5 +1,5 @@
-﻿using Snapdragon.PlayerActions;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
+using Snapdragon.PlayerActions;
 
 namespace Snapdragon.Tests
 {
@@ -157,6 +157,50 @@ namespace Snapdragon.Tests
         /// <param name="bottomPlayerCards">Cards for the bottom player to play on the given turn.</param>
         /// <returns>The game state after the given turn has elapsed and all effects have resolved.</returns>
         public static Game PlayCards(
+            this Game game,
+            IEnumerable<(string CardName, Column Column)> topPlayerCards,
+            IEnumerable<(string CardName, Column Column)> bottomPlayerCards
+        )
+        {
+            var minimumTurn = Math.Max(
+                GetTotalCost(topPlayerCards.ToArray()),
+                GetTotalCost(bottomPlayerCards.ToArray())
+            );
+
+            for (var i = game.Turn; i < minimumTurn - 1; i++)
+            {
+                game = game.PlaySingleTurn();
+            }
+
+            game = game with
+            {
+                Top = GetPlayerWithCardsToPlay(
+                    topPlayerCards,
+                    (TestPlayerController)game[Side.Top].Controller,
+                    Side.Top,
+                    game
+                ),
+                Bottom = GetPlayerWithCardsToPlay(
+                    bottomPlayerCards,
+                    (TestPlayerController)game[Side.Bottom].Controller,
+                    Side.Bottom,
+                    game
+                )
+            };
+
+            game = game.PlaySingleTurn();
+
+            return game;
+        }
+
+        /// <summary>
+        /// Helper function for testing what happens when certain cards are played.
+        /// </summary>
+        /// <param name="turn">The turn count - all prior turns will pass with no actions.</param>
+        /// <param name="topPlayerCards">Cards for the top player to play on the given turn.</param>
+        /// <param name="bottomPlayerCards">Cards for the bottom player to play on the given turn.</param>
+        /// <returns>The game state after the given turn has elapsed and all effects have resolved.</returns>
+        public static Game PlayCards(
             int turn,
             IEnumerable<(string CardName, Column Column)> topPlayerCards,
             IEnumerable<(string CardName, Column Column)> bottomPlayerCards
@@ -272,6 +316,17 @@ namespace Snapdragon.Tests
                 default:
                     throw new NotImplementedException();
             }
+        }
+
+        private static int GetTotalCost(params (string CardName, Column Column)[] cardsToPlay)
+        {
+            return GetCards(Side.Top, cardsToPlay.Select(c => c.CardName).ToList())
+                .Sum(c => c.Cost);
+        }
+
+        private static int GetTotalCost(params string[] cardNames)
+        {
+            return GetCards(Side.Top, cardNames.ToList()).Sum(c => c.Cost);
         }
 
         /// <summary>

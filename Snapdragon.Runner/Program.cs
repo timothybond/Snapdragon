@@ -1,37 +1,64 @@
-﻿using System.Globalization;
+﻿using System.Collections.Immutable;
+using System.Globalization;
 using CsvHelper;
 using Snapdragon;
 using Snapdragon.GeneticAlgorithm;
 using Snapdragon.Runner;
 
-const int DeckCount = 64;
+const int DeckCount = 32;
 const int Generations = 50;
 
-var g = new CardGenetics(
+var general = new CardGenetics(
     SnapCards.All,
     new MonteCarloSearchController(5),
     100,
     c => Snapdragon.Random.Next()
 );
-var population = g.GetRandomPopulation(DeckCount);
+var generalPopulation = general.GetRandomPopulation(DeckCount);
+
+var vulturePinned = new PartiallyFixedGenetics(
+    ImmutableList.Create(SnapCards.ByName["Vulture"]),
+    SnapCards.All,
+    new MonteCarloSearchController(5),
+    100,
+    c => Snapdragon.Random.Next()
+);
+var vulturePopulation = vulturePinned.GetRandomPopulation(DeckCount);
 
 var engine = new Engine(new NullLogger());
 
-var cardCounts = new List<List<int>>();
+var generalCardCounts = new List<List<int>>();
+var vultureCardCounts = new List<List<int>>();
 
-cardCounts.Add(Log.GetCardCounts(population));
+generalCardCounts.Add(Log.GetCardCounts(generalPopulation));
+vultureCardCounts.Add(Log.GetCardCounts(vulturePopulation));
+
+var combinedPopulations = new List<IReadOnlyList<IGeneSequence>>
+{
+    generalPopulation,
+    vulturePopulation
+};
 
 for (var i = 0; i < Generations; i++)
 {
-    var wins = g.RunPopulationGames(population, engine, 5);
-    population = g.ReproducePopulation(population, wins, 4);
+    var wins = general.RunMixedPopulationGames(combinedPopulations, engine, 5);
+    var generalPopulationWins = wins[0];
+    var vulturePopulationWins = wins[1];
 
-    Log.LogBestDeck(i, population, wins);
+    generalPopulation = general.ReproducePopulation(generalPopulation, generalPopulationWins, 4);
+    vulturePopulation = vulturePinned.ReproducePopulation(
+        vulturePopulation,
+        generalPopulationWins,
+        4
+    );
 
-    cardCounts.Add(Log.GetCardCounts(population));
+    Log.LogBestDeck(i, generalPopulation, generalPopulationWins);
+    Log.LogBestDeck(i, vulturePopulation, vulturePopulationWins);
+
+    generalCardCounts.Add(Log.GetCardCounts(generalPopulation));
 }
 
-using (var writer = new StreamWriter("population.csv"))
+using (var writer = new StreamWriter("general-population.csv"))
 {
     using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
     {
@@ -42,7 +69,30 @@ using (var writer = new StreamWriter("population.csv"))
 
         csv.NextRecord();
 
-        foreach (var generation in cardCounts)
+        foreach (var generation in generalCardCounts)
+        {
+            foreach (var value in generation)
+            {
+                csv.WriteField(value);
+            }
+
+            csv.NextRecord();
+        }
+    }
+}
+
+using (var writer = new StreamWriter("vulture-population.csv"))
+{
+    using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+    {
+        foreach (var card in SnapCards.All)
+        {
+            csv.WriteField(card.Name);
+        }
+
+        csv.NextRecord();
+
+        foreach (var generation in vultureCardCounts)
         {
             foreach (var value in generation)
             {

@@ -97,14 +97,12 @@ public abstract record Genetics<T>
         return pairs;
     }
 
-    public abstract PlayerConfiguration GetPlayerConfiguration(T item, int index);
-
     /// <summary>
     /// Runs the specified number of games with each <see cref="Deck"/>, pairing them randomly against each other.
     /// </summary>
     /// <returns>The number of wins per each <see cref="Deck"/>.</returns>
     public IReadOnlyList<int> RunPopulationGames(
-        IReadOnlyList<T> population,
+        IReadOnlyList<IGeneSequence> population,
         Engine engine,
         int gamesPerDeck = 5
     )
@@ -139,7 +137,7 @@ public abstract record Genetics<T>
     /// </summary>
     /// <returns>The number of wins per each <see cref="Deck"/>.</returns>
     public IReadOnlyList<IReadOnlyList<int>> RunMixedPopulationGames(
-        IReadOnlyList<IReadOnlyList<T>> populations,
+        IReadOnlyList<IReadOnlyList<IGeneSequence>> populations,
         Engine engine,
         int gamesPerDeck = 5
     )
@@ -174,15 +172,18 @@ public abstract record Genetics<T>
         return winsByPopulation;
     }
 
-    private int PlayGameAndGetWinnerIndex(IReadOnlyList<T> population, (int First, int Second) pair)
+    private int PlayGameAndGetWinnerIndex(
+        IReadOnlyList<IGeneSequence> population,
+        (int First, int Second) pair
+    )
     {
         var engine = new Engine(new NullLogger());
 
         var topIndex = pair.First;
         var bottomIndex = pair.Second;
 
-        var topPlayerConfig = this.GetPlayerConfiguration(population[topIndex], topIndex);
-        var bottomPlayerConfig = this.GetPlayerConfiguration(population[bottomIndex], bottomIndex);
+        var topPlayerConfig = population[topIndex].GetPlayerConfiguration(topIndex);
+        var bottomPlayerConfig = population[bottomIndex].GetPlayerConfiguration(bottomIndex);
 
         var game = engine.CreateGame(topPlayerConfig, bottomPlayerConfig);
         game = game.PlayGame();

@@ -1,4 +1,6 @@
-﻿namespace Snapdragon.GeneticAlgorithm
+﻿using System.Collections.Immutable;
+
+namespace Snapdragon.GeneticAlgorithm
 {
     /// <summary>
     /// A crossable "gene sequence" that just consists of some cards.
@@ -7,13 +9,32 @@
     /// <param name="AllPossibleCards">All possible cards. Used for mutations when crossing.</param>
     /// <param name="MutationPer">Mutation rate (given as the denominator of a fraction, 1 / [this value]).</param>
     /// <param name="OrderBy">If specified, genes are ordered this way before crossing.</param>
+    /// <param name="Controller">The <see cref="IPlayerController"/> to use.
+    /// Can be skipped if this is being used as part of a larger object for constructing decks/players.</param>
     public record CardGeneSequence(
         IReadOnlyList<CardDefinition> Cards,
         IReadOnlyList<CardDefinition> AllPossibleCards,
         int MutationPer = 100,
-        Func<CardDefinition, int>? OrderBy = null
+        Func<CardDefinition, int>? OrderBy = null,
+        IPlayerController? Controller = null
     ) : IGeneSequence<CardGeneSequence>
     {
+        public PlayerConfiguration GetPlayerConfiguration(int index)
+        {
+            if (Controller == null)
+            {
+                throw new InvalidOperationException(
+                    "Controller was not specified for this CardGeneSequence."
+                );
+            }
+
+            return new PlayerConfiguration(
+                $"Deck {index}",
+                new Deck(Cards.ToImmutableList()),
+                Controller
+            );
+        }
+
         public CardGeneSequence Cross(CardGeneSequence other)
         {
             if (other.Cards.Count != this.Cards.Count)

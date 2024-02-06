@@ -36,5 +36,12 @@ namespace Snapdragon.GeneticAlgorithm
                 return other;
             }
         }
+
+        public PlayerConfiguration GetPlayerConfiguration(int index)
+        {
+            throw new NotImplementedException(
+                "Cannot form a PlayerConfiguration just from a ControllerGeneSequence."
+            );
+        }
     }
 }

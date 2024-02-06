@@ -22,7 +22,30 @@ namespace Snapdragon.Runner
                 .ToList();
 
             Console.WriteLine(
-                $"Best deck for generation {generation} ({bestDeck.Wins} wins):\n\n{string.Join("\n", bestCards)}"
+                $"Best deck for generation {generation} ({bestDeck.Wins} wins):\n\n{string.Join("\n", bestCards)}\n"
+            );
+        }
+
+        public static void LogBestDeck(
+            int generation,
+            IReadOnlyList<PartiallyFixedCardGeneSequence> population,
+            IReadOnlyList<int> wins
+        )
+        {
+            var bestDeck = population
+                .Select((item, index) => (Item: item, Wins: wins[index]))
+                .OrderByDescending(pair => pair.Wins)
+                .First();
+
+            var bestCards = bestDeck
+                .Item.FixedCards.Cards.Concat(bestDeck.Item.EvolvingCards.Cards)
+                .OrderBy(c => c.Cost)
+                .ThenBy(c => c.Name)
+                .Select(c => c.Name)
+                .ToList();
+
+            Console.WriteLine(
+                $"Best deck for generation {generation} ({bestDeck.Wins} wins):\n\n{string.Join("\n", bestCards)}\n"
             );
         }
 
@@ -60,6 +83,18 @@ namespace Snapdragon.Runner
             return SnapCards
                 .All.Select(snapCard =>
                     items.Count(i => i.Cards.Any(c => string.Equals(c.Name, snapCard.Name)))
+                )
+                .ToList();
+        }
+
+        public static List<int> GetCardCounts(IReadOnlyList<PartiallyFixedCardGeneSequence> items)
+        {
+            return SnapCards
+                .All.Select(snapCard =>
+                    items.Count(i =>
+                        i.FixedCards.Cards.Any(c => string.Equals(c.Name, snapCard.Name))
+                        || i.EvolvingCards.Cards.Any(c => string.Equals(c.Name, snapCard.Name))
+                    )
                 )
                 .ToList();
         }
