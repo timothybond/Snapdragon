@@ -56,6 +56,7 @@ for (var i = 0; i < Generations; i++)
     Log.LogBestDeck(i, vulturePopulation, vulturePopulationWins);
 
     generalCardCounts.Add(Log.GetCardCounts(generalPopulation));
+    vultureCardCounts.Add(Log.GetCardCounts(vulturePopulation));
 }
 
 using (var writer = new StreamWriter("general-population.csv"))

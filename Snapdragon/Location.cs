@@ -42,6 +42,8 @@ namespace Snapdragon
         /// </summary>
         public Location WithCard(Card card)
         {
+            card = card with { Column = this.Column };
+
             // TODO: Consider checking that the Card.State is correct
             switch (card.Side)
             {
@@ -49,6 +51,32 @@ namespace Snapdragon
                     return this with { TopPlayerCards = this.TopPlayerCards.Add(card) };
                 case Side.Bottom:
                     return this with { BottomPlayerCards = this.BottomPlayerCards.Add(card) };
+                default:
+                    throw new NotImplementedException();
+            }
+        }
+
+        /// <summary>
+        /// Removes a <see cref="Card"/> to the given location.
+        ///
+        /// Note that this does not apply any other game logic - it should be called
+        /// by something that's orchestrating whatever is supposed to happen with the <see cref="Card"/>.
+        /// </summary>
+        public Location WithoutCard(Card card)
+        {
+            // TODO: Consider checking that the Card.State is correct
+            switch (card.Side)
+            {
+                case Side.Top:
+                    return this with
+                    {
+                        TopPlayerCards = this.TopPlayerCards.RemoveAll(c => c.Id == card.Id)
+                    };
+                case Side.Bottom:
+                    return this with
+                    {
+                        BottomPlayerCards = this.BottomPlayerCards.RemoveAll(c => c.Id == card.Id)
+                    };
                 default:
                     throw new NotImplementedException();
             }

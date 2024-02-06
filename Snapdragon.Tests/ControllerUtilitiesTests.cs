@@ -22,12 +22,33 @@ namespace Snapdragon.Tests
 
             game = game.StartNextTurn();
 
-            var moveSets = ControllerUtilities.GetPossibleActionSets(game, Side.Top);
+            var moveSets = ControllerUtilities.GetPossibleActionSets(game, Side.Top).ToList();
 
             foreach (var moveSet in moveSets)
             {
                 var gameWithMoves = moveSet.Aggregate(game, (g, m) => m.Apply(g));
             }
+
+            // TODO: Further test whether this gives the expected outcome(s).
+            // Top player has five cards:
+            // Left: Squirrel, Cloak
+            // Middle: Squirrel Girl
+            // Right: Squirrel, Misty Knight, Cable
+            //
+            // Thanks to both players playing Cloak, the top player can move any
+            // card to Left or Middle, giving the following moves:
+            //
+            // - Squirrel Girl to Left (or no move, 2 possibilities)
+            // - Either Squirrel to Middle (or no move - 2 possibilities for one Squirrel)
+            // - Right Squirrel to Left (or no move - 3 possibilities for the other Squirrel)
+            // - Cable to Middle or Left (or no move - 3 possibilities for Cable)
+            // - Cloak to Middle (or no move - 2 possibilities for Cloak)
+            // - Misty Knight to Middle or Left (or no move - 3 possibilities for Misty Knight)
+            //
+            // However, order matters here - we can't move more than 2 items to Left without
+            // first moving some item from Left to Middle.
+            //
+            // Also,
         }
 
         [Test]

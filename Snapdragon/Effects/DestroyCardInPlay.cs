@@ -16,25 +16,10 @@ namespace Snapdragon.Effects
 
             if (card == null)
             {
-                // TODO: Consider just skipping this, if we run into scenarios where we try to e.g. double-destroy the same thing
-                throw new InvalidOperationException(
-                    "Tried to destroy card, but it was not found in play at the specified Column/Side."
-                );
+                return game;
             }
 
-            var newCardsForSide = location[Card.Side].Remove(card);
-
-            switch (card.Side)
-            {
-                case Side.Top:
-                    location = location with { TopPlayerCards = newCardsForSide };
-                    break;
-                case Side.Bottom:
-                    location = location with { BottomPlayerCards = newCardsForSide };
-                    break;
-                default:
-                    throw new NotImplementedException();
-            }
+            location = location.WithoutCard(card);
 
             var player = game[card.Side];
             player = player with

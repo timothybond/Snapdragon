@@ -1,6 +1,6 @@
-﻿using Snapdragon.Events;
+﻿using System.Collections.Immutable;
+using Snapdragon.Events;
 using Snapdragon.OngoingAbilities;
-using System.Collections.Immutable;
 
 namespace Snapdragon
 {
@@ -202,10 +202,7 @@ namespace Snapdragon
 
             foreach (var cardInPlay in AllCards)
             {
-                if (
-                    cardInPlay.MoveAbility?.CanMove(card, cardInPlay, destination, this)
-                    ?? false
-                )
+                if (cardInPlay.MoveAbility?.CanMove(card, cardInPlay, destination, this) ?? false)
                 {
                     return true;
                 }
@@ -365,8 +362,6 @@ namespace Snapdragon
             Func<Game, Card, Game>? postModifyTransform = null
         )
         {
-            if (currentCard.Column == null) { }
-
             Column column =
                 currentCard.Column
                 ?? throw new InvalidOperationException(

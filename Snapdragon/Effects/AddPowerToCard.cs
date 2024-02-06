@@ -28,29 +28,21 @@ namespace Snapdragon.Effects
                 case CardState.PlayedButNotRevealed:
                     if (!Card.Column.HasValue)
                     {
+                        // Note: normally effects fail silently, but this would indicate a corrupt Game/Location instance
                         throw new InvalidOperationException(
                             $"Card state was {Card.State} but Column was null."
                         );
                     }
 
                     var location = game[Card.Column.Value];
-                    switch (Card.Side)
+                    var actualCard = location.AllCards.SingleOrDefault(c => c.Id == Card.Id);
+
+                    if (actualCard == null)
                     {
-                        case Side.Top:
-                            var topPlayerCards = location
-                                .TopPlayerCards.Select(c => this.ApplyToCard(c, game))
-                                .ToImmutableList();
-                            location = location with { TopPlayerCards = topPlayerCards };
-                            return game.WithLocation(location);
-                        case Side.Bottom:
-                            var bottomPlayerCards = location
-                                .BottomPlayerCards.Select(c => this.ApplyToCard(c, game))
-                                .ToImmutableList();
-                            location = location with { BottomPlayerCards = bottomPlayerCards };
-                            return game.WithLocation(location);
-                        default:
-                            throw new NotImplementedException();
+                        return game;
                     }
+
+                    return game.WithModifiedCard(actualCard, c => this.ApplyToCard(c, game));
                 case CardState.Destroyed:
                     var playerWithDestroyed = game[Card.Side];
                     var destroyed = playerWithDestroyed
@@ -86,6 +78,13 @@ namespace Snapdragon.Effects
             }
 
             var blockedEffects = game.GetBlockedEffects(possibleCard);
+
+            if (possibleCard.Column != null)
+            {
+                blockedEffects = blockedEffects
+                    .Concat(game.GetBlockedEffects(possibleCard.Column.Value))
+                    .ToHashSet();
+            }
 
             if (blockedEffects.Contains(EffectType.AdjustPower))
             {
