@@ -1,9 +1,10 @@
 ﻿namespace Snapdragon.Sensors
 {
-    public record SensorBuilder(
-        ISensorTriggeredAbilityBuilder<Sensor<Card>> AbilityBuilder,
+    public record SensorBuilder<TEvent>(
+        ISensorTriggeredAbilityBuilder<Sensor<Card>, TEvent> AbilityBuilder,
         ISensorMoveAbilityBuilder<Card>? MoveAbilityBuilder = null
     )
+        where TEvent : Event
     {
         public Sensor<Card> Build(Game game, Card source)
         {

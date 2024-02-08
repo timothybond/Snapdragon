@@ -3,11 +3,14 @@ using Snapdragon.TargetFilters;
 
 namespace Snapdragon.TriggeredEffects
 {
-    public record DoubleSourcePower() : ISourceTriggeredEffectBuilder<Card>
+    public record DoubleSourcePower<TEvent>() : ISourceTriggeredEffectBuilder<Card, TEvent>
     {
-        public IEffect Build(Game game, Event e, Card source)
+        public IEffect Build(Game game, TEvent e, Card source)
         {
-            return new Effects.AddPowerTo(new SpecificCard(source), new SpecificCardPower(source));
+            return new Effects.AddPowerToCards(
+                new SpecificCard(source),
+                new SpecificCardPower(source)
+            );
         }
     }
 }

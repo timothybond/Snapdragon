@@ -12,21 +12,20 @@
     /// <param name="Turn"></param>
     /// <param name="Source"></param>
     /// <param name="Inner"></param>
-    public record ExpiringSensorTriggeredAbility(
+    public record ExpiringSensorTriggeredAbility<TEvent>(
         int Turn,
         Sensor<Card> Source,
-        TriggeredSensorAbility? Inner
+        TriggeredSensorAbility<TEvent>? Inner
     ) : ISensorTriggeredAbility
+        where TEvent : Event
     {
-        // TODO: See if we can remove the need for these
-        public bool InHand => false;
-        public bool InDeck => false;
-        public bool DiscardedOrDestroyed => false;
-
         public Game ProcessEvent(Game game, Event e, Sensor<Card> source)
         {
             // Note: We trigger the inner effect first because Jessica Jones triggers on "nothing played"
-            game = this.Inner?.ProcessEvent(game, e, source) ?? game;
+            if (e is TEvent specificEvent)
+            {
+                game = this.Inner?.ProcessEvent(game, specificEvent, source) ?? game;
+            }
 
             if (e.Type == EventType.TurnEnded && e.Turn == this.Turn)
             {

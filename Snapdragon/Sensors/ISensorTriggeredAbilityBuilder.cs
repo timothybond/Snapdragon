@@ -1,7 +1,8 @@
 ﻿namespace Snapdragon.Sensors
 {
-    public interface ISensorTriggeredAbilityBuilder<T>
+    public interface ISensorTriggeredAbilityBuilder<TSource, TEvent>
+        where TEvent : Event
     {
-        ISensorTriggeredAbility Build(Game game, T source);
+        ISensorTriggeredAbility Build(Game game, TSource source);
     }
 }

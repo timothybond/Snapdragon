@@ -1,7 +1,7 @@
 ﻿namespace Snapdragon
 {
-    public interface ISourceTriggeredEffectBuilder<T>
+    public interface ISourceTriggeredEffectBuilder<TSource, TEvent>
     {
-        IEffect Build(Game game, Event e, T source);
+        IEffect Build(Game game, TEvent e, TSource source);
     }
 }

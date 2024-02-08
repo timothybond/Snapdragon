@@ -1,23 +1,24 @@
 ﻿namespace Snapdragon.Sensors
 {
-    public record SensorTriggeredAbilityBuilder(
-        ITriggerBuilder<Sensor<Card>> TriggerBuilder,
-        ISourceTriggeredEffectBuilder<Sensor<Card>> EffectBuilder,
+    public record SensorTriggeredAbilityBuilder<TEvent>(
+        ITriggerBuilder<Sensor<Card>, TEvent> TriggerBuilder,
+        ISourceTriggeredEffectBuilder<Sensor<Card>, TEvent> EffectBuilder,
         bool DeleteOnActivation = true
-    ) : ISensorTriggeredAbilityBuilder<Sensor<Card>>
+    ) : ISensorTriggeredAbilityBuilder<Sensor<Card>, TEvent>
+        where TEvent : Event
     {
         public ISensorTriggeredAbility Build(Game game, Sensor<Card> source)
         {
             if (DeleteOnActivation)
             {
-                return new TriggeredSensorAbility(
+                return new TriggeredSensorAbility<TEvent>(
                     TriggerBuilder.Build(game, source),
-                    new DeleteOnTrigger(EffectBuilder)
+                    new DeleteOnTrigger<TEvent>(EffectBuilder)
                 );
             }
             else
             {
-                return new TriggeredSensorAbility(
+                return new TriggeredSensorAbility<TEvent>(
                     TriggerBuilder.Build(game, source),
                     EffectBuilder
                 );

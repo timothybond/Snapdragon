@@ -28,10 +28,12 @@ namespace Snapdragon.Tests
         // the fact that the "Move" strategy is more complex to execute, and also
         // that it literally has more possible options (playing Cloak often
         // causes an explosion of potential action sets on the next turn).
-        [Test]
-        [TestCase(1, 5)]
-        [TestCase(5, 10)]
-        [TestCase(10, 20)]
+
+        // Disabled as a test because of long execution times.
+        //[Test]
+        //[TestCase(1, 5)]
+        //[TestCase(5, 10)]
+        //[TestCase(10, 20)]
         //[TestCase(20, 50)]
         public void ComparePerformanceByControllers(int lowSimCount, int highSimCount)
         {

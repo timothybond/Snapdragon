@@ -1,21 +1,22 @@
 ﻿namespace Snapdragon
 {
-    public interface ITrigger
+    public interface ITrigger<TEvent>
     {
-        bool IsMet(Event e, Game game);
+        bool IsMet(TEvent e, Game game);
     }
 
-    public interface ITrigger<T>
+    public interface ITrigger<TSource, TEvent>
     {
-        bool IsMet(Event e, Game game, T source);
+        bool IsMet(TEvent e, Game game, TSource source);
     }
 
     /// <summary>
     /// Special instance of <see cref="ITrigger{T}"/> that just wraps a more basic <see cref="ITrigger"/>.
     /// </summary>
-    public record WrappedTrigger<T>(ITrigger Inner) : ITrigger<T>
+    public record WrappedTrigger<TSource, TEvent>(ITrigger<TEvent> Inner)
+        : ITrigger<TSource, TEvent>
     {
-        public bool IsMet(Event e, Game game, T source)
+        public bool IsMet(TEvent e, Game game, TSource source)
         {
             return Inner.IsMet(e, game);
         }

@@ -2,11 +2,11 @@
 
 namespace Snapdragon.Triggers
 {
-    public record OnCardMovedHere : ITrigger<Card>
+    public record OnCardMovedHere : ITrigger<Card, CardMovedEvent>
     {
-        public bool IsMet(Event e, Game game, Card source)
+        public bool IsMet(CardMovedEvent e, Game game, Card source)
         {
-            return e is CardMovedEvent cardMoved && cardMoved.To == source.Column;
+            return e.To == source.Column;
         }
     }
 }

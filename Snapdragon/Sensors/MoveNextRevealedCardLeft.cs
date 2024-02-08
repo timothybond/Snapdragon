@@ -3,9 +3,10 @@ using Snapdragon.Events;
 
 namespace Snapdragon.Sensors
 {
-    public class MoveNextRevealedCardLeft<T> : ISourceTriggeredEffectBuilder<Sensor<Card>>
+    public class MoveNextRevealedCardLeft
+        : ISourceTriggeredEffectBuilder<Sensor<Card>, CardRevealedEvent>
     {
-        public IEffect Build(Game game, Event e, Sensor<Card> source)
+        public IEffect Build(Game game, CardRevealedEvent e, Sensor<Card> source)
         {
             var nextRevealedCard = this.GetNextRevealedCard(game, source.Source);
 

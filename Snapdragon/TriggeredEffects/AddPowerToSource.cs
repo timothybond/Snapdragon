@@ -1,16 +1,10 @@
-﻿using Snapdragon.Calculations;
-using Snapdragon.TargetFilters;
-
-namespace Snapdragon.TriggeredEffects
+﻿namespace Snapdragon.TriggeredEffects
 {
-    public record AddPowerToSource(int Amount) : ISourceTriggeredEffectBuilder<Card>
+    public record AddPowerToSource<TEvent>(int Amount) : ISourceTriggeredEffectBuilder<Card, TEvent>
     {
-        public IEffect Build(Game game, Event e, Card source)
+        public IEffect Build(Game game, TEvent e, Card source)
         {
-            return new Effects.AddPowerTo(
-                new SpecificCard(source),
-                new Constant(Amount)
-            );
+            return new Effects.AddPowerToCard(source, Amount);
         }
     }
 }

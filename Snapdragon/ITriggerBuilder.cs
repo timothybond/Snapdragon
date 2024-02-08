@@ -1,7 +1,7 @@
 ﻿namespace Snapdragon
 {
-    public interface ITriggerBuilder<T>
+    public interface ITriggerBuilder<TSource, TEvent>
     {
-        ITrigger Build(Game game, T source);
+        ITrigger<TEvent> Build(Game game, TSource source);
     }
 }

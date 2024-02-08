@@ -1,10 +1,10 @@
 ﻿namespace Snapdragon.Triggers
 {
-    public record OnEventType(EventType Type) : ITrigger
+    public record OnEventType<TEvent>() : ITrigger<TEvent>
     {
-        public bool IsMet(Event e, Game game)
+        public bool IsMet(TEvent e, Game game)
         {
-            return e.Type == this.Type;
+            return true;
         }
     }
 }

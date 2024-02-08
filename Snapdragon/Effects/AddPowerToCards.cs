@@ -1,10 +1,12 @@
 ﻿namespace Snapdragon.Effects
 {
     /// <summary>
-    /// An <see cref="IEffect"/> that adds a calculated amount of power to the specified <see cref="Card"/>s.  Note that
-    /// this is permanent power, not as an ongoing effect.
+    /// An <see cref="IEffect"/> that adds a calculated amount of power to
+    /// the <see cref="Card"/>s specified by the given <see cref="ICardFilter"/>.
+    ///
+    /// Note that this is permanent power, not as an ongoing effect.
     /// </summary>
-    public record AddPowerTo(ICardFilter Targets, ICalculation Amount) : IEffect
+    public record AddPowerToCards(ICardFilter Targets, ICalculation Amount) : IEffect
     {
         public Game Apply(Game game)
         {

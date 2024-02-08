@@ -1,7 +1,7 @@
-﻿using System.Collections.Immutable;
-using Snapdragon.Calculations;
+﻿using Snapdragon.Calculations;
 using Snapdragon.CardConditions;
 using Snapdragon.CardTriggers;
+using Snapdragon.Events;
 using Snapdragon.LocationFilters;
 using Snapdragon.MoveAbilities;
 using Snapdragon.OngoingAbilities;
@@ -10,6 +10,7 @@ using Snapdragon.Sensors;
 using Snapdragon.TargetFilters;
 using Snapdragon.TriggeredEffects;
 using Snapdragon.Triggers;
+using System.Collections.Immutable;
 
 namespace Snapdragon
 {
@@ -48,11 +49,11 @@ namespace Snapdragon
                 "Hawkeye",
                 1,
                 1,
-                new CreateSensor(
-                    new(
-                        new SensorTriggeredAbilityBuilder(
+                new CreateSensor<CardPlayedEvent>(
+                    new SensorBuilder<CardPlayedEvent>(
+                        new SensorTriggeredAbilityBuilder<CardPlayedEvent>(
                             new CardPlayedHereNextTurn(),
-                            new GiveParentPowerBuilder(3)
+                            new GiveParentPowerBuilder<CardPlayedEvent>(3)
                         )
                     )
                 )
@@ -63,17 +64,20 @@ namespace Snapdragon
                 2,
                 null,
                 null,
-                new TriggeredAbility<Card>(new OnMoved(), new DoubleSourcePower())
+                new TriggeredAbility<Card, CardMovedEvent>(
+                    new OnMoved(),
+                    new DoubleSourcePower<CardMovedEvent>()
+                )
             ),
             new(
                 "Iron Fist",
                 1,
                 2,
-                new CreateSensor(
-                    new(
-                        new SensorTriggeredAbilityBuilder(
+                new CreateSensor<CardRevealedEvent>(
+                    new SensorBuilder<CardRevealedEvent>(
+                        new SensorTriggeredAbilityBuilder<CardRevealedEvent>(
                             new CardRevealed(),
-                            new MoveNextRevealedCardLeft<Sensor<Card>>()
+                            new MoveNextRevealedCardLeft()
                         )
                     )
                 )
@@ -128,7 +132,10 @@ namespace Snapdragon
                 2,
                 null,
                 null,
-                new TriggeredAbility<Card>(new OnPlayCardHereSameSide(), new AddPowerToSource(1))
+                new TriggeredAbility<Card, CardRevealedEvent>(
+                    new OnRevealCardHereSameSide(),
+                    new AddPowerToSource<CardRevealedEvent>(1)
+                )
             ),
             new(
                 "Armor",
@@ -141,9 +148,9 @@ namespace Snapdragon
                 "Cloak",
                 2,
                 4,
-                new CreateSensor(
-                    new(
-                        new ExpiringTriggeredSensorBuilder(1),
+                new CreateSensor<Event>(
+                    new SensorBuilder<Event>(
+                        new ExpiringTriggeredSensorBuilder<Event>(1),
                         new CanMoveToHereNextTurnBuilder<Card>()
                     )
                 )
@@ -155,7 +162,10 @@ namespace Snapdragon
                 2,
                 null,
                 null,
-                new TriggeredAbility<Card>(new OnCardMovedHere(), new AddPowerToSource(2))
+                new TriggeredAbility<Card, CardMovedEvent>(
+                    new OnCardMovedHere(),
+                    new AddPowerToSource<CardMovedEvent>(2)
+                )
             ),
             new(
                 "Multiple Man",
@@ -163,7 +173,10 @@ namespace Snapdragon
                 3,
                 null,
                 null,
-                new TriggeredAbility<Card>(new OnMoved(), new AddCopyToOldLocation())
+                new TriggeredAbility<Card, CardMovedEvent>(
+                    new OnMoved(),
+                    new AddCopyToOldLocation()
+                )
             ),
             new(
                 "Swarm",
@@ -171,7 +184,9 @@ namespace Snapdragon
                 3,
                 null,
                 null,
-                new WhenDiscarded(new AddCopiesToHand(2, c => c with { Cost = 0 }))
+                new WhenDiscarded(
+                    new AddCopiesToHand<CardDiscardedEvent>(2, c => c with { Cost = 0 })
+                )
             ),
             new(
                 "Agent Coulson",
@@ -187,7 +202,10 @@ namespace Snapdragon
                 1,
                 null,
                 null,
-                new TriggeredAbility<Card>(new OnPlayCardSameSide(), new AddPowerToSource(1))
+                new TriggeredAbility<Card, CardRevealedEvent>(
+                    new OnRevealCardSameSide(),
+                    new AddPowerToSource<CardRevealedEvent>(1)
+                )
             ),
             new("Cable", 3, 4, new DrawOpponentCard()),
             new("Cyclops", 3, 4),
@@ -212,7 +230,10 @@ namespace Snapdragon
                 3,
                 null,
                 null,
-                new TriggeredAbility<Card>(new OnMoved(), new AddPowerToSource(5))
+                new TriggeredAbility<Card, CardMovedEvent>(
+                    new OnMoved(),
+                    new AddPowerToSource<CardMovedEvent>(5)
+                )
             ),
             new(
                 "Wolfsbane",
@@ -240,11 +261,11 @@ namespace Snapdragon
                 "Jessica Jones",
                 4,
                 5,
-                new CreateSensor(
-                    new(
-                        new SensorTriggeredAbilityBuilder(
+                new CreateSensor<TurnEndedEvent>(
+                    new SensorBuilder<TurnEndedEvent>(
+                        new SensorTriggeredAbilityBuilder<TurnEndedEvent>(
                             new NoCardPlayedHereNextTurn(),
-                            new GiveParentPowerBuilder(4)
+                            new GiveParentPowerBuilder<TurnEndedEvent>(4)
                         )
                     )
                 )
@@ -283,7 +304,9 @@ namespace Snapdragon
                 8,
                 null,
                 null,
-                new WhenDiscarded(new ReturnCardToHand(c => c with { Power = c.Power + 4 }))
+                new WhenDiscarded(
+                    new ReturnCardToHand<CardDiscardedEvent>(c => c with { Power = c.Power + 4 })
+                )
             ),
             new("Spectrum", 6, 7, new AddPower(new SameSide().And(new WithOngoingAbility()), 2)),
             new("Heimdall", 6, 9, new MoveCardsLeft(new OtherCards().And(new SameSide()))),

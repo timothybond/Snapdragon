@@ -7,9 +7,9 @@
     /// as a modified for another trigger, combined in an <see cref="AndTrigger"/>.
     /// </summary>
     /// <param name="Condition"></param>
-    public record ConditionTrigger(Func<Game, bool> Condition) : ITrigger
+    public record ConditionTrigger<TEvent>(Func<Game, bool> Condition) : ITrigger<TEvent>
     {
-        public bool IsMet(Event e, Game game)
+        public bool IsMet(TEvent e, Game game)
         {
             return this.Condition(game);
         }

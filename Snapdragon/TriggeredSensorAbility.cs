@@ -1,11 +1,12 @@
 ﻿namespace Snapdragon
 {
-    public record TriggeredSensorAbility(
-        ITrigger Trigger,
-        ISourceTriggeredEffectBuilder<Sensor<Card>> EffectBuilder
-    ) : ISensorTriggeredAbility
+    public record TriggeredSensorAbility<TEvent>(
+        ITrigger<TEvent> Trigger,
+        ISourceTriggeredEffectBuilder<Sensor<Card>, TEvent> EffectBuilder
+    ) : BaseSensorTriggeredAbility<TEvent>
+        where TEvent : Event
     {
-        public Game ProcessEvent(Game game, Event e, Sensor<Card> source)
+        protected override Game ProcessEvent(Game game, TEvent e, Sensor<Card> source)
         {
             if (this.Trigger.IsMet(e, game))
             {

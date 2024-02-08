@@ -1,14 +1,13 @@
-﻿using Snapdragon.Calculations;
-using Snapdragon.Effects;
-using Snapdragon.TargetFilters;
+﻿using Snapdragon.Effects;
 
 namespace Snapdragon.Sensors
 {
-    public record GiveParentPowerBuilder(int Amount) : ISourceTriggeredEffectBuilder<Sensor<Card>>
+    public record GiveParentPowerBuilder<TEvent>(int Amount)
+        : ISourceTriggeredEffectBuilder<Sensor<Card>, TEvent>
     {
-        public IEffect Build(Game game, Event e, Sensor<Card> source)
+        public IEffect Build(Game game, TEvent e, Sensor<Card> source)
         {
-            return new AddPowerTo(new ParentCard(source), new Constant(this.Amount));
+            return new AddPowerToCard(source.Source, Amount);
         }
     }
 }

@@ -11,23 +11,16 @@ namespace Snapdragon.Triggers
     /// <param name="Column"></param>
     /// <param name="Side"></param>
     /// <param name="Turn"></param>
-    public record OnPlayCard(Column? Column, Side? Side, int? Turn) : ITrigger
+    public record OnPlayCard(Column? Column, Side? Side, int? Turn) : ITrigger<CardPlayedEvent>
     {
-        public bool IsMet(Event e, Game game)
+        public bool IsMet(CardPlayedEvent e, Game game)
         {
-            if (e.Type != EventType.CardPlayed)
+            if (this.Column.HasValue && this.Column.Value != e.Card.Column)
             {
                 return false;
             }
 
-            CardPlayedEvent cardPlayed = (CardPlayedEvent)e;
-
-            if (this.Column.HasValue && this.Column.Value != cardPlayed.Card.Column)
-            {
-                return false;
-            }
-
-            if (this.Side.HasValue && this.Side.Value != cardPlayed.Card.Side)
+            if (this.Side.HasValue && this.Side.Value != e.Card.Side)
             {
                 return false;
             }

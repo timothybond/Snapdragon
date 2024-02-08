@@ -14,28 +14,22 @@ namespace Snapdragon.Triggers
     /// <param name="Ignored">If specified, this card is ignored.
     /// Used for scenarios where we don't want to trigger a card's
     /// ability by revealing itself (which is most cases).</param>
-    public record OnRevealCard(Column? Column, Side? Side, int? Turn, Card? Ignored) : ITrigger
+    public record OnRevealCard(Column? Column, Side? Side, int? Turn, Card? Ignored)
+        : ITrigger<CardRevealedEvent>
     {
-        public bool IsMet(Event e, Game game)
+        public bool IsMet(CardRevealedEvent e, Game game)
         {
-            if (e.Type != EventType.CardRevealed)
+            if (e.Card.Id == Ignored?.Id)
             {
                 return false;
             }
 
-            CardRevealedEvent cardPlayed = (CardRevealedEvent)e;
-
-            if (cardPlayed.Card.Id == Ignored?.Id)
+            if (this.Column.HasValue && this.Column.Value != e.Card.Column)
             {
                 return false;
             }
 
-            if (this.Column.HasValue && this.Column.Value != cardPlayed.Card.Column)
-            {
-                return false;
-            }
-
-            if (this.Side.HasValue && this.Side.Value != cardPlayed.Card.Side)
+            if (this.Side.HasValue && this.Side.Value != e.Card.Side)
             {
                 return false;
             }
