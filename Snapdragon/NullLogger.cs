@@ -8,5 +8,7 @@
         public void LogEvent(Event e) { }
 
         public void LogGameState(Game game) { }
+
+        public void LogHands(Game game) { }
     }
 }

@@ -8,7 +8,7 @@ namespace Snapdragon.GeneticAlgorithm
         int MutationPer = 100,
         Func<CardDefinition, int>? OrderBy = null,
         int Length = 12
-    ) : Genetics<CardGeneSequence>
+    ) : Genetics<CardGeneSequence>(AllPossibleCards)
     {
         public PlayerConfiguration GetPlayerConfiguration(CardGeneSequence item, int index)
         {
@@ -28,6 +28,11 @@ namespace Snapdragon.GeneticAlgorithm
                 this.OrderBy,
                 this.Controller
             );
+        }
+
+        protected override IReadOnlyList<CardDefinition> GetCards(CardGeneSequence item)
+        {
+            return item.Cards;
         }
     }
 }

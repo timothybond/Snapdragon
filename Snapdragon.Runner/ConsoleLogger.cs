@@ -9,8 +9,12 @@
 
         public void LogGameState(Game game)
         {
-            // TODO: Decide how to log game state
-            return;
+            Console.WriteLine(LoggerUtilities.GameStateLog(game));
+        }
+
+        public void LogHands(Game game)
+        {
+            throw new NotImplementedException();
         }
     }
 }

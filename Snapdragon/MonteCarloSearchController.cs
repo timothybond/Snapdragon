@@ -84,7 +84,8 @@
             game = game with
             {
                 Top = game.Top.WithController(topController),
-                Bottom = game.Bottom.WithController(bottomController)
+                Bottom = game.Bottom.WithController(bottomController),
+                Logger = new NullLogger()
             };
 
             game = game.PlayAlreadyStartedTurn();

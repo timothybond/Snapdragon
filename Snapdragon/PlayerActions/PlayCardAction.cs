@@ -50,5 +50,10 @@ namespace Snapdragon.PlayerActions
                 .WithLocation(newLocationState)
                 .WithEvent(new CardPlayedEvent(game.Turn, newCard));
         }
+
+        public override string ToString()
+        {
+            return $"[{Side}]: Play {Card.Name} ({Card.Id}) at {Column}.";
+        }
     }
 }

@@ -2,7 +2,7 @@
 
 namespace Snapdragon.GeneticAlgorithm;
 
-public abstract record Genetics<T>
+public abstract record Genetics<T>(ImmutableList<CardDefinition> AllPossibleCards)
     where T : IGeneSequence<T>
 {
     /// <summary>
@@ -37,6 +37,19 @@ public abstract record Genetics<T>
 
         return cards.ToImmutableList();
     }
+
+    public List<int> GetCardCounts(IReadOnlyList<T> population)
+    {
+        var cardLists = population.Select(item => GetCards(item));
+
+        return AllPossibleCards
+            .Select(snapCard =>
+                cardLists.Count(i => i.Any(c => string.Equals(c.Name, snapCard.Name)))
+            )
+            .ToList();
+    }
+
+    protected abstract IReadOnlyList<CardDefinition> GetCards(T item);
 
     /// <summary>
     /// Gets a random member of the population, based on the overall possible genes.

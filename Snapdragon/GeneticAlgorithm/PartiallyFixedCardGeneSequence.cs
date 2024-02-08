@@ -15,12 +15,18 @@
             );
         }
 
+        public IReadOnlyList<CardDefinition> GetCards()
+        {
+            return this.FixedCards.Cards.Concat(this.EvolvingCards.Cards).ToList();
+        }
+
         public PlayerConfiguration GetPlayerConfiguration(int index)
         {
             return new PlayerConfiguration(
                 $"Deck {index}",
                 new Deck(FixedCards.Cards.AddRange(EvolvingCards.Cards)),
-                new MonteCarloSearchController(MonteCarloSimulationCount));
+                new MonteCarloSearchController(MonteCarloSimulationCount)
+            );
         }
     }
 }

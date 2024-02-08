@@ -7,7 +7,7 @@ namespace Snapdragon.GeneticAlgorithm
         ImmutableList<IPlayerController> AllControllers,
         Func<CardDefinition, int>? OrderBy = null,
         int MutationPer = 100
-    ) : Genetics<CardAndControllerGeneSequence>
+    ) : Genetics<CardAndControllerGeneSequence>(AllPossibleCards)
     {
         public override CardAndControllerGeneSequence GetRandomItem()
         {
@@ -22,6 +22,13 @@ namespace Snapdragon.GeneticAlgorithm
                 AllControllers
             );
             return new CardAndControllerGeneSequence(cardSequence, controllerSequence);
+        }
+
+        protected override IReadOnlyList<CardDefinition> GetCards(
+            CardAndControllerGeneSequence item
+        )
+        {
+            return item.Cards.Cards;
         }
     }
 }

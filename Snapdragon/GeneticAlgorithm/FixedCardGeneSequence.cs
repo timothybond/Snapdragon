@@ -18,6 +18,11 @@ namespace Snapdragon.GeneticAlgorithm
             return this;
         }
 
+        public IReadOnlyList<CardDefinition> GetCards()
+        {
+            return this.Cards;
+        }
+
         public PlayerConfiguration GetPlayerConfiguration(int index)
         {
             throw new NotImplementedException(

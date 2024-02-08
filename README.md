@@ -53,6 +53,14 @@ At time of writing I have implemented 47 cards, out of what I believe are a few 
 
 There are a few categories of abilities I still haven't tackled, such as restrictions on when a card can be played (e.g. Ebony Maw, Infinaut).
 
+### Genetics
+
+The current implementation of the genetic algorithm has some advanced features, but the basic version of it just treats a list of cards as a gene sequence. Generally when I "cross" two members of a population I'm randomly re-ordering them first, so the crossing is sort-of-order-agnostic. This is not necessarily optimal. It might be better to order them by cost, for example, so that cards of similar cost would be trading off against each other more commonly.
+
+Also, the only mutation type currently is "instead of either of these cards, pull a random card from the whole possible set". It would probably be good to experiment with some other types of mutations (particularly if card order ends up being important, where swapping the orders / inserting / deleting would be distinct from just picking a random card).
+
+I suspect there might also be some value in choosing to cross decks in non-random ways, like by similarity, so they could "automatically" form populations around particular strategies.
+
 ## Technical Debt / Weird Implementation Details
 
 ### Effects vs. Abilities
@@ -89,4 +97,8 @@ Right now instances of `ITriggeredAbility`, `ITrigger`, and `ISourceTriggeredEff
 
 ### ControllerUtilities
 
-The `ControllerUtilities` class has some methods for enumerating all of the possible things a player could do, and it broadly works, but I don't think the implementation for finding all possible moves is quite right.
+The `ControllerUtilities` class has some methods for enumerating all of the possible things a player could do, and it broadly works, but I haven't convinced myself that the logic for enumerating all possible moves is provably correct. I did double-check a complex case by hand, though.
+
+### Genetics
+
+The genetics code works, but isn't very well-organized. I think much of the logic in the abstract base "Genetics" type just needs to be moved to a static class, and there's some general cleanup to make everything more comprehensible.

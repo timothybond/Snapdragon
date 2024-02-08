@@ -44,5 +44,10 @@
 
             return effect.Apply(game);
         }
+
+        public override string ToString()
+        {
+            return $"[{Side}]: Move {Card.Name} ({Card.Id}) from {From} to {To}.";
+        }
     }
 }

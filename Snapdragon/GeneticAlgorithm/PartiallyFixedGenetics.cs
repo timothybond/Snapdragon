@@ -9,7 +9,7 @@ namespace Snapdragon.GeneticAlgorithm
         int MutationPer = 100,
         Func<CardDefinition, int>? OrderBy = null,
         int MonteCarloSimulationCount = 5
-    ) : Genetics<PartiallyFixedCardGeneSequence>
+    ) : Genetics<PartiallyFixedCardGeneSequence>(AllPossibleCards)
     {
         private readonly CardGenetics cardGenetics =
             new(
@@ -30,6 +30,13 @@ namespace Snapdragon.GeneticAlgorithm
                 evolvingCardSequence,
                 MonteCarloSimulationCount
             );
+        }
+
+        protected override IReadOnlyList<CardDefinition> GetCards(
+            PartiallyFixedCardGeneSequence item
+        )
+        {
+            return item.FixedCards.Cards.Concat(item.EvolvingCards.Cards).ToList();
         }
     }
 }

@@ -24,6 +24,13 @@ namespace Snapdragon.Tests
 
             var moveSets = ControllerUtilities.GetPossibleActionSets(game, Side.Top).ToList();
 
+            var moveSetsByCount = new List<List<IReadOnlyList<IPlayerAction>>>();
+
+            for (var i = 0; i <= 6; i++)
+            {
+                moveSetsByCount.Add(moveSets.Where(ms => ms.Count == i).ToList());
+            }
+
             foreach (var moveSet in moveSets)
             {
                 var gameWithMoves = moveSet.Aggregate(game, (g, m) => m.Apply(g));
@@ -39,16 +46,43 @@ namespace Snapdragon.Tests
             // card to Left or Middle, giving the following moves:
             //
             // - Squirrel Girl to Left (or no move, 2 possibilities)
-            // - Either Squirrel to Middle (or no move - 2 possibilities for one Squirrel)
-            // - Right Squirrel to Left (or no move - 3 possibilities for the other Squirrel)
+            // - Left Squirrel to Middle (or no move - 2 possibilities for one Squirrel)
+            // - Right Squirrel to Middle or Left (or no move - 3 possibilities for the other Squirrel)
             // - Cable to Middle or Left (or no move - 3 possibilities for Cable)
             // - Cloak to Middle (or no move - 2 possibilities for Cloak)
             // - Misty Knight to Middle or Left (or no move - 3 possibilities for Misty Knight)
             //
-            // However, order matters here - we can't move more than 2 items to Left without
-            // first moving some item from Left to Middle.
+            // So there are 2 * 2 * 3 * 3 * 2 * 3 = 216 possibilities, except that some are invalid.
             //
-            // Also,
+            // Invalid possibilies:
+            // - For three moves:
+            //   - Move any 3 possible items to the left while not moving anything from the left (4)
+            //
+            // - For four moves:
+            //   - Move all 4 possible items to the left without moving anything from the left (1)
+            //   - Move any 4 possible items to the middle without moving Squirrel Girl from the middle (5)
+            //   - Move any 3 possible items to the left while moving a non-left item to the middle (3)
+            //
+            // - For five moves:
+            //   - Move all 4 possible items to the left while moving only one item from the left (2)
+            //   - Move all 5 possible items to the middle, with no other moves (1)
+            //   - Move both left items to the middle and 2/3 of the right items, and also the third right item to the left (3)
+            //
+            // - For six moves:
+            //   - Move all 5 possible items to the middle, while moving Squirrel Girl to the left (1)
+            //
+            // The total number of invalid moves is therefore 4 + 1 + 5 + 3 + 2 + 1 + 3 + 1 = 20
+            // So we have 216 - 20 = 196 valid moves
+            Assert.That(moveSets.Count, Is.EqualTo(196));
+
+            // It would be really painful to write out the derivation of the following, so I have not.
+            Assert.That(moveSetsByCount[0].Count, Is.EqualTo(1));
+            Assert.That(moveSetsByCount[1].Count, Is.EqualTo(9));
+            Assert.That(moveSetsByCount[2].Count, Is.EqualTo(33));
+            Assert.That(moveSetsByCount[3].Count, Is.EqualTo(59));
+            Assert.That(moveSetsByCount[4].Count, Is.EqualTo(57));
+            Assert.That(moveSetsByCount[5].Count, Is.EqualTo(30));
+            Assert.That(moveSetsByCount[6].Count, Is.EqualTo(7));
         }
 
         [Test]

@@ -115,5 +115,10 @@ namespace Snapdragon.GeneticAlgorithm
                 Cards = newDeckCards
             };
         }
+
+        public IReadOnlyList<CardDefinition> GetCards()
+        {
+            return this.Cards;
+        }
     }
 }

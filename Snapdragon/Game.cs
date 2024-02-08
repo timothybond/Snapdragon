@@ -623,6 +623,8 @@ namespace Snapdragon
 
             game = game with { Top = topPlayer, Bottom = bottomPlayer };
 
+            Logger.LogHands(game);
+
             // Raise an event for the start of the turn
             game = game.WithEvent(new TurnStartedEvent(game.Turn));
             game = game.ProcessEvents();

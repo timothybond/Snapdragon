@@ -4,19 +4,22 @@ namespace Snapdragon.Runner
 {
     internal static class Log
     {
-        public static void LogBestDeck(
-            int generation,
-            IReadOnlyList<CardGeneSequence> population,
-            IReadOnlyList<int> wins
-        )
+        public static void LogBestDeck<T>(int generation, Population<T> population)
+            where T : IGeneSequence<T>
         {
+            if (population.Wins == null)
+            {
+                throw new ArgumentException("'Wins' was unset on the population.");
+            }
+
             var bestDeck = population
-                .Select((item, index) => (Item: item, Wins: wins[index]))
+                .Items.Select((item, index) => (Item: item, Wins: population.Wins[index]))
                 .OrderByDescending(pair => pair.Wins)
                 .First();
 
             var bestCards = bestDeck
-                .Item.Cards.OrderBy(c => c.Cost)
+                .Item.GetCards()
+                .OrderBy(c => c.Cost)
                 .ThenBy(c => c.Name)
                 .Select(c => c.Name)
                 .ToList();

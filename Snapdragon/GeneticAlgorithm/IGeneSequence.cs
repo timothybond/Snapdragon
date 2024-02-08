@@ -3,6 +3,8 @@
     public interface IGeneSequence
     {
         PlayerConfiguration GetPlayerConfiguration(int index);
+
+        IReadOnlyList<CardDefinition> GetCards();
     }
 
     public interface IGeneSequence<T> : IGeneSequence

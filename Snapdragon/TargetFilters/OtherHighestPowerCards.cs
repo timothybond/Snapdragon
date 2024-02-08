@@ -22,6 +22,8 @@
             var sameSideExcludingSelf = game.AllCards.Where(c =>
                 c.Side == source.Side && c.Id != source.Id
             );
+
+            // TODO: Determine if we should use AdjustedPower instead
             var maxPower = sameSideExcludingSelf.Select(c => c.Power).Max();
 
             return card.Power == maxPower;

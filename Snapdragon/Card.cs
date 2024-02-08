@@ -35,9 +35,13 @@ namespace Snapdragon
                 definition.Triggered,
                 definition.MoveAbility,
                 definition.Disallowed
-            )
-        { }
+            ) { }
 
         public int AdjustedPower => this.Power + (this.PowerAdjustment ?? 0);
+
+        public override string ToString()
+        {
+            return $"{Name} ({Id}) {Cost}E {AdjustedPower}P";
+        }
     }
 }

@@ -8,5 +8,7 @@
         void LogGameState(Game game);
 
         void LogEvent(Event e);
+
+        void LogHands(Game game);
     }
 }
