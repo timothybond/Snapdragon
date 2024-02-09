@@ -22,7 +22,7 @@ namespace Snapdragon.Tests
 
             game = game.StartNextTurn();
 
-            var moveSets = ControllerUtilities.GetPossibleActionSets(game, Side.Top).ToList();
+            var moveSets = ControllerUtilities.GetPossibleActionSets(game, Side.Top);
 
             var moveSetsByCount = new List<List<IReadOnlyList<IPlayerAction>>>();
 
@@ -101,7 +101,7 @@ namespace Snapdragon.Tests
             // Need to make sure we have 2 energy
             game = game.PlaySingleTurn().PlaySingleTurn();
 
-            var possibleActionSets = ControllerUtilities.GetPossibleActionSets(game, side).ToList();
+            var possibleActionSets = ControllerUtilities.GetPossibleActionSets(game, side);
 
             // We can:
             // - Do nothing (1)

@@ -40,6 +40,25 @@ namespace Snapdragon.Tests.SnapCardsTest
 
         [Test]
         [TestCaseSource(typeof(AllSidesAndColumns))]
+        public void NotConsideredPossiblePlayActionOnTurnFour(Side side, Column column)
+        {
+            var game = TestHelpers
+                .NewGame()
+                .PlaySingleTurn()
+                .PlaySingleTurn()
+                .PlaySingleTurn()
+                .WithCardsInHand(side, "Ebony Maw")
+                .StartNextTurn();
+
+            var possibleActionSets = ControllerUtilities.GetPossibleActionSets(game, side);
+
+            // Only result should be "no actions"
+            Assert.That(possibleActionSets.Count, Is.EqualTo(1));
+            Assert.That(possibleActionSets.Single().Count, Is.EqualTo(0));
+        }
+
+        [Test]
+        [TestCaseSource(typeof(AllSidesAndColumns))]
         public void CanPlayOtherCardsBeforeRevealed(Side side, Column column)
         {
             var game = TestHelpers.PlayCards(side, column, "Ebony Maw", "Misty Knight");

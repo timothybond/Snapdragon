@@ -1,5 +1,6 @@
 ﻿using Snapdragon.Events;
 using Snapdragon.OngoingAbilities;
+using Snapdragon.PlayerActions;
 using System.Collections.Immutable;
 
 namespace Snapdragon
@@ -104,12 +105,16 @@ namespace Snapdragon
             }
         }
 
-        public IReadOnlySet<EffectType> GetBlockedEffects(Column column, Side side)
+        public IReadOnlySet<EffectType> GetBlockedEffects(
+            Column column,
+            Side side,
+            IReadOnlyList<Card>? cardsWithLocationEffectBlocks = null
+        )
         {
             var set = new HashSet<EffectType>();
             var location = this[column];
 
-            foreach (var source in AllCards)
+            foreach (var source in cardsWithLocationEffectBlocks ?? AllCards)
             {
                 if (source.Ongoing is OngoingBlockLocationEffect<Card> blockLocationEffect)
                 {
@@ -123,17 +128,43 @@ namespace Snapdragon
             return set;
         }
 
-        public IReadOnlySet<EffectType> GetBlockedEffects(Card card)
+        /// <summary>
+        /// Gets the types of effects that are blocked for the given card,
+        /// including those blocked based on its current location.
+        ///
+        /// Optional parameters are passed in for optimization (primarily for ControllerUtilities).
+        /// </summary>
+        public IReadOnlySet<EffectType> GetBlockedEffects(
+            Card card,
+            IReadOnlyDictionary<Column, IReadOnlySet<EffectType>>? blockedEffectsByColumn = null,
+            IReadOnlyList<Card>? cardsWithLocationEffectBlocks = null
+        )
         {
             var set = new HashSet<EffectType>();
 
             if (card.Column.HasValue)
             {
-                // This is a little gross but it's co-located with the method we're abusing
-                set = (HashSet<EffectType>)GetBlockedEffects(card.Column.Value, card.Side);
+                if (blockedEffectsByColumn != null)
+                {
+                    foreach (var blockedEffect in blockedEffectsByColumn[card.Column.Value])
+                    {
+                        set.Add(blockedEffect);
+                    }
+                }
+                else
+                {
+                    // This is a little gross but it's co-located with the method we're abusing
+                    set =
+                        (HashSet<EffectType>)
+                            GetBlockedEffects(
+                                card.Column.Value,
+                                card.Side,
+                                cardsWithLocationEffectBlocks
+                            );
+                }
             }
 
-            foreach (var source in AllCards)
+            foreach (var source in cardsWithLocationEffectBlocks ?? AllCards)
             {
                 if (source.Ongoing is OngoingBlockCardEffect<Card> blockCardEffect)
                 {
@@ -161,46 +192,74 @@ namespace Snapdragon
         ///
         /// This will also check for blocked movement effects,
         /// but will NOT check for how many columns are in use at the destination.
+        /// That's important in how it's used, particularly in ControllerUtilities.
+        ///
+        /// As a performance optimization, the caller can pass in blocked effects by location,
+        /// which - WARNING - MUST already be for the correct side.
         /// </summary>
-        public bool CanMove(Card card, Column destination)
+        public bool CanMove(
+            Card card,
+            Column destination,
+            IReadOnlyDictionary<Column, IReadOnlySet<EffectType>>? blockedEffectsByColumn = null,
+            IReadOnlyList<Card>? cardsWithMoveAbilities = null,
+            IReadOnlyList<Sensor<Card>>? sensorsWithMoveAbilities = null,
+            IReadOnlyList<Card>? cardsWithLocationEffectBlocks = null
+        )
         {
+            if (card.Column == null)
+            {
+                throw new InvalidOperationException("Somehow a card in play has no Column set.");
+            }
+
             // Note: This weird scope exists because I didn't feel like keeping around two references to the same thing,
             // but I couldn't directly replace "card" until I verified that it wasn't null.
             {
-                var actualCard = AllCards.SingleOrDefault(c => c.Id == card.Id);
+                var actualCard = this[card.Column.Value]
+                    [card.Side]
+                    .SingleOrDefault(c => c.Id == card.Id);
 
                 if (actualCard == null)
                 {
                     return false;
                 }
 
+                if (actualCard.Column == null)
+                {
+                    throw new InvalidOperationException(
+                        "Somehow a card in play has no Column set."
+                    );
+                }
+
                 card = actualCard;
             }
 
-            if (card.Column == null)
-            {
-                throw new InvalidOperationException("Somehow a card in play has no Column set.");
-            }
-
-            var blockedEffects = GetBlockedEffects(card);
+            var blockedEffects = GetBlockedEffects(
+                card,
+                blockedEffectsByColumn,
+                cardsWithLocationEffectBlocks
+            );
             if (blockedEffects.Contains(EffectType.MoveCard))
             {
                 return false;
             }
 
-            var blockedAtFrom = GetBlockedEffects(card.Column.Value, card.Side);
+            var blockedAtFrom =
+                blockedEffectsByColumn?[card.Column.Value]
+                ?? GetBlockedEffects(card.Column.Value, card.Side, cardsWithLocationEffectBlocks);
             if (blockedAtFrom.Contains(EffectType.MoveFromLocation))
             {
                 return false;
             }
 
-            var blockedAtTo = GetBlockedEffects(destination, card.Side);
+            var blockedAtTo =
+                blockedEffectsByColumn?[card.Column.Value]
+                ?? GetBlockedEffects(destination, card.Side, cardsWithLocationEffectBlocks);
             if (blockedAtTo.Contains(EffectType.MoveToLocation))
             {
                 return false;
             }
 
-            foreach (var cardInPlay in AllCards)
+            foreach (var cardInPlay in cardsWithMoveAbilities ?? AllCards)
             {
                 if (cardInPlay.MoveAbility?.CanMove(card, cardInPlay, destination, this) ?? false)
                 {
@@ -208,7 +267,7 @@ namespace Snapdragon
                 }
             }
 
-            foreach (var sensor in AllSensors)
+            foreach (var sensor in sensorsWithMoveAbilities ?? AllSensors)
             {
                 if (sensor.MoveAbility?.CanMove(card, sensor, destination, this) ?? false)
                 {
@@ -450,6 +509,24 @@ namespace Snapdragon
             // Get player actions
             var topPlayerActions = game.Top.Controller.GetActions(game, Side.Top);
             var bottomPlayerActions = game.Bottom.Controller.GetActions(game, Side.Bottom);
+
+            foreach (var top in topPlayerActions)
+            {
+                if (top is MoveCardAction move && move.Card.Name == "Ebony Maw")
+                {
+                    var test = 0;
+                    test += 1;
+                }
+            }
+
+            foreach (var bottom in bottomPlayerActions)
+            {
+                if (bottom is MoveCardAction move && move.Card.Name == "Ebony Maw")
+                {
+                    var test = 0;
+                    test += 1;
+                }
+            }
 
             // Resolve player actions
             game = game.ProcessPlayerActions(topPlayerActions, bottomPlayerActions);

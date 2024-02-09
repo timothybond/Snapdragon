@@ -1,4 +1,5 @@
-﻿using Snapdragon.PlayerActions;
+﻿using Snapdragon.OngoingAbilities;
+using Snapdragon.PlayerActions;
 
 namespace Snapdragon
 {
@@ -9,12 +10,34 @@ namespace Snapdragon
             Side side
         )
         {
+            var cardsWithMoveAbilities = new List<Card>();
+            var cardsWithLocationEffectBlocks = new List<Card>();
+
+            foreach (var card in game.AllCards)
+            {
+                if (card.MoveAbility != null)
+                {
+                    cardsWithMoveAbilities.Add(card);
+                }
+
+                if (card.Ongoing != null && card.Ongoing is OngoingBlockLocationEffect<Card>)
+                {
+                    cardsWithLocationEffectBlocks.Add(card);
+                }
+            }
+
             var possibleActionSets = new List<IReadOnlyList<IPlayerAction>>();
-            var possibleMoveSets = GetPossibleMoveActionSets(game, side);
+            var possibleMoveSets = GetPossibleMoveActionSets(
+                game,
+                side,
+                cardsWithMoveAbilities,
+                cardsWithLocationEffectBlocks
+            );
 
             foreach (var moveSet in possibleMoveSets)
             {
                 var gameWithMoves = moveSet.Aggregate(game, (g, move) => move.Apply(g));
+
                 foreach (
                     var possibleCardPlays in GetPossiblePlayCardActionSets(gameWithMoves, side)
                 )
@@ -28,16 +51,126 @@ namespace Snapdragon
         /// Gets all sets of possible <see cref="MoveCardAction"/>s
         /// that are valid for the given game state and player.
         /// </summary>
-        public static IEnumerable<IReadOnlyList<IPlayerAction>> GetPossibleMoveActionSets(
+        public static IReadOnlyList<IReadOnlyList<IPlayerAction>> GetPossibleMoveActionSets(
             Game game,
-            Side side
+            Side side,
+            IReadOnlyList<Card> cardsWithMoveAbilities,
+            IReadOnlyList<Card> cardsWithLocationEffectBlocks
         )
         {
             var priorMoves = new Stack<MoveCardAction>();
             var skippedCards = new Stack<Card>();
             var results = new List<IReadOnlyList<IPlayerAction>>();
 
-            GetPossibleMoveActionSetsHelper(game, side, priorMoves, skippedCards, results);
+            var blockedEffectsByColumn = new Dictionary<Column, IReadOnlySet<EffectType>>
+            {
+                {
+                    Column.Left,
+                    game.GetBlockedEffects(Column.Left, side, cardsWithLocationEffectBlocks)
+                },
+                {
+                    Column.Middle,
+                    game.GetBlockedEffects(Column.Middle, side, cardsWithLocationEffectBlocks)
+                },
+                {
+                    Column.Right,
+                    game.GetBlockedEffects(Column.Right, side, cardsWithLocationEffectBlocks)
+                }
+            };
+
+            // We assume no cards will BECOME moveable, by this definition, as a result of another card moving.
+            // At the moment I don't know of any scenario where that could happen.
+            // This is mostly a performance optimization.
+            var moveableCards = new List<Card>();
+
+            var sensorsWithMoveAbilities = game
+                .AllSensors.Where(s => s.MoveAbility != null)
+                .ToList();
+
+            for (var i = 0; i < game.Left[side].Count; i++)
+            {
+                var card = game.Left[side][i];
+                if (
+                    game.CanMove(
+                        card,
+                        Column.Middle,
+                        blockedEffectsByColumn,
+                        cardsWithMoveAbilities,
+                        sensorsWithMoveAbilities
+                    )
+                    || game.CanMove(
+                        card,
+                        Column.Right,
+                        blockedEffectsByColumn,
+                        cardsWithMoveAbilities,
+                        sensorsWithMoveAbilities
+                    )
+                )
+                {
+                    moveableCards.Add(card);
+                }
+            }
+
+            for (var i = 0; i < game.Middle[side].Count; i++)
+            {
+                var card = game.Middle[side][i];
+                if (
+                    game.CanMove(
+                        card,
+                        Column.Left,
+                        blockedEffectsByColumn,
+                        cardsWithMoveAbilities,
+                        sensorsWithMoveAbilities
+                    )
+                    || game.CanMove(
+                        card,
+                        Column.Right,
+                        blockedEffectsByColumn,
+                        cardsWithMoveAbilities,
+                        sensorsWithMoveAbilities
+                    )
+                )
+                {
+                    moveableCards.Add(card);
+                }
+            }
+
+            for (var i = 0; i < game.Right[side].Count; i++)
+            {
+                var card = game.Right[side][i];
+                if (
+                    game.CanMove(
+                        card,
+                        Column.Left,
+                        blockedEffectsByColumn,
+                        cardsWithMoveAbilities,
+                        sensorsWithMoveAbilities
+                    )
+                    || game.CanMove(
+                        card,
+                        Column.Middle,
+                        blockedEffectsByColumn,
+                        cardsWithMoveAbilities,
+                        sensorsWithMoveAbilities
+                    )
+                )
+                {
+                    moveableCards.Add(card);
+                }
+            }
+
+            GetPossibleMoveActionSetsHelper(
+                game,
+                side,
+                moveableCards,
+                cardsWithMoveAbilities,
+                sensorsWithMoveAbilities,
+                cardsWithLocationEffectBlocks,
+                blockedEffectsByColumn,
+                priorMoves,
+                skippedCards,
+                results
+            );
 
             return results;
         }
@@ -45,67 +178,75 @@ namespace Snapdragon
         public static void GetPossibleMoveActionSetsHelper(
             Game game,
             Side side,
+            IReadOnlyList<Card> moveableCards,
+            IReadOnlyList<Card> cardsWithMoveAbilities,
+            IReadOnlyList<Sensor<Card>> sensorsWithMoveAbilities,
+            IReadOnlyList<Card> cardsWithLocationEffectBlocks,
+            IReadOnlyDictionary<Column, IReadOnlySet<EffectType>> blockedEffectsByColumn,
             Stack<MoveCardAction> priorMoves,
             Stack<Card> skippedCards,
             List<IReadOnlyList<IPlayerAction>> results
         )
         {
-            var moveableCards = game
-                .AllCards.Where(c =>
-                    c.Side == side
-                    && c.Column is Column column
-                    && c.Column.Value.Others().Any(col => game.CanMove(c, col))
-                    && !game.GetBlockedEffects(column, side).Contains(EffectType.MoveFromLocation)
-                    && !skippedCards.Any(sk => sk.Id == c.Id)
-                    && !priorMoves.Any(m => m.Card.Id == c.Id)
-                )
-                .ToList();
+            var moveableCard = moveableCards.FirstOrDefault(c =>
+                !skippedCards.Any(sk => sk.Id == c.Id) && !priorMoves.Any(m => m.Card.Id == c.Id)
+            );
 
-            if (moveableCards.Count == 0)
+            if (moveableCard == null)
             {
                 results.Add(priorMoves.Reverse().ToList());
                 return;
             }
 
-            var currentCard = moveableCards[0];
-
-            if (currentCard.Column == null)
-            {
-                throw new InvalidOperationException(
-                    "Somehow we tried to compute possible move actions for a card without a Column value."
-                );
-            }
-
-            skippedCards.Push(currentCard);
+            skippedCards.Push(moveableCard);
 
             // Also always include the possiblity of not moving this card
-            GetPossibleMoveActionSetsHelper(game, side, priorMoves, skippedCards, results);
+            GetPossibleMoveActionSetsHelper(
+                game,
+                side,
+                moveableCards,
+                cardsWithMoveAbilities,
+                sensorsWithMoveAbilities,
+                cardsWithLocationEffectBlocks,
+                blockedEffectsByColumn,
+                priorMoves,
+                skippedCards,
+                results
+            );
 
             skippedCards.Pop();
 
             foreach (var column in All.Columns)
             {
-                if (column == currentCard.Column)
+                if (column == moveableCard.Column)
                 {
                     continue;
                 }
 
-                if (!game.CanMove(currentCard, column))
+                if (
+                    !game.CanMove(
+                        moveableCard,
+                        column,
+                        blockedEffectsByColumn,
+                        cardsWithMoveAbilities,
+                        sensorsWithMoveAbilities
+                    )
+                )
                 {
                     continue;
                 }
 
                 // TODO: Handle other restrictions on slots
-                if (game[column][currentCard.Side].Count >= 4)
+                if (game[column][moveableCard.Side].Count >= 4)
                 {
                     continue;
                 }
 
                 // Apparently this is a valid move
                 var move = new MoveCardAction(
-                    currentCard.Side,
-                    currentCard,
-                    currentCard.Column.Value,
+                    moveableCard.Side,
+                    moveableCard,
+                    moveableCard.Column!.Value,
                     column
                 );
                 var gameWithThisMove = move.Apply(game);
@@ -115,6 +256,11 @@ namespace Snapdragon
                 GetPossibleMoveActionSetsHelper(
                     gameWithThisMove,
                     side,
+                    moveableCards,
+                    cardsWithMoveAbilities,
+                    sensorsWithMoveAbilities,
+                    cardsWithLocationEffectBlocks,
+                    blockedEffectsByColumn,
                     priorMoves,
                     skippedCards,
                     results
@@ -133,12 +279,16 @@ namespace Snapdragon
             Side side
         )
         {
+            var cardsWithLocationEffectBlocks = game
+                .AllCards.Where(c => c.Ongoing is OngoingBlockLocationEffect<Card>)
+                .ToList();
+
             // Every entry in this list is a set of cards we can afford to play
             var playableCardSets = GetPlayableCardSets(game[side]);
 
             // This is the count of open slots by column,
             // and also where we check if PlayCards is blocked
-            var availableColumns = GetPlayableCardSlots(game, side);
+            var availableColumns = GetPlayableCardSlots(game, side, cardsWithLocationEffectBlocks);
 
             var totalAvailableSlots =
                 availableColumns.Left + availableColumns.Middle + availableColumns.Right;
@@ -150,6 +300,12 @@ namespace Snapdragon
 
             foreach (var cardSet in playableCardSets)
             {
+                if (cardSet.Count == 0)
+                {
+                    yield return new List<IPlayerAction>();
+                    continue;
+                }
+
                 if (!columnChoicesByCount.ContainsKey(cardSet.Count))
                 {
                     columnChoicesByCount[cardSet.Count] = GetPossibleColumnChoices(
@@ -192,6 +348,98 @@ namespace Snapdragon
         )
         {
             var results = new List<IReadOnlyList<Column>>();
+
+            if (total == 0)
+            {
+                results.Add(new List<Column>());
+                return results;
+            }
+
+            // This whole block is kind of a stupid optimization, but as far as I can
+            // tell from profiling, it actually does work quite well compared to the
+            // stack-based one below for small counts.
+            //
+            // Basically we just try every single possible combination of Left, Right, and Center,
+            // i.e. 3^total possibilities, and double-check that it doesn't go over the allowed
+            // number for each column. If not, return it. Since we only allocate a new list
+            // when we know it's going to return, I think it's basically just CPU-bound,
+            // whereas the stack-based solution has a lot of additional memory allocations
+            // at each step.
+            //
+            // I'm still pretty suspicious of it, so it might be worth another look.
+            if (total < 4)
+            {
+                var count = 3;
+                for (var i = 1; i < total; i++)
+                {
+                    count *= 3;
+                }
+
+                var result = new List<Column>();
+
+                for (var possibility = 0; possibility < count; possibility++)
+                {
+                    var valid = true;
+                    var current = possibility;
+                    result.Clear();
+
+                    var left = 0;
+                    var middle = 0;
+                    var right = 0;
+
+                    for (var i = 0; i < total; i++)
+                    {
+                        switch (current % 3)
+                        {
+                            case 0:
+                                result.Add(Column.Left);
+                                left++;
+
+                                if (left > available.Left)
+                                {
+                                    valid = false;
+                                }
+                                break;
+                            case 1:
+                                result.Add(Column.Middle);
+                                middle++;
+                                if (middle > available.Middle)
+                                {
+                                    valid = false;
+                                }
+                                break;
+                            case 2:
+                                result.Add(Column.Right);
+                                right++;
+                                if (right > available.Right)
+                                {
+                                    valid = false;
+                                }
+                                break;
+                            default:
+                                throw new NotImplementedException();
+                        }
+
+                        if (!valid)
+                        {
+                            break;
+                        }
+
+                        current = current / 3;
+                    }
+
+                    if (valid)
+                    {
+                        results.Add(result.ToList());
+                    }
+                }
+
+                return results;
+            }
+
+            // This is a more sane implementation than the above one,
+            // but apparently on account of doing so many more allocations
+            // or something, it's comparatively slow.
             var stack = new Stack<Column>();
 
             GetPossibleColumnChoicesHelper(
@@ -288,20 +536,40 @@ namespace Snapdragon
         /// </summary>
         /// <returns>A list of <see cref="Column"/>, in order from Left to Right,
         /// with one entry of each value per slot available in that <see cref="Column"/>.</returns>
-        public static (int Left, int Middle, int Right) GetPlayableCardSlots(Game game, Side side)
+        public static (int Left, int Middle, int Right) GetPlayableCardSlots(
+            Game game,
+            Side side,
+            IReadOnlyList<Card> cardsWithLocationEffectBlocks
+        )
         {
             return (
-                GetPlayableCardSlots(game, side, Column.Left),
-                GetPlayableCardSlots(game, side, Column.Middle),
-                GetPlayableCardSlots(game, side, Column.Right)
+                GetPlayableCardSlots(game, side, Column.Left, cardsWithLocationEffectBlocks),
+                GetPlayableCardSlots(game, side, Column.Middle, cardsWithLocationEffectBlocks),
+                GetPlayableCardSlots(game, side, Column.Right, cardsWithLocationEffectBlocks)
             );
         }
 
-        public static int GetPlayableCardSlots(Game game, Side side, Column column)
+        public static int GetPlayableCardSlots(
+            Game game,
+            Side side,
+            Column column,
+            IReadOnlyList<Card> cardsWithLocationEffectBlocks
+        )
         {
-            return game.GetBlockedEffects(column, side).Contains(EffectType.PlayCard)
-                ? 0
-                : 4 - game[column][side].Count;
+            var blockedEffects = game.GetBlockedEffects(
+                column,
+                side,
+                cardsWithLocationEffectBlocks
+            );
+
+            if (blockedEffects.Contains(EffectType.PlayCard))
+            {
+                return 0;
+            }
+            else
+            {
+                return 4 - game[column][side].Count;
+            }
         }
 
         /// <summary>
