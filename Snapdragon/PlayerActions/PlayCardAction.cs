@@ -18,6 +18,20 @@ namespace Snapdragon.PlayerActions
                 );
             }
 
+            if (Card.PlayRestriction?.IsBlocked(game, Column, Card) ?? false)
+            {
+                throw new InvalidOperationException(
+                    "Tried to play a card with a play restriction that blocks it."
+                );
+            }
+
+            if (game.GetBlockedEffects(Column, Side).Contains(EffectType.PlayCard))
+            {
+                throw new InvalidOperationException(
+                    $"The 'PlayCard' effect type is blocked for side {Side}, Column {Column}."
+                );
+            }
+
             var player = game[Side];
 
             if (!player.Hand.Contains(Card))
@@ -29,7 +43,6 @@ namespace Snapdragon.PlayerActions
 
             if (game[Side].Energy < Card.Cost)
             {
-                // TODO: This should probably actually log and fail silently.
                 throw new InvalidOperationException(
                     $"Tried to play card with cost {Card.Cost}, but remaining energy was {game[Side].Energy}."
                 );

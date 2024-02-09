@@ -10,6 +10,7 @@ namespace Snapdragon
         IOngoingAbility<Card>? Ongoing = null,
         ITriggeredAbility<Card>? Triggered = null,
         IMoveAbility<Card>? MoveAbility = null,
-        ImmutableList<EffectType>? Disallowed = null
+        ImmutableList<EffectType>? Disallowed = null,
+        IPlayRestriction? PlayRestriction = null
     ) { }
 }

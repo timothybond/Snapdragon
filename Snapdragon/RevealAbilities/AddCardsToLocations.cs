@@ -4,7 +4,7 @@
         CardDefinition Definition,
         ILocationFilter<T> LocationFilter,
         ISideFilter<T> SideFilter,
-        int CardsPerLocation
+        int CardsPerLocation = 1
     ) : IRevealAbility<T>
     {
         public Game Activate(Game game, T source)

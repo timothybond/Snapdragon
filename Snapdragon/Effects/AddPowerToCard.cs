@@ -82,7 +82,7 @@ namespace Snapdragon.Effects
             if (possibleCard.Column != null)
             {
                 blockedEffects = blockedEffects
-                    .Concat(game.GetBlockedEffects(possibleCard.Column.Value))
+                    .Concat(game.GetBlockedEffects(possibleCard.Column.Value, possibleCard.Side))
                     .ToHashSet();
             }
 

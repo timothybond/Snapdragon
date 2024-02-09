@@ -1,16 +1,17 @@
-﻿using Snapdragon.Calculations;
+﻿using System.Collections.Immutable;
+using Snapdragon.Calculations;
 using Snapdragon.CardConditions;
 using Snapdragon.CardTriggers;
 using Snapdragon.Events;
 using Snapdragon.LocationFilters;
 using Snapdragon.MoveAbilities;
 using Snapdragon.OngoingAbilities;
+using Snapdragon.PlayRestrictions;
 using Snapdragon.RevealAbilities;
 using Snapdragon.Sensors;
 using Snapdragon.TargetFilters;
 using Snapdragon.TriggeredEffects;
 using Snapdragon.Triggers;
-using System.Collections.Immutable;
 
 namespace Snapdragon
 {
@@ -36,6 +37,21 @@ namespace Snapdragon
             ),
             new("Agent 13", 1, 2, new AddRandomCardToHand()),
             new("Blade", 1, 3, new DiscardCard(new RightmostCardInHand<Card>())),
+            new(
+                "Ebony Maw",
+                1,
+                7,
+                null,
+                new OngoingBlockLocationEffect<Card>(
+                    EffectType.PlayCard,
+                    new SameLocation(),
+                    new SameSide()
+                ),
+                null,
+                null,
+                null,
+                new CannotPlayAfterTurn(3)
+            ),
             new(
                 "Elektra",
                 1,
@@ -97,7 +113,7 @@ namespace Snapdragon
                 new AddCardsToLocations<Card>(
                     new CardDefinition("Squirrel", 1, 1),
                     new OtherLocations(),
-                    new SideFilters.SameSide(),
+                    new SameSide(),
                     1
                 )
             ),
@@ -257,7 +273,7 @@ namespace Snapdragon
                 )
             ),
             new("The Thing", 4, 6),
-            new CardDefinition(
+            new(
                 "Jessica Jones",
                 4,
                 5,
@@ -270,7 +286,22 @@ namespace Snapdragon
                     )
                 )
             ),
-            new CardDefinition(
+            new(
+                "Sentry",
+                4,
+                10,
+                new AddCardsToLocations<Card>(
+                    new CardDefinition("Void", 4, -10),
+                    new SpecificLocation<Card>(Column.Right),
+                    new SameSide()
+                ),
+                null,
+                null,
+                null,
+                null,
+                new CannotPlayInColumn(Column.Right)
+            ),
+            new(
                 "Blue Marvel",
                 5,
                 3,

@@ -16,7 +16,8 @@ namespace Snapdragon
         IOngoingAbility<Card>? Ongoing = null,
         ITriggeredAbility<Card>? Triggered = null,
         IMoveAbility<Card>? MoveAbility = null,
-        ImmutableList<EffectType>? Disallowed = null
+        ImmutableList<EffectType>? Disallowed = null,
+        IPlayRestriction? PlayRestriction = null
     ) : IObjectWithColumn
     {
         public Card(CardDefinition definition, Side side, CardState state = CardState.InLibrary)
@@ -34,7 +35,8 @@ namespace Snapdragon
                 definition.Ongoing,
                 definition.Triggered,
                 definition.MoveAbility,
-                definition.Disallowed
+                definition.Disallowed,
+                definition.PlayRestriction
             ) { }
 
         public int AdjustedPower => this.Power + (this.PowerAdjustment ?? 0);

@@ -91,10 +91,6 @@ it's at another `Location`. This is probably *mostly* handled by the `Location.W
 
 Second, it reflects the fact that there's no type distinction between a `Card` in a player's hand (which has no `Location`) and a `Card` in play (which always has a `Location`). Because of this, a bunch of these checks are being done unnecessarily on already-in-play `Card`s. The obvious solution here is to define a separate type for `Card`s in play.
 
-### Triggers
-
-Right now instances of `ITriggeredAbility`, `ITrigger`, and `ISourceTriggeredEffectBuilder` all get called with an argument of type `Event`, but basically every point in this process is always specific to a subtype of `Event`. I'm pretty sure I can fix this so there's more of a guarantee that I always wire together the same correct trigger with the correct effect-builder logic.
-
 ### ControllerUtilities
 
 The `ControllerUtilities` class has some methods for enumerating all of the possible things a player could do, and it broadly works, but I haven't convinced myself that the logic for enumerating all possible moves is provably correct. I did double-check a complex case by hand, though.

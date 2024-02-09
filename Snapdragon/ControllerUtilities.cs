@@ -55,7 +55,7 @@ namespace Snapdragon
                     c.Side == side
                     && c.Column is Column column
                     && c.Column.Value.Others().Any(col => game.CanMove(c, col))
-                    && !game.GetBlockedEffects(column).Contains(EffectType.MoveFromLocation)
+                    && !game.GetBlockedEffects(column, side).Contains(EffectType.MoveFromLocation)
                     && !skippedCards.Any(sk => sk.Id == c.Id)
                     && !priorMoves.Any(m => m.Card.Id == c.Id)
                 )
@@ -133,9 +133,13 @@ namespace Snapdragon
             Side side
         )
         {
-            // TODO: Also have Move actions
+            // Every entry in this list is a set of cards we can afford to play
             var playableCardSets = GetPlayableCardSets(game[side]);
-            var availableColumns = GetAvailableCardSlots(game, side);
+
+            // This is the count of open slots by column,
+            // and also where we check if PlayCards is blocked
+            var availableColumns = GetPlayableCardSlots(game, side);
+
             var totalAvailableSlots =
                 availableColumns.Left + availableColumns.Middle + availableColumns.Right;
 
@@ -156,9 +160,22 @@ namespace Snapdragon
 
                 foreach (var columnChoices in columnChoicesByCount[cardSet.Count])
                 {
-                    yield return cardSet
-                        .Select((c, i) => new PlayCardAction(side, c, columnChoices[i]))
-                        .ToList();
+                    // These are only valid if none of the cards is restricted from play
+                    // in the column chosen for it.
+
+                    if (
+                        !cardSet
+                            .Select(
+                                (c, i) =>
+                                    c.PlayRestriction?.IsBlocked(game, columnChoices[i], c) ?? false
+                            )
+                            .Any(blocked => blocked)
+                    )
+                    {
+                        yield return cardSet
+                            .Select((c, i) => new PlayCardAction(side, c, columnChoices[i]))
+                            .ToList();
+                    }
                 }
             }
         }
@@ -266,17 +283,25 @@ namespace Snapdragon
 
         /// <summary>
         /// Gets a list of all of the slots that cards can still be played in.
+        ///
+        /// Note this checks whether <see cref="EffectType.PlayCard"/> is blocked. Don't use it for Moves.
         /// </summary>
         /// <returns>A list of <see cref="Column"/>, in order from Left to Right,
         /// with one entry of each value per slot available in that <see cref="Column"/>.</returns>
-        public static (int Left, int Middle, int Right) GetAvailableCardSlots(Game game, Side side)
+        public static (int Left, int Middle, int Right) GetPlayableCardSlots(Game game, Side side)
         {
-            var availableColumns = new List<Column>();
-            var left = 4 - game[Column.Left][side].Count;
-            var middle = 4 - game[Column.Middle][side].Count;
-            var right = 4 - game[Column.Right][side].Count;
+            return (
+                GetPlayableCardSlots(game, side, Column.Left),
+                GetPlayableCardSlots(game, side, Column.Middle),
+                GetPlayableCardSlots(game, side, Column.Right)
+            );
+        }
 
-            return (left, middle, right);
+        public static int GetPlayableCardSlots(Game game, Side side, Column column)
+        {
+            return game.GetBlockedEffects(column, side).Contains(EffectType.PlayCard)
+                ? 0
+                : 4 - game[column][side].Count;
         }
 
         /// <summary>

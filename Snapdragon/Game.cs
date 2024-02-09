@@ -1,6 +1,6 @@
-﻿using System.Collections.Immutable;
-using Snapdragon.Events;
+﻿using Snapdragon.Events;
 using Snapdragon.OngoingAbilities;
+using System.Collections.Immutable;
 
 namespace Snapdragon
 {
@@ -104,7 +104,7 @@ namespace Snapdragon
             }
         }
 
-        public IReadOnlySet<EffectType> GetBlockedEffects(Column column)
+        public IReadOnlySet<EffectType> GetBlockedEffects(Column column, Side side)
         {
             var set = new HashSet<EffectType>();
             var location = this[column];
@@ -113,7 +113,7 @@ namespace Snapdragon
             {
                 if (source.Ongoing is OngoingBlockLocationEffect<Card> blockLocationEffect)
                 {
-                    if (blockLocationEffect.Applies(location, source, this))
+                    if (blockLocationEffect.Applies(location, side, source, this))
                     {
                         set.Add(blockLocationEffect.EffectType);
                     }
@@ -130,7 +130,7 @@ namespace Snapdragon
             if (card.Column.HasValue)
             {
                 // This is a little gross but it's co-located with the method we're abusing
-                set = (HashSet<EffectType>)GetBlockedEffects(card.Column.Value);
+                set = (HashSet<EffectType>)GetBlockedEffects(card.Column.Value, card.Side);
             }
 
             foreach (var source in AllCards)
@@ -188,13 +188,13 @@ namespace Snapdragon
                 return false;
             }
 
-            var blockedAtFrom = GetBlockedEffects(card.Column.Value);
+            var blockedAtFrom = GetBlockedEffects(card.Column.Value, card.Side);
             if (blockedAtFrom.Contains(EffectType.MoveFromLocation))
             {
                 return false;
             }
 
-            var blockedAtTo = GetBlockedEffects(destination);
+            var blockedAtTo = GetBlockedEffects(destination, card.Side);
             if (blockedAtTo.Contains(EffectType.MoveToLocation))
             {
                 return false;
