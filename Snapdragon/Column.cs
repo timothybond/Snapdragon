@@ -1,4 +1,6 @@
-﻿namespace Snapdragon
+﻿using System.Collections.Immutable;
+
+namespace Snapdragon
 {
     public enum Column
     {
@@ -9,25 +11,17 @@
 
     public static class ColumnExtensions
     {
-        public static IEnumerable<Column> Others(this Column column)
-        {
-            switch (column)
+        private static readonly ImmutableDictionary<Column, ImmutableList<Column>> otherColumns =
+            new Dictionary<Column, ImmutableList<Column>>
             {
-                case Column.Left:
-                    yield return Column.Middle;
-                    yield return Column.Right;
-                    break;
-                case Column.Middle:
-                    yield return Column.Left;
-                    yield return Column.Right;
-                    break;
-                case Column.Right:
-                    yield return Column.Left;
-                    yield return Column.Middle;
-                    break;
-                default:
-                    throw new NotImplementedException();
-            }
+                { Column.Left, [Column.Middle, Column.Right] },
+                { Column.Middle, [Column.Left, Column.Right] },
+                { Column.Right, [Column.Left, Column.Middle] }
+            }.ToImmutableDictionary();
+
+        public static ImmutableList<Column> Others(this Column column)
+        {
+            return otherColumns[column];
         }
     }
 }

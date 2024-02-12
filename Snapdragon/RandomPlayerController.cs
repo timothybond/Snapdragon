@@ -18,6 +18,8 @@ namespace Snapdragon
 
             var cardsWithMoveAbilities = new List<Card>();
             var cardsWithLocationEffectBlocks = new List<Card>();
+            var cardsWithCardEffectBlocks = new List<Card>();
+            var sensorsWithMoveAbilities = new List<Sensor<Card>>();
 
             foreach (var card in game.AllCards)
             {
@@ -30,21 +32,48 @@ namespace Snapdragon
                 {
                     cardsWithLocationEffectBlocks.Add(card);
                 }
+
+                if (card.Ongoing != null && card.Ongoing is OngoingBlockCardEffect<Card>)
+                {
+                    cardsWithCardEffectBlocks.Add(card);
+                }
+
+                if (card.MoveAbility != null)
+                {
+                    cardsWithMoveAbilities.Add(card);
+                }
             }
+
+            var blockedEffectsByColumn = GetBlockedEffects(
+                game,
+                side,
+                cardsWithLocationEffectBlocks
+            );
 
             // First we do moves. Note this means that when a lot of move actions are provided,
             // there is a pretty low chance we go with "no moves". I think this is probably
             // sensible on the premise that generally there will only BE a lot of moves
             // on offer if we're playing a move deck, although Cloak does provide move options
             // to both sides, so maybe sometimes this is a bad assumption.
-            var moves = Random.Of(
-                GetPossibleMoveActionSets(
-                    game,
-                    side,
-                    cardsWithMoveAbilities,
-                    cardsWithLocationEffectBlocks
-                )
+            var moves = GetRandomMoves(
+                game,
+                side,
+                cardsWithMoveAbilities,
+                sensorsWithMoveAbilities,
+                cardsWithLocationEffectBlocks,
+                blockedEffectsByColumn,
+                cardsWithCardEffectBlocks
             );
+
+            //var moves = Random.Of(
+            //    GetPossibleMoveActionSets(
+            //        game,
+            //        side,
+            //        cardsWithMoveAbilities,
+            //        cardsWithLocationEffectBlocks,
+            //        cardsWithCardEffectBlocks
+            //    )
+            //);
 
             // Once we pick the moves, we have to perform the rest of the search
             // as though they have already taken place.
@@ -93,6 +122,7 @@ namespace Snapdragon
             )
             {
                 return moves
+                    .Cast<IPlayerAction>()
                     .Concat(GetPlayCardActions(cardsToPlay, randomColumnChoices, side))
                     .ToList();
             }
@@ -106,7 +136,7 @@ namespace Snapdragon
 
             if (nonBlockedActionSets.Count > 0)
             {
-                return moves.Concat(Random.Of(nonBlockedActionSets)).ToList();
+                return moves.Cast<IPlayerAction>().Concat(Random.Of(nonBlockedActionSets)).ToList();
             }
 
             // Apparently there were no valid places to play these cards.
@@ -116,7 +146,138 @@ namespace Snapdragon
                 .Select((c, i) => new PlayCardAction(side, c, randomColumnChoices[i]))
                 .Where(a => !IsBlocked(a, game));
 
-            return moves.Concat(remainingValidPlays).ToList();
+            return moves.Cast<IPlayerAction>().Concat(remainingValidPlays).ToList();
+        }
+
+        private static IReadOnlyList<MoveCardAction> GetRandomMoves(
+            Game game,
+            Side side,
+            IReadOnlyList<Card> cardsWithMoveAbilities,
+            IReadOnlyList<Sensor<Card>> sensorsWithMoveAbilities,
+            IReadOnlyList<Card> cardsWithLocationEffectBlocks,
+            IReadOnlyDictionary<Column, IReadOnlySet<EffectType>> blockedEffectsByColumn,
+            IReadOnlyList<Card> cardsWithCardEffectBlocks
+        )
+        {
+            var moves = new List<MoveCardAction>();
+
+            var moveableCards = GetMoveableCards(
+                game,
+                side,
+                cardsWithMoveAbilities,
+                sensorsWithMoveAbilities,
+                blockedEffectsByColumn,
+                cardsWithCardEffectBlocks
+            );
+
+            while (moveableCards.Count > 0)
+            {
+                var nextIndex = Random.Next(moveableCards.Count);
+                var next = moveableCards[nextIndex];
+                moveableCards.RemoveAt(nextIndex);
+
+                var potentialColumns = PotentialNewColumns(
+                    next,
+                    game,
+                    cardsWithMoveAbilities,
+                    sensorsWithMoveAbilities,
+                    cardsWithLocationEffectBlocks,
+                    blockedEffectsByColumn,
+                    cardsWithCardEffectBlocks
+                );
+
+                if (potentialColumns.Count == 0)
+                {
+                    continue;
+                }
+
+                // Note we can always choose not to move a card
+                var newColumn = Random.Next(potentialColumns.Count + 1);
+
+                if (newColumn == potentialColumns.Count)
+                {
+                    continue;
+                }
+
+                var newMove = new MoveCardAction(
+                    next.Side,
+                    next,
+                    next.Column!.Value,
+                    potentialColumns[newColumn]
+                );
+
+                game = newMove.Apply(game);
+
+                moves.Add(newMove);
+            }
+
+            return moves;
+        }
+
+        private static IReadOnlyList<Column> PotentialNewColumns(
+            Card card,
+            Game game,
+            IReadOnlyList<Card> cardsWithMoveAbilities,
+            IReadOnlyList<Sensor<Card>> sensorsWithMoveAbilities,
+            IReadOnlyList<Card> cardsWithLocationEffectBlocks,
+            IReadOnlyDictionary<Column, IReadOnlySet<EffectType>> blockedEffectsByColumn,
+            IReadOnlyList<Card> cardsWithCardEffectBlocks
+        )
+        {
+            return card.Column!.Value.Others()
+                .Where(col =>
+                    game.CanMove(
+                        card,
+                        col,
+                        blockedEffectsByColumn,
+                        cardsWithMoveAbilities,
+                        sensorsWithMoveAbilities,
+                        cardsWithCardEffectBlocks
+                    )
+                    && game[col][card.Side].Count < 4
+                )
+                .ToList();
+        }
+
+        private static List<Card> GetMoveableCards(
+            Game game,
+            Side side,
+            IReadOnlyList<Card> cardsWithMoveAbilities,
+            IReadOnlyList<Sensor<Card>> sensorsWithMoveAbilities,
+            IReadOnlyDictionary<Column, IReadOnlySet<EffectType>> blockedEffectsByColumn,
+            IReadOnlyList<Card> cardsWithCardEffectBlocks
+        )
+        {
+            var result = new List<Card>();
+
+            var allCards = game.Left[side].Concat(game.Middle[side]).Concat(game.Right[side]);
+
+            foreach (var card in allCards)
+            {
+                if (card.Column == null)
+                {
+                    throw new InvalidOperationException("Card in play had no Column value.");
+                }
+
+                foreach (var column in card.Column.Value.Others())
+                {
+                    if (
+                        game.CanMove(
+                            card,
+                            column,
+                            blockedEffectsByColumn,
+                            cardsWithMoveAbilities,
+                            sensorsWithMoveAbilities,
+                            cardsWithCardEffectBlocks
+                        )
+                    )
+                    {
+                        result.Add(card);
+                    }
+                }
+            }
+
+            return result;
         }
 
         private static IReadOnlyList<PlayCardAction> GetPlayCardActions(

@@ -1,7 +1,7 @@
 ﻿using Snapdragon.Runner.Experiments;
 
-var vultureExperiment = new VultureExperiment();
-var kaZarExperiment = new KaZarExperiment();
+//var moveExperiment = new MoveDeckSoloExperiment();
+var kaZarExperiment = new KaZarSoloExperiment();
 
-vultureExperiment.Run();
+//moveExperiment.Run();
 kaZarExperiment.Run();

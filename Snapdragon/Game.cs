@@ -137,7 +137,7 @@ namespace Snapdragon
         public IReadOnlySet<EffectType> GetBlockedEffects(
             Card card,
             IReadOnlyDictionary<Column, IReadOnlySet<EffectType>>? blockedEffectsByColumn = null,
-            IReadOnlyList<Card>? cardsWithLocationEffectBlocks = null
+            IReadOnlyList<Card>? cardsWithCardEffectBlocks = null
         )
         {
             var set = new HashSet<EffectType>();
@@ -154,17 +154,11 @@ namespace Snapdragon
                 else
                 {
                     // This is a little gross but it's co-located with the method we're abusing
-                    set =
-                        (HashSet<EffectType>)
-                            GetBlockedEffects(
-                                card.Column.Value,
-                                card.Side,
-                                cardsWithLocationEffectBlocks
-                            );
+                    set = (HashSet<EffectType>)GetBlockedEffects(card.Column.Value, card.Side);
                 }
             }
 
-            foreach (var source in cardsWithLocationEffectBlocks ?? AllCards)
+            foreach (var source in cardsWithCardEffectBlocks ?? AllCards)
             {
                 if (source.Ongoing is OngoingBlockCardEffect<Card> blockCardEffect)
                 {
@@ -203,7 +197,7 @@ namespace Snapdragon
             IReadOnlyDictionary<Column, IReadOnlySet<EffectType>>? blockedEffectsByColumn = null,
             IReadOnlyList<Card>? cardsWithMoveAbilities = null,
             IReadOnlyList<Sensor<Card>>? sensorsWithMoveAbilities = null,
-            IReadOnlyList<Card>? cardsWithLocationEffectBlocks = null
+            IReadOnlyList<Card>? cardsWithCardEffectBlocks = null
         )
         {
             if (card.Column == null)
@@ -236,7 +230,7 @@ namespace Snapdragon
             var blockedEffects = GetBlockedEffects(
                 card,
                 blockedEffectsByColumn,
-                cardsWithLocationEffectBlocks
+                cardsWithCardEffectBlocks
             );
             if (blockedEffects.Contains(EffectType.MoveCard))
             {
@@ -245,7 +239,7 @@ namespace Snapdragon
 
             var blockedAtFrom =
                 blockedEffectsByColumn?[card.Column.Value]
-                ?? GetBlockedEffects(card.Column.Value, card.Side, cardsWithLocationEffectBlocks);
+                ?? GetBlockedEffects(card.Column.Value, card.Side);
             if (blockedAtFrom.Contains(EffectType.MoveFromLocation))
             {
                 return false;
@@ -253,7 +247,7 @@ namespace Snapdragon
 
             var blockedAtTo =
                 blockedEffectsByColumn?[card.Column.Value]
-                ?? GetBlockedEffects(destination, card.Side, cardsWithLocationEffectBlocks);
+                ?? GetBlockedEffects(destination, card.Side);
             if (blockedAtTo.Contains(EffectType.MoveToLocation))
             {
                 return false;

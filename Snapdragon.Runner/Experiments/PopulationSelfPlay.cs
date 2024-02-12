@@ -8,37 +8,30 @@ namespace Snapdragon.Runner.Experiments
     /// An experiment that runs against two different populations that are co-evolving,
     /// recording the top decks of both and their card distributions over time.
     /// </summary>
-    public class PopulationComparison
+    public class PopulationSelfPlay
     {
-        public void Run<TFirst, TSecond>(
-            Genetics<TFirst> firstSchema,
-            Genetics<TSecond> secondSchema,
-            string firstName,
-            string secondName,
+        public void Run<T>(
+            Genetics<T> schema,
+            string name,
             int deckCount = 64,
-            int generations = 100
+            int generations = 100,
+            int gamesPerDeck = 5
         )
-            where TFirst : IGeneSequence<TFirst>
-            where TSecond : IGeneSequence<TSecond>
+            where T : IGeneSequence<T>
         {
-            var first = new Population<TFirst>(firstSchema, deckCount, firstName);
-            var second = new Population<TSecond>(secondSchema, deckCount, secondName);
+            var population = new Population<T>(schema, deckCount, name);
 
-            WriteHeaders(first);
-            WriteHeaders(second);
+            WriteHeaders(population);
 
             for (var i = 0; i < generations; i++)
             {
-                (first, second) = RunGames(first, second);
+                population = RunGames(population, gamesPerDeck);
 
-                Log.LogBestDeck(i, first);
-                Log.LogBestDeck(i, second);
+                Log.LogBestDeck(i, population);
 
-                first = first.Reproduce();
-                second = second.Reproduce();
+                population = population.Reproduce();
 
-                WriteCardCounts(first);
-                WriteCardCounts(second);
+                WriteCardCounts(population);
             }
 
             Console.WriteLine("Finished.");
@@ -80,32 +73,19 @@ namespace Snapdragon.Runner.Experiments
             }
         }
 
-        private (Population<TFirst> First, Population<TSecond> Second) RunGames<TFirst, TSecond>(
-            Population<TFirst> first,
-            Population<TSecond> second,
-            int gamesPerDeck = 5
-        )
-            where TFirst : IGeneSequence<TFirst>
-            where TSecond : IGeneSequence<TSecond>
+        private Population<T> RunGames<T>(Population<T> population, int gamesPerDeck)
+            where T : IGeneSequence<T>
         {
             var engine = new Engine(new NullLogger());
 
-            var combinedPopulations = new List<IReadOnlyList<IGeneSequence>>
-            {
-                first.Items.Cast<IGeneSequence>().ToList(),
-                second.Items.Cast<IGeneSequence>().ToList()
-            };
-
-            var allWins = first.Genetics.RunMixedPopulationGames(
-                combinedPopulations,
+            var wins = population.Genetics.RunPopulationGames(
+                population.Items.Cast<IGeneSequence>().ToList(),
                 engine,
                 gamesPerDeck
             );
+            population = population with { Wins = wins };
 
-            first = first with { Wins = allWins[0] };
-            second = second with { Wins = allWins[1] };
-
-            return (first, second);
+            return population;
         }
     }
 }

@@ -12,6 +12,7 @@ namespace Snapdragon
         {
             var cardsWithMoveAbilities = new List<Card>();
             var cardsWithLocationEffectBlocks = new List<Card>();
+            var cardsWithCardEffectBlocks = new List<Card>();
 
             foreach (var card in game.AllCards)
             {
@@ -20,9 +21,16 @@ namespace Snapdragon
                     cardsWithMoveAbilities.Add(card);
                 }
 
-                if (card.Ongoing != null && card.Ongoing is OngoingBlockLocationEffect<Card>)
+                if (card.Ongoing != null)
                 {
-                    cardsWithLocationEffectBlocks.Add(card);
+                    if (card.Ongoing is OngoingBlockLocationEffect<Card>)
+                    {
+                        cardsWithLocationEffectBlocks.Add(card);
+                    }
+                    else if (card.Ongoing is OngoingBlockCardEffect<Card>)
+                    {
+                        cardsWithCardEffectBlocks.Add(card);
+                    }
                 }
             }
 
@@ -31,7 +39,8 @@ namespace Snapdragon
                 game,
                 side,
                 cardsWithMoveAbilities,
-                cardsWithLocationEffectBlocks
+                cardsWithLocationEffectBlocks,
+                cardsWithCardEffectBlocks
             );
 
             foreach (var moveSet in possibleMoveSets)
@@ -48,21 +57,19 @@ namespace Snapdragon
         }
 
         /// <summary>
-        /// Gets all sets of possible <see cref="MoveCardAction"/>s
-        /// that are valid for the given game state and player.
+        /// Gets all location-wide effect blocks, for one side.
         /// </summary>
-        public static IReadOnlyList<IReadOnlyList<IPlayerAction>> GetPossibleMoveActionSets(
+        /// <param name="game">Overall game state.</param>
+        /// <param name="side">Target side.</param>
+        /// <param name="cardsWithLocationEffectBlocks">All cards with <see cref="OngoingBlockLocationEffect{T}"/> abilities.</param>
+        /// <returns></returns>
+        public static IReadOnlyDictionary<Column, IReadOnlySet<EffectType>> GetBlockedEffects(
             Game game,
             Side side,
-            IReadOnlyList<Card> cardsWithMoveAbilities,
             IReadOnlyList<Card> cardsWithLocationEffectBlocks
         )
         {
-            var priorMoves = new Stack<MoveCardAction>();
-            var skippedCards = new Stack<Card>();
-            var results = new List<IReadOnlyList<IPlayerAction>>();
-
-            var blockedEffectsByColumn = new Dictionary<Column, IReadOnlySet<EffectType>>
+            return new Dictionary<Column, IReadOnlySet<EffectType>>
             {
                 {
                     Column.Left,
@@ -77,6 +84,29 @@ namespace Snapdragon
                     game.GetBlockedEffects(Column.Right, side, cardsWithLocationEffectBlocks)
                 }
             };
+        }
+
+        /// <summary>
+        /// Gets all sets of possible <see cref="MoveCardAction"/>s
+        /// that are valid for the given game state and player.
+        /// </summary>
+        public static IReadOnlyList<IReadOnlyList<IPlayerAction>> GetPossibleMoveActionSets(
+            Game game,
+            Side side,
+            IReadOnlyList<Card> cardsWithMoveAbilities,
+            IReadOnlyList<Card> cardsWithLocationEffectBlocks,
+            IReadOnlyList<Card> cardsWithCardEffectBlocks
+        )
+        {
+            var priorMoves = new Stack<MoveCardAction>();
+            var skippedCards = new Stack<Card>();
+            var results = new List<IReadOnlyList<IPlayerAction>>();
+
+            var blockedEffectsByColumn = GetBlockedEffects(
+                game,
+                side,
+                cardsWithLocationEffectBlocks
+            );
 
             // We assume no cards will BECOME moveable, by this definition, as a result of another card moving.
             // At the moment I don't know of any scenario where that could happen.
@@ -87,6 +117,8 @@ namespace Snapdragon
                 .AllSensors.Where(s => s.MoveAbility != null)
                 .ToList();
 
+            // This got unrolled to reduce enumerations as a performance boost.
+            // I feel like it might have gone too far and may test to see if it matters much.
             for (var i = 0; i < game.Left[side].Count; i++)
             {
                 var card = game.Left[side][i];
@@ -96,14 +128,16 @@ namespace Snapdragon
                         Column.Middle,
                         blockedEffectsByColumn,
                         cardsWithMoveAbilities,
-                        sensorsWithMoveAbilities
+                        sensorsWithMoveAbilities,
+                        cardsWithCardEffectBlocks
                     )
                     || game.CanMove(
                         card,
                         Column.Right,
                         blockedEffectsByColumn,
                         cardsWithMoveAbilities,
-                        sensorsWithMoveAbilities
+                        sensorsWithMoveAbilities,
+                        cardsWithCardEffectBlocks
                     )
                 )
                 {
@@ -120,14 +154,16 @@ namespace Snapdragon
                         Column.Left,
                         blockedEffectsByColumn,
                         cardsWithMoveAbilities,
-                        sensorsWithMoveAbilities
+                        sensorsWithMoveAbilities,
+                        cardsWithCardEffectBlocks
                     )
                     || game.CanMove(
                         card,
                         Column.Right,
                         blockedEffectsByColumn,
                         cardsWithMoveAbilities,
-                        sensorsWithMoveAbilities
+                        sensorsWithMoveAbilities,
+                        cardsWithCardEffectBlocks
                     )
                 )
                 {
@@ -144,14 +180,16 @@ namespace Snapdragon
                         Column.Left,
                         blockedEffectsByColumn,
                         cardsWithMoveAbilities,
-                        sensorsWithMoveAbilities
+                        sensorsWithMoveAbilities,
+                        cardsWithCardEffectBlocks
                     )
                     || game.CanMove(
                         card,
                         Column.Middle,
                         blockedEffectsByColumn,
                         cardsWithMoveAbilities,
-                        sensorsWithMoveAbilities
+                        sensorsWithMoveAbilities,
+                        cardsWithCardEffectBlocks
                     )
                 )
                 {
@@ -167,6 +205,7 @@ namespace Snapdragon
                 sensorsWithMoveAbilities,
                 cardsWithLocationEffectBlocks,
                 blockedEffectsByColumn,
+                cardsWithCardEffectBlocks,
                 priorMoves,
                 skippedCards,
                 results
@@ -183,6 +222,7 @@ namespace Snapdragon
             IReadOnlyList<Sensor<Card>> sensorsWithMoveAbilities,
             IReadOnlyList<Card> cardsWithLocationEffectBlocks,
             IReadOnlyDictionary<Column, IReadOnlySet<EffectType>> blockedEffectsByColumn,
+            IReadOnlyList<Card> cardsWithCardEffectBlocks,
             Stack<MoveCardAction> priorMoves,
             Stack<Card> skippedCards,
             List<IReadOnlyList<IPlayerAction>> results
@@ -209,6 +249,7 @@ namespace Snapdragon
                 sensorsWithMoveAbilities,
                 cardsWithLocationEffectBlocks,
                 blockedEffectsByColumn,
+                cardsWithCardEffectBlocks,
                 priorMoves,
                 skippedCards,
                 results
@@ -229,7 +270,8 @@ namespace Snapdragon
                         column,
                         blockedEffectsByColumn,
                         cardsWithMoveAbilities,
-                        sensorsWithMoveAbilities
+                        sensorsWithMoveAbilities,
+                        cardsWithCardEffectBlocks
                     )
                 )
                 {
@@ -261,6 +303,7 @@ namespace Snapdragon
                     sensorsWithMoveAbilities,
                     cardsWithLocationEffectBlocks,
                     blockedEffectsByColumn,
+                    cardsWithCardEffectBlocks,
                     priorMoves,
                     skippedCards,
                     results
