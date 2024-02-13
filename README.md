@@ -61,6 +61,13 @@ Also, the only mutation type currently is "instead of either of these cards, pul
 
 I suspect there might also be some value in choosing to cross decks in non-random ways, like by similarity, so they could "automatically" form populations around particular strategies.
 
+### Database and Viewer For Populations
+
+At the moment, I can pretty trivially wire up a population and cause it to go through many generations, and spit out some details about the outcomes. However, it's sometimes not clear why certain outcomes are produced, and I would need better tools to investigate this.
+
+Specifically, I would presumably need to put together a database to store the full records of each generation and the full games the members of that generation played against one another, and some kind of viewer frontend to let me easily browse through this for specific experiments.
+
+
 ## Technical Debt / Weird Implementation Details
 
 ### Effects vs. Abilities
