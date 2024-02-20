@@ -9,7 +9,11 @@ namespace Snapdragon.Runner.Experiments
             const int Simulations = 10;
             const int MutationsPer = 100;
 
-            var selfPlay = new PopulationSelfPlay();
+            var selfPlay = new PopulationSelfPlay(
+                Guid.NewGuid(),
+                "Without Ka-Zar Self-Play",
+                DateTimeOffset.UtcNow
+            );
 
             var kaZarDefinition = SnapCards.ByName["Ka-Zar"];
 
@@ -21,6 +25,12 @@ namespace Snapdragon.Runner.Experiments
             );
 
             selfPlay.Run(withoutKaZar, "without-ka-zar-solo", 8, 100, 2);
+
+            selfPlay = new PopulationSelfPlay(
+                Guid.NewGuid(),
+                "With Ka-Zar Pinned Self-Play",
+                DateTimeOffset.UtcNow
+            );
 
             var kaZarPinned = new PartiallyFixedGenetics(
                 [SnapCards.ByName["Ka-Zar"]],

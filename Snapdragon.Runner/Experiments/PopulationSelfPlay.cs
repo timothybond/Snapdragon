@@ -8,8 +8,11 @@ namespace Snapdragon.Runner.Experiments
     /// An experiment that runs against two different populations that are co-evolving,
     /// recording the top decks of both and their card distributions over time.
     /// </summary>
-    public class PopulationSelfPlay
+    public record PopulationSelfPlay : Experiment
     {
+        public PopulationSelfPlay(Guid Id, string Name, DateTimeOffset Started)
+            : base(Id, Name, Started) { }
+
         public void Run<T>(
             Genetics<T> schema,
             string name,
@@ -19,7 +22,7 @@ namespace Snapdragon.Runner.Experiments
         )
             where T : IGeneSequence<T>
         {
-            var population = new Population<T>(schema, deckCount, name);
+            var population = new Population<T>(schema, deckCount, name, this.Id);
 
             WriteHeaders(population);
 

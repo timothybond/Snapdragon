@@ -9,10 +9,14 @@ namespace Snapdragon.Runner.Experiments
             const int Simulations = 10;
             const int MutationsPer = 100;
 
-            var selfPlay = new PopulationSelfPlay();
-
             var vultureDefinition = SnapCards.ByName["Vulture"];
             var multipleManDefinition = SnapCards.ByName["Multiple Man"];
+
+            var selfPlay = new PopulationSelfPlay(
+                Guid.NewGuid(),
+                "Without Vulture/MM Self Play",
+                DateTimeOffset.UtcNow
+            );
 
             var withoutVultureOrMultipleMan = new CardGenetics(
                 SnapCards.All.Remove(vultureDefinition).Remove(multipleManDefinition),
@@ -22,6 +26,12 @@ namespace Snapdragon.Runner.Experiments
             );
 
             selfPlay.Run(withoutVultureOrMultipleMan, "without-vulture-mm-solo", 64, 100, 10);
+
+            selfPlay = new PopulationSelfPlay(
+                Guid.NewGuid(),
+                "With Vulture/MM Pinned Self Play",
+                DateTimeOffset.UtcNow
+            );
 
             var vultureMultipleManPinned = new PartiallyFixedGenetics(
                 [SnapCards.ByName["Vulture"], SnapCards.ByName["Multiple Man"]],
