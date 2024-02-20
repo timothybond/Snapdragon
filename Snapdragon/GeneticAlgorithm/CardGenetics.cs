@@ -14,7 +14,7 @@ namespace Snapdragon.GeneticAlgorithm
         {
             return new PlayerConfiguration(
                 $"Deck {index}",
-                new Deck(item.Cards.ToImmutableList()),
+                new Deck(item.Cards.ToImmutableList(), item.Id),
                 Controller
             );
         }
@@ -24,6 +24,7 @@ namespace Snapdragon.GeneticAlgorithm
             return new CardGeneSequence(
                 this.AllPossibleCards.OrderBy(c => Random.Next()).Take(Length).ToList(),
                 this.AllPossibleCards,
+                Guid.NewGuid(),
                 this.MutationPer,
                 this.OrderBy,
                 this.Controller

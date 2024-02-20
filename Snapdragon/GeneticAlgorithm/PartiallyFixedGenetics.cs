@@ -28,7 +28,8 @@ namespace Snapdragon.GeneticAlgorithm
             return new PartiallyFixedCardGeneSequence(
                 fixedCardSequence,
                 evolvingCardSequence,
-                MonteCarloSimulationCount
+                MonteCarloSimulationCount,
+                Guid.NewGuid()
             );
         }
 

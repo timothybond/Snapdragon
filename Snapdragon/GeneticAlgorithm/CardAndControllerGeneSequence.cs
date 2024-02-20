@@ -4,14 +4,16 @@ namespace Snapdragon.GeneticAlgorithm
 {
     public record CardAndControllerGeneSequence(
         CardGeneSequence Cards,
-        ControllerGeneSequence Controller
+        ControllerGeneSequence Controller,
+        Guid Id
     ) : IGeneSequence<CardAndControllerGeneSequence>
     {
         public CardAndControllerGeneSequence Cross(CardAndControllerGeneSequence other)
         {
             return new CardAndControllerGeneSequence(
                 this.Cards.Cross(other.Cards),
-                this.Controller.Cross(other.Controller)
+                this.Controller.Cross(other.Controller),
+                Guid.NewGuid()
             );
         }
 
@@ -20,11 +22,11 @@ namespace Snapdragon.GeneticAlgorithm
             return this.Cards.Cards;
         }
 
-        public PlayerConfiguration GetPlayerConfiguration(int index)
+        public PlayerConfiguration GetPlayerConfiguration()
         {
             return new PlayerConfiguration(
-                $"Deck {index}",
-                new Deck(Cards.Cards.ToImmutableList()),
+                Id.ToString(),
+                new Deck(Cards.Cards.ToImmutableList(), Id),
                 Controller.Controller
             );
         }

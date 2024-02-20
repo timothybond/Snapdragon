@@ -24,8 +24,17 @@ namespace Snapdragon.Runner.Experiments
                 c => Random.Next()
             );
 
-            var populationExperiment = new PopulationComparison();
-            populationExperiment.Run(general, vulturePinned, "general-for-vulture", "with-vulture-pinned");
+            var populationExperiment = new PopulationComparison(
+                Guid.NewGuid(),
+                "Vulture Experiment",
+                DateTimeOffset.UtcNow
+            );
+            populationExperiment.Run(
+                general,
+                vulturePinned,
+                "general-for-vulture",
+                "with-vulture-pinned"
+            );
         }
     }
 }

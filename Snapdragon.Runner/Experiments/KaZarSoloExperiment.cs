@@ -20,7 +20,7 @@ namespace Snapdragon.Runner.Experiments
                 c => Random.Next()
             );
 
-            selfPlay.Run(withoutKaZar, "without-ka-zar-solo", 64, 100, 10);
+            selfPlay.Run(withoutKaZar, "without-ka-zar-solo", 8, 100, 2);
 
             var kaZarPinned = new PartiallyFixedGenetics(
                 [SnapCards.ByName["Ka-Zar"]],

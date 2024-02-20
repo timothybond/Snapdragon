@@ -26,7 +26,12 @@ namespace Snapdragon.Runner.Experiments
                 c => Random.Next()
             );
 
-            var populationExperiment = new PopulationComparison();
+            var populationExperiment = new PopulationComparison(
+                Guid.NewGuid(),
+                "Ka-Zar Experiment",
+                DateTimeOffset.UtcNow
+            );
+
             populationExperiment.Run(
                 withoutKaZar,
                 kaZarPinned,

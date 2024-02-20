@@ -10,7 +10,7 @@ namespace Snapdragon.Tests
         public void PlaysCorrectNumberOfGames()
         {
             var g = new CardGenetics(
-                Genetics<CardGeneSequence>.GetInitialCardDefinitions(),
+                TestHelpers.GetInitialCardDefinitions(),
                 new RandomPlayerController()
             );
 
@@ -36,7 +36,7 @@ namespace Snapdragon.Tests
             }.ToImmutableList();
 
             var g = new CardAndControllerGenetics(
-                Genetics<CardGeneSequence>.GetInitialCardDefinitions(),
+                TestHelpers.GetInitialCardDefinitions(),
                 allControllers,
                 c => Random.Next(),
                 100
@@ -112,7 +112,7 @@ namespace Snapdragon.Tests
             // Note also that because this test can take a long time to run if you do
             // a lot of generations, by default it is set to only run a few.
             var g = new CardGenetics(
-                Genetics<CardGeneSequence>.GetInitialCardDefinitions(),
+                TestHelpers.GetInitialCardDefinitions(),
                 new RandomPlayerController(),
                 100,
                 c => Random.Next()

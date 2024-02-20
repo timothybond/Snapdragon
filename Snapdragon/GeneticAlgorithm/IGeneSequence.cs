@@ -2,7 +2,7 @@
 {
     public interface IGeneSequence
     {
-        PlayerConfiguration GetPlayerConfiguration(int index);
+        PlayerConfiguration GetPlayerConfiguration();
 
         IReadOnlyList<CardDefinition> GetCards();
     }

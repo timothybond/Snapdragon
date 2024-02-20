@@ -5,39 +5,6 @@ namespace Snapdragon.GeneticAlgorithm;
 public abstract record Genetics<T>(ImmutableList<CardDefinition> AllPossibleCards)
     where T : IGeneSequence<T>
 {
-    /// <summary>
-    /// Generates an initial set of cards for use with a basic genetic algorithm.  In practice this will be 12 each of
-    /// every combination of the numbers 1-3 for cost and cost-power bonus, where actual power will be that bonus plus
-    /// the cost. Some cards are therefore strictly inferior and should be expected to vanish from the population over
-    /// time, while others will represent conditional tradeoffs between less and more expensive cards.  All cards will
-    /// be given a three-character name of the form [cost][power]A through [cost][power]L, since there will be twelve
-    /// copies of each.
-    /// </summary>
-    /// <returns></returns>
-    public static ImmutableList<CardDefinition> GetInitialCardDefinitions()
-    {
-        const string labels = "ABCDEFGHIJKL";
-
-        var cards = new List<CardDefinition>();
-
-        for (var cost = 1; cost <= 3; cost++)
-        {
-            for (var power = 1; power <= 3; power++)
-            {
-                for (var i = 0; i < 12; i++)
-                {
-                    var actualPower = cost + power;
-
-                    cards.Add(
-                        new CardDefinition($"{cost}{actualPower}{labels[i]}", cost, actualPower)
-                    );
-                }
-            }
-        }
-
-        return cards.ToImmutableList();
-    }
-
     public List<int> GetCardCounts(IReadOnlyList<T> population)
     {
         var cardLists = population.Select(item => GetCards(item));
@@ -195,8 +162,8 @@ public abstract record Genetics<T>(ImmutableList<CardDefinition> AllPossibleCard
         var topIndex = pair.First;
         var bottomIndex = pair.Second;
 
-        var topPlayerConfig = population[topIndex].GetPlayerConfiguration(topIndex);
-        var bottomPlayerConfig = population[bottomIndex].GetPlayerConfiguration(bottomIndex);
+        var topPlayerConfig = population[topIndex].GetPlayerConfiguration();
+        var bottomPlayerConfig = population[bottomIndex].GetPlayerConfiguration();
 
         var game = engine.CreateGame(topPlayerConfig, bottomPlayerConfig);
         game = game.PlayGame();

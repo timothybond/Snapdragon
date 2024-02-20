@@ -23,7 +23,7 @@ namespace Snapdragon.GeneticAlgorithm
             return this.Cards;
         }
 
-        public PlayerConfiguration GetPlayerConfiguration(int index)
+        public PlayerConfiguration GetPlayerConfiguration()
         {
             throw new NotImplementedException(
                 "Cannot form a PlayerConfiguration just from a FixedCardGeneSequence."

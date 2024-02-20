@@ -4,6 +4,10 @@ namespace Snapdragon.GeneticAlgorithm
 {
     /// <summary>
     /// A "gene sequence" that just represents what <see cref="IPlayerController"/> to use.
+    ///
+    /// This was mostly created to validate that the <see cref="MonteCarloSearchController"/> outperforms
+    /// the <see cref="RandomPlayerController"/>, and might not really need to be supported for now,
+    /// unless I end up experimenting with other controller types.
     /// </summary>
     /// <param name="Controller">The <see cref="IPlayerController"/> to use.</param>
     /// <param name="AllControllers">All possible controllers (used for mutations).</param>
@@ -42,7 +46,7 @@ namespace Snapdragon.GeneticAlgorithm
             return new List<CardDefinition>();
         }
 
-        public PlayerConfiguration GetPlayerConfiguration(int index)
+        public PlayerConfiguration GetPlayerConfiguration()
         {
             throw new NotImplementedException(
                 "Cannot form a PlayerConfiguration just from a ControllerGeneSequence."

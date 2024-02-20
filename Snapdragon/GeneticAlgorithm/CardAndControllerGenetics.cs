@@ -14,6 +14,7 @@ namespace Snapdragon.GeneticAlgorithm
             var cardSequence = new CardGeneSequence(
                 this.AllPossibleCards.OrderBy(c => Random.Next()).Take(12).ToList(),
                 this.AllPossibleCards,
+                Guid.NewGuid(),
                 this.MutationPer,
                 this.OrderBy
             );
@@ -21,7 +22,11 @@ namespace Snapdragon.GeneticAlgorithm
                 Random.Of(AllControllers),
                 AllControllers
             );
-            return new CardAndControllerGeneSequence(cardSequence, controllerSequence);
+            return new CardAndControllerGeneSequence(
+                cardSequence,
+                controllerSequence,
+                Guid.NewGuid()
+            );
         }
 
         protected override IReadOnlyList<CardDefinition> GetCards(

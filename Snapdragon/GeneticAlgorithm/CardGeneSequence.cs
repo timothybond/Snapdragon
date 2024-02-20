@@ -14,12 +14,13 @@ namespace Snapdragon.GeneticAlgorithm
     public record CardGeneSequence(
         IReadOnlyList<CardDefinition> Cards,
         IReadOnlyList<CardDefinition> AllPossibleCards,
+        Guid Id,
         int MutationPer = 100,
         Func<CardDefinition, int>? OrderBy = null,
         IPlayerController? Controller = null
     ) : IGeneSequence<CardGeneSequence>
     {
-        public PlayerConfiguration GetPlayerConfiguration(int index)
+        public PlayerConfiguration GetPlayerConfiguration()
         {
             if (Controller == null)
             {
@@ -29,8 +30,8 @@ namespace Snapdragon.GeneticAlgorithm
             }
 
             return new PlayerConfiguration(
-                $"Deck {index}",
-                new Deck(Cards.ToImmutableList()),
+                Id.ToString(),
+                new Deck(Cards.ToImmutableList(), Id),
                 Controller
             );
         }

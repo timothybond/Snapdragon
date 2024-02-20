@@ -225,7 +225,7 @@ namespace Snapdragon.Tests
 
             var controller = new RandomPlayerController();
             var player = new Player(
-                new PlayerConfiguration("Test", new Deck([]), controller),
+                new PlayerConfiguration("Test", new Deck([], Guid.Empty), controller),
                 Side.Top,
                 4,
                 new Library([]),

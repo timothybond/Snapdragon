@@ -8,8 +8,11 @@ namespace Snapdragon.Runner.Experiments
     /// An experiment that runs against two different populations that are co-evolving,
     /// recording the top decks of both and their card distributions over time.
     /// </summary>
-    public class PopulationComparison
+    public record PopulationComparison : Experiment
     {
+        public PopulationComparison(Guid Id, string Name, DateTimeOffset Started)
+            : base(Id, Name, Started) { }
+
         public void Run<TFirst, TSecond>(
             Genetics<TFirst> firstSchema,
             Genetics<TSecond> secondSchema,
@@ -21,8 +24,8 @@ namespace Snapdragon.Runner.Experiments
             where TFirst : IGeneSequence<TFirst>
             where TSecond : IGeneSequence<TSecond>
         {
-            var first = new Population<TFirst>(firstSchema, deckCount, firstName);
-            var second = new Population<TSecond>(secondSchema, deckCount, secondName);
+            var first = new Population<TFirst>(firstSchema, deckCount, firstName, this.Id);
+            var second = new Population<TSecond>(secondSchema, deckCount, secondName, this.Id);
 
             WriteHeaders(first);
             WriteHeaders(second);
