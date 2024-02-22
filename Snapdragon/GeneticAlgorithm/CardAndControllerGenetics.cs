@@ -5,10 +5,22 @@ namespace Snapdragon.GeneticAlgorithm
     public record CardAndControllerGenetics(
         ImmutableList<CardDefinition> AllPossibleCards,
         ImmutableList<IPlayerController> AllControllers,
-        Func<CardDefinition, int>? OrderBy = null,
+        ICardOrder OrderBy,
         int MutationPer = 100
-    ) : Genetics<CardAndControllerGeneSequence>(AllPossibleCards)
+    ) : Genetics<CardAndControllerGeneSequence>(AllPossibleCards, MutationPer, OrderBy)
     {
+        public override string GetControllerString()
+        {
+            throw new InvalidOperationException(
+                "Cannot get a single controller string for a genetics instance with variable controllers."
+            );
+        }
+
+        public override ImmutableList<CardDefinition> GetFixedCards()
+        {
+            return ImmutableList<CardDefinition>.Empty;
+        }
+
         public override CardAndControllerGeneSequence GetRandomItem()
         {
             var cardSequence = new CardGeneSequence(
@@ -16,16 +28,23 @@ namespace Snapdragon.GeneticAlgorithm
                 this.AllPossibleCards,
                 Guid.NewGuid(),
                 this.MutationPer,
-                this.OrderBy
+                this.OrderBy,
+                null,
+                null
             );
             var controllerSequence = new ControllerGeneSequence(
                 Random.Of(AllControllers),
-                AllControllers
+                AllControllers,
+                Guid.Empty, // These aren't used in a way that requires tracking
+                null,
+                null
             );
             return new CardAndControllerGeneSequence(
                 cardSequence,
                 controllerSequence,
-                Guid.NewGuid()
+                Guid.NewGuid(),
+                null,
+                null
             );
         }
 

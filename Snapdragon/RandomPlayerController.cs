@@ -9,6 +9,11 @@ namespace Snapdragon
     /// </summary>
     public class RandomPlayerController : IPlayerController
     {
+        public override string ToString()
+        {
+            return "Random";
+        }
+
         public IReadOnlyList<IPlayerAction> GetActions(Game game, Side side)
         {
             // This function implementation basically follows the logic in

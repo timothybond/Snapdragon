@@ -7,25 +7,25 @@ namespace Snapdragon
         /// <summary>
         /// Creates or updates an <see cref="Experiment"/>.
         /// </summary>
-        void SaveExperiment(Experiment experiment);
+        Task SaveExperiment(Experiment experiment);
 
         /// <summary>
         /// Gets an <see cref="Experiment"/> by its unique identifier.
         /// </summary>
-        Experiment? GetExperiment(Guid id);
+        Task<Experiment?> GetExperiment(Guid id);
 
         /// <summary>
         /// Gets all <see cref="Experiment"/>s.
         /// </summary>
         /// <returns></returns>
-        IReadOnlyList<Experiment> GetExperiments();
+        Task<IReadOnlyList<Experiment>> GetExperiments();
 
         /// <summary>
         /// Deletes an <see cref="Experiment"/> by its unique identifier.
         ///
         /// For idempotency, does not throw an error if the <see cref="Experiment"/> does not exist.
         /// </summary>
-        void DeleteExperiment(Guid id);
+        Task DeleteExperiment(Guid id);
 
         // Note: some of these methods are a bit clumsy because the consumer will
         // need to know in advance what some of the types are. At some point
@@ -39,7 +39,7 @@ namespace Snapdragon
         ///
         /// Note that this will NOT include the <see cref="Population{T}.Items"/> entries.
         /// </summary>
-        void SavePopulation<T>(Population<T> population)
+        Task SavePopulation<T>(Population<T> population)
             where T : IGeneSequence<T>;
 
         /// <summary>
@@ -47,7 +47,7 @@ namespace Snapdragon
         ///
         /// Note that this will NOT include the <see cref="Population{T}.Items"/> entries.
         /// </summary>
-        Population<T>? GetPopulation<T>(Guid id)
+        Task<Population<T>?> GetPopulation<T>(Guid id)
             where T : IGeneSequence<T>;
 
         /// <summary>
@@ -56,7 +56,7 @@ namespace Snapdragon
         ///
         /// Note that this will NOT include the <see cref="Population{T}.Items"/> entries.
         /// </summary>
-        Population<T>? GetPopulation<T>(Guid experimentId, int generation)
+        Task<Population<T>?> GetPopulation<T>(Guid experimentId, int generation)
             where T : IGeneSequence<T>;
 
         /// <summary>
@@ -64,27 +64,38 @@ namespace Snapdragon
         ///
         /// For idempotency, does not throw an error if the <see cref="Experiment"/> does not exist.
         /// </summary>
-        void DeletePopulation(Guid id);
+        Task DeletePopulation(Guid id);
+
+        Task SaveItem<T>(IGeneSequence<T> item)
+            where T : IGeneSequence<T>;
 
         /// <summary>
-        /// Gets a member of a <see cref="Population{T}"/> by unique identifier.
+        /// Links together a gene sequence with a <see cref="Population{T}"/>.
         /// </summary>
-        IGeneSequence<T>? GetItem<T>(Guid id)
-            where T : IGeneSequence<T>;
+        Task AddItemToPopulation(Guid itemId, Guid populationId, int generation);
+
+        /// <summary>
+        /// Removes the link between a gene sequence with a <see cref="Population{T}"/>.
+        /// </summary>
+        Task RemoveItemFromPopulation(Guid itemId, Guid populationId, int generation);
+
+        /// <summary>
+        /// Gets a single gene sequence by unique identifier.
+        /// </summary>
+        Task<T?> GetItem<T>(Guid id)
+            where T : class, IGeneSequence<T>;
 
         /// <summary>
         /// Gets all members of a <see cref="Population{T}"/> by the unique identifier
-        /// of that <see cref="Population{T}"/>.
+        /// of that <see cref="Population{T}"/> and the generation number.
         /// </summary>
-        IReadOnlyList<IGeneSequence<T>> GetItems<T>(Guid populationId)
-            where T : IGeneSequence<T>;
+        Task<IReadOnlyList<T>> GetItems<T>(Guid populationId, int generation)
+            where T : class, IGeneSequence<T>;
 
         /// <summary>
-        /// Gets all members of a <see cref="Population{T}"/> by
-        /// <see cref="Experiment"/> unique identifier and generation number.
+        /// Deletes a member of a <see cref="Population{T}"/> by unique identifier.
         /// </summary>
-        IReadOnlyList<IGeneSequence<T>> GetItems<T>(Guid experimentId, int generation)
-            where T : IGeneSequence<T>;
+        Task DeleteItem(Guid id);
 
         /// <summary>
         /// Saves a <see cref="CardDefinition"/>.
@@ -92,7 +103,7 @@ namespace Snapdragon
         /// Note that the repository is only obligated to store the <see cref="CardDefinition.Name"/>,
         /// <see cref="CardDefinition.Cost"/>, and <see cref="CardDefinition.Power"/> properties.
         /// </summary>
-        void SaveCardDefinition(CardDefinition cardDefinition);
+        Task SaveCardDefinition(CardDefinition cardDefinition);
 
         /// <summary>
         /// Gets a <see cref="CardDefinition"/>, by name.
@@ -100,7 +111,7 @@ namespace Snapdragon
         /// Note that the repository is only obligated to store the <see cref="CardDefinition.Name"/>,
         /// <see cref="CardDefinition.Cost"/>, and <see cref="CardDefinition.Power"/> properties.
         /// </summary>
-        CardDefinition? GetCardDefinition(string cardName);
+        Task<CardDefinition?> GetCardDefinition(string cardName);
 
         /// <summary>
         /// Gets all <see cref="CardDefinition"/>.
@@ -108,13 +119,13 @@ namespace Snapdragon
         /// Note that the repository is only obligated to store the <see cref="CardDefinition.Name"/>,
         /// <see cref="CardDefinition.Cost"/>, and <see cref="CardDefinition.Power"/> properties.
         /// </summary>
-        IReadOnlyList<CardDefinition> GetCardDefinitions();
+        Task<IReadOnlyList<CardDefinition>> GetCardDefinitions();
 
         /// <summary>
         /// Deletes a <see cref="CardDefinition"/>, by name.
         ///
         /// For idempotency, does not throw an error if the <see cref="CardDefinition"/> does not exist.
         /// </summary>
-        void DeleteCardDefinition(string cardName);
+        Task DeleteCardDefinition(string cardName);
     }
 }

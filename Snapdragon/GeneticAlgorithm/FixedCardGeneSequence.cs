@@ -9,8 +9,12 @@ namespace Snapdragon.GeneticAlgorithm
     /// Intended as part of an object with some "pinned" or "guaranteed" cards,
     /// and the rest allowed to change over time.
     /// </summary>
-    public record FixedCardGeneSequence(ImmutableList<CardDefinition> Cards)
-        : IGeneSequence<FixedCardGeneSequence>
+    public record FixedCardGeneSequence(
+        ImmutableList<CardDefinition> Cards,
+        Guid Id,
+        Guid? FirstParentId = null,
+        Guid? SecondParentId = null
+    ) : IGeneSequence<FixedCardGeneSequence>
     {
         public FixedCardGeneSequence Cross(FixedCardGeneSequence other)
         {
@@ -21,6 +25,12 @@ namespace Snapdragon.GeneticAlgorithm
         public IReadOnlyList<CardDefinition> GetCards()
         {
             return this.Cards;
+        }
+
+        public string GetControllerString()
+        {
+            // Generally this shouldn't be used
+            return string.Empty;
         }
 
         public PlayerConfiguration GetPlayerConfiguration()

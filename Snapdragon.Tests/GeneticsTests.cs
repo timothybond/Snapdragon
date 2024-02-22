@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using System.Text;
+using Snapdragon.CardOrders;
 using Snapdragon.GeneticAlgorithm;
 
 namespace Snapdragon.Tests
@@ -11,7 +12,9 @@ namespace Snapdragon.Tests
         {
             var g = new CardGenetics(
                 TestHelpers.GetInitialCardDefinitions(),
-                new RandomPlayerController()
+                new RandomPlayerController(),
+                100,
+                new RandomCardOrder()
             );
 
             var population = g.GetRandomPopulation(32);
@@ -38,7 +41,7 @@ namespace Snapdragon.Tests
             var g = new CardAndControllerGenetics(
                 TestHelpers.GetInitialCardDefinitions(),
                 allControllers,
-                c => Random.Next(),
+                new RandomCardOrder(),
                 100
             );
 
@@ -115,7 +118,7 @@ namespace Snapdragon.Tests
                 TestHelpers.GetInitialCardDefinitions(),
                 new RandomPlayerController(),
                 100,
-                c => Random.Next()
+                new RandomCardOrder()
             );
 
             const int DeckCount = 32;

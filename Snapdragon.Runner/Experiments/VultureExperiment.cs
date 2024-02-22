@@ -1,4 +1,5 @@
-﻿using Snapdragon.GeneticAlgorithm;
+﻿using Snapdragon.CardOrders;
+using Snapdragon.GeneticAlgorithm;
 
 namespace Snapdragon.Runner.Experiments
 {
@@ -13,7 +14,7 @@ namespace Snapdragon.Runner.Experiments
                 SnapCards.All,
                 new MonteCarloSearchController(Simulations),
                 MutationsPer,
-                c => Random.Next()
+                new RandomCardOrder()
             );
 
             var vulturePinned = new PartiallyFixedGenetics(
@@ -21,7 +22,7 @@ namespace Snapdragon.Runner.Experiments
                 SnapCards.All,
                 new MonteCarloSearchController(Simulations),
                 MutationsPer,
-                c => Random.Next()
+                new RandomCardOrder()
             );
 
             var populationExperiment = new PopulationComparison(

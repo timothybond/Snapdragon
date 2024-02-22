@@ -5,11 +5,21 @@ namespace Snapdragon.GeneticAlgorithm
     public record CardGenetics(
         ImmutableList<CardDefinition> AllPossibleCards,
         IPlayerController Controller,
-        int MutationPer = 100,
-        Func<CardDefinition, int>? OrderBy = null,
+        int MutationPer,
+        ICardOrder OrderBy,
         int Length = 12
-    ) : Genetics<CardGeneSequence>(AllPossibleCards)
+    ) : Genetics<CardGeneSequence>(AllPossibleCards, MutationPer, OrderBy)
     {
+        public override string? GetControllerString()
+        {
+            return Controller.ToString();
+        }
+
+        public override ImmutableList<CardDefinition> GetFixedCards()
+        {
+            return ImmutableList<CardDefinition>.Empty;
+        }
+
         public PlayerConfiguration GetPlayerConfiguration(CardGeneSequence item, int index)
         {
             return new PlayerConfiguration(
@@ -27,6 +37,8 @@ namespace Snapdragon.GeneticAlgorithm
                 Guid.NewGuid(),
                 this.MutationPer,
                 this.OrderBy,
+                null,
+                null,
                 this.Controller
             );
         }

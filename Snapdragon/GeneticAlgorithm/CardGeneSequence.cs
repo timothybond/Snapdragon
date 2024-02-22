@@ -15,8 +15,10 @@ namespace Snapdragon.GeneticAlgorithm
         IReadOnlyList<CardDefinition> Cards,
         IReadOnlyList<CardDefinition> AllPossibleCards,
         Guid Id,
-        int MutationPer = 100,
-        Func<CardDefinition, int>? OrderBy = null,
+        int MutationPer,
+        ICardOrder OrderBy,
+        Guid? FirstParentId,
+        Guid? SecondParentId,
         IPlayerController? Controller = null
     ) : IGeneSequence<CardGeneSequence>
     {
@@ -57,8 +59,8 @@ namespace Snapdragon.GeneticAlgorithm
 
             if (OrderBy != null)
             {
-                first = first.OrderBy(OrderBy).ToList();
-                second = second.OrderBy(OrderBy).ToList();
+                first = first.OrderBy(OrderBy.GetOrder).ToList();
+                second = second.OrderBy(OrderBy.GetOrder).ToList();
             }
 
             for (var i = 0; i < first.Count; i++)
@@ -113,6 +115,9 @@ namespace Snapdragon.GeneticAlgorithm
 
             return this with
             {
+                Id = Guid.NewGuid(),
+                FirstParentId = this.Id,
+                SecondParentId = other.Id,
                 Cards = newDeckCards
             };
         }
@@ -120,6 +125,11 @@ namespace Snapdragon.GeneticAlgorithm
         public IReadOnlyList<CardDefinition> GetCards()
         {
             return this.Cards;
+        }
+
+        public string? GetControllerString()
+        {
+            return Controller?.ToString();
         }
     }
 }

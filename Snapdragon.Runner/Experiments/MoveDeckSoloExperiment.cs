@@ -1,4 +1,5 @@
-﻿using Snapdragon.GeneticAlgorithm;
+﻿using Snapdragon.CardOrders;
+using Snapdragon.GeneticAlgorithm;
 
 namespace Snapdragon.Runner.Experiments
 {
@@ -22,7 +23,7 @@ namespace Snapdragon.Runner.Experiments
                 SnapCards.All.Remove(vultureDefinition).Remove(multipleManDefinition),
                 new MonteCarloSearchController(Simulations),
                 MutationsPer,
-                c => Random.Next()
+                new RandomCardOrder()
             );
 
             selfPlay.Run(withoutVultureOrMultipleMan, "without-vulture-mm-solo", 64, 100, 10);
@@ -38,7 +39,7 @@ namespace Snapdragon.Runner.Experiments
                 SnapCards.All,
                 new MonteCarloSearchController(Simulations),
                 MutationsPer,
-                c => Random.Next()
+                new RandomCardOrder()
             );
 
             selfPlay.Run(vultureMultipleManPinned, "with-vulture-mm-solo", 64, 100, 10);

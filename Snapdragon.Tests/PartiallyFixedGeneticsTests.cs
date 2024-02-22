@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using Snapdragon.CardOrders;
 using Snapdragon.GeneticAlgorithm;
 
 namespace Snapdragon.Tests
@@ -19,7 +20,9 @@ namespace Snapdragon.Tests
             var genetics = new PartiallyFixedGenetics(
                 fixedCards,
                 allCards,
-                new RandomPlayerController()
+                new RandomPlayerController(),
+                100,
+                new RandomCardOrder()
             );
 
             for (var i = 0; i < 10; i++)
@@ -48,8 +51,7 @@ namespace Snapdragon.Tests
                 allCards,
                 new RandomPlayerController(),
                 100,
-                null,
-                1
+                new RandomCardOrder()
             );
 
             var population = g.GetRandomPopulation(8);
@@ -84,7 +86,9 @@ namespace Snapdragon.Tests
             var genetics = new PartiallyFixedGenetics(
                 fixedCards,
                 allCards,
-                new RandomPlayerController()
+                new RandomPlayerController(),
+                100,
+                new RandomCardOrder()
             );
 
             for (var i = 0; i < 10; i++)

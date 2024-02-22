@@ -5,7 +5,9 @@ namespace Snapdragon.GeneticAlgorithm
     public record CardAndControllerGeneSequence(
         CardGeneSequence Cards,
         ControllerGeneSequence Controller,
-        Guid Id
+        Guid Id,
+        Guid? FirstParentId,
+        Guid? SecondParentId
     ) : IGeneSequence<CardAndControllerGeneSequence>
     {
         public CardAndControllerGeneSequence Cross(CardAndControllerGeneSequence other)
@@ -13,13 +15,20 @@ namespace Snapdragon.GeneticAlgorithm
             return new CardAndControllerGeneSequence(
                 this.Cards.Cross(other.Cards),
                 this.Controller.Cross(other.Controller),
-                Guid.NewGuid()
+                Guid.NewGuid(),
+                this.Id,
+                other.Id
             );
         }
 
         public IReadOnlyList<CardDefinition> GetCards()
         {
             return this.Cards.Cards;
+        }
+
+        public string GetControllerString()
+        {
+            return Controller.ToString();
         }
 
         public PlayerConfiguration GetPlayerConfiguration()

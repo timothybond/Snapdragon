@@ -105,3 +105,7 @@ The `ControllerUtilities` class has some methods for enumerating all of the poss
 ### Genetics
 
 The genetics code works, but isn't very well-organized. I think much of the logic in the abstract base "Genetics" type just needs to be moved to a static class, and there's some general cleanup to make everything more comprehensible.
+
+At the moment I think the "Population" and "Genetics" classes have similar roles, and should probably be considered for merging, although I'm not 100% sure.
+
+The generics are causing a lot of issues now that I'm trying to store things in a database, so probably I should settle on some kind of unified single definition (most likely a variation on the PartiallyFixedCardGeneSequence, where potentially 0 cards are fixed).

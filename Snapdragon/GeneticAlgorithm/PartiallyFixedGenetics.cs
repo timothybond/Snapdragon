@@ -6,10 +6,9 @@ namespace Snapdragon.GeneticAlgorithm
         ImmutableList<CardDefinition> FixedCards,
         ImmutableList<CardDefinition> AllPossibleCards,
         IPlayerController Controller,
-        int MutationPer = 100,
-        Func<CardDefinition, int>? OrderBy = null,
-        int MonteCarloSimulationCount = 5
-    ) : Genetics<PartiallyFixedCardGeneSequence>(AllPossibleCards)
+        int MutationPer,
+        ICardOrder OrderBy
+    ) : Genetics<PartiallyFixedCardGeneSequence>(AllPossibleCards, MutationPer, OrderBy)
     {
         private readonly CardGenetics cardGenetics =
             new(
@@ -20,16 +19,33 @@ namespace Snapdragon.GeneticAlgorithm
                 12 - FixedCards.Count
             );
 
+        public override string? GetControllerString()
+        {
+            return Controller.ToString();
+        }
+
+        public override ImmutableList<CardDefinition> GetFixedCards()
+        {
+            return FixedCards;
+        }
+
         public override PartiallyFixedCardGeneSequence GetRandomItem()
         {
-            var fixedCardSequence = new FixedCardGeneSequence(FixedCards);
+            var fixedCardSequence = new FixedCardGeneSequence(
+                FixedCards,
+                Guid.NewGuid(),
+                null,
+                null
+            );
             var evolvingCardSequence = cardGenetics.GetRandomItem();
 
             return new PartiallyFixedCardGeneSequence(
                 fixedCardSequence,
                 evolvingCardSequence,
-                MonteCarloSimulationCount,
-                Guid.NewGuid()
+                Controller,
+                Guid.NewGuid(),
+                null,
+                null
             );
         }
 

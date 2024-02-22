@@ -2,7 +2,11 @@
 
 namespace Snapdragon.GeneticAlgorithm;
 
-public abstract record Genetics<T>(ImmutableList<CardDefinition> AllPossibleCards)
+public abstract record Genetics<T>(
+    ImmutableList<CardDefinition> AllPossibleCards,
+    int MutationPer,
+    ICardOrder OrderBy
+)
     where T : IGeneSequence<T>
 {
     public List<int> GetCardCounts(IReadOnlyList<T> population)
@@ -16,7 +20,16 @@ public abstract record Genetics<T>(ImmutableList<CardDefinition> AllPossibleCard
             .ToList();
     }
 
+    /// <summary>
+    /// Gets a string representation of the <see cref="IPlayerController"/> used here.
+    ///
+    /// Throws an error for any types that don't have a single defined <see cref="IPlayerController"/>;
+    /// </summary>
+    public abstract string? GetControllerString();
+
     protected abstract IReadOnlyList<CardDefinition> GetCards(T item);
+
+    public abstract ImmutableList<CardDefinition> GetFixedCards();
 
     /// <summary>
     /// Gets a random member of the population, based on the overall possible genes.

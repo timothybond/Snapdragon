@@ -13,6 +13,11 @@
             this.simulationCount = simulationCount;
         }
 
+        public override string ToString()
+        {
+            return $"MonteCarlo({simulationCount})";
+        }
+
         public IReadOnlyList<IPlayerAction> GetActions(Game game, Side side)
         {
             IReadOnlyList<IPlayerAction> noActions = new List<IPlayerAction>();

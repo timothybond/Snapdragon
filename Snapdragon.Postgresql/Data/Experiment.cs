@@ -2,14 +2,9 @@
 {
     public class Experiment
     {
-        public Experiment()
-        {
-            Name = string.Empty;
-        }
-
         public Guid Id { get; set; }
 
-        public string Name { get; set; }
+        public required string Name { get; set; }
 
         public DateTimeOffset Created { get; set; }
 

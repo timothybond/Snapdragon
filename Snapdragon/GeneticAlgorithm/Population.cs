@@ -36,8 +36,10 @@
 
             return this with
             {
+                Id = Guid.NewGuid(),
                 Items = newItems,
                 Generation = Generation + 1,
+                Created = DateTimeOffset.UtcNow,
                 Wins = null
             };
         }

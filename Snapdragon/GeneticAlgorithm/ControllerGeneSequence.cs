@@ -15,6 +15,9 @@ namespace Snapdragon.GeneticAlgorithm
     public record ControllerGeneSequence(
         IPlayerController Controller,
         ImmutableList<IPlayerController> AllControllers,
+        Guid Id,
+        Guid? FirstParentId,
+        Guid? SecondParentId,
         int MutationPer = 100
     ) : IGeneSequence<ControllerGeneSequence>
     {
@@ -33,17 +36,33 @@ namespace Snapdragon.GeneticAlgorithm
 
             if (Random.NextBool())
             {
-                return this;
+                return this with
+                {
+                    Id = Guid.NewGuid(),
+                    FirstParentId = this.Id,
+                    SecondParentId = other.Id
+                };
             }
             else
             {
-                return other;
+                return other with
+                {
+                    Id = Guid.NewGuid(),
+                    FirstParentId = this.Id,
+                    SecondParentId = other.Id
+                };
+                ;
             }
         }
 
         public IReadOnlyList<CardDefinition> GetCards()
         {
             return new List<CardDefinition>();
+        }
+
+        public string? GetControllerString()
+        {
+            return Controller.ToString();
         }
 
         public PlayerConfiguration GetPlayerConfiguration()

@@ -1,4 +1,5 @@
-﻿using Snapdragon.GeneticAlgorithm;
+﻿using Snapdragon.CardOrders;
+using Snapdragon.GeneticAlgorithm;
 
 namespace Snapdragon.Runner.Experiments
 {
@@ -21,7 +22,7 @@ namespace Snapdragon.Runner.Experiments
                 SnapCards.All.Remove(kaZarDefinition),
                 new MonteCarloSearchController(Simulations),
                 MutationsPer,
-                c => Random.Next()
+                new RandomCardOrder()
             );
 
             selfPlay.Run(withoutKaZar, "without-ka-zar-solo", 8, 100, 2);
@@ -37,7 +38,7 @@ namespace Snapdragon.Runner.Experiments
                 SnapCards.All,
                 new MonteCarloSearchController(Simulations),
                 MutationsPer,
-                c => Random.Next()
+                new RandomCardOrder()
             );
 
             selfPlay.Run(kaZarPinned, "with-ka-zar-pinned-solo", 64, 100, 10);

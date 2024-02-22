@@ -2,12 +2,7 @@
 {
     public class CardDefinition
     {
-        public CardDefinition()
-        {
-            Name = string.Empty;
-        }
-
-        public string Name { get; set; }
+        public required string Name { get; set; }
 
         public int Power { get; set; }
 
