@@ -768,6 +768,174 @@ namespace Snapdragon.Postgresql.Tests
 
         #endregion
 
+        #region Game / Log Tests
+
+        [Test]
+        public async Task GetNonexistentGame_ReturnsNull()
+        {
+            var savedGame = await _repository.GetGame(Guid.NewGuid());
+            Assert.That(savedGame, Is.Null);
+        }
+
+        [Test]
+        public async Task SaveGame_CanRetrieve()
+        {
+            var topItem = await SaveItem();
+            var bottomItem = await SaveItem();
+
+            var game = new GameRecord(Guid.NewGuid(), topItem, bottomItem);
+
+            await _repository.SaveGame(game);
+
+            var savedGame = await _repository.GetGame(game.GameId);
+            Assert.That(savedGame, Is.Not.Null);
+        }
+
+        [Test]
+        public async Task SaveGame_SetsPlayerIds()
+        {
+            var topItem = await SaveItem();
+            var bottomItem = await SaveItem();
+
+            var game = new GameRecord(Guid.NewGuid(), topItem, bottomItem);
+
+            await _repository.SaveGame(game);
+
+            var savedGame = await _repository.GetGame(game.GameId);
+
+            Assert.That(savedGame, Is.Not.Null);
+
+            Assert.That(savedGame.TopPlayerId, Is.EqualTo(game.TopPlayerId));
+            Assert.That(savedGame.BottomPlayerId, Is.EqualTo(game.BottomPlayerId));
+        }
+
+        [Test]
+        [TestCase(Side.Top)]
+        [TestCase(Side.Bottom)]
+        [TestCase(null)]
+        public async Task SaveGame_SetsWinner(Side? side)
+        {
+            var topItem = await SaveItem();
+            var bottomItem = await SaveItem();
+
+            var game = new GameRecord(Guid.NewGuid(), topItem, bottomItem, side);
+
+            await _repository.SaveGame(game);
+
+            var savedGame = await _repository.GetGame(game.GameId);
+
+            Assert.That(savedGame, Is.Not.Null);
+
+            Assert.That(savedGame.Winner, Is.EqualTo(game.Winner));
+        }
+
+        [Test]
+        [TestCase(0)]
+        [TestCase(1)]
+        [TestCase(5)]
+        [TestCase(20)]
+        public async Task SaveGame_SetsExperimentAndGeneration(int generation)
+        {
+            // Note: Testing these two things together because they aren't meaningful separately
+            var experimentId = await SaveExperiment("Game Record Experiment");
+
+            var topItem = await SaveItem();
+            var bottomItem = await SaveItem();
+
+            var game = new GameRecord(
+                Guid.NewGuid(),
+                topItem,
+                bottomItem,
+                null,
+                experimentId,
+                generation
+            );
+
+            await _repository.SaveGame(game);
+
+            var savedGame = await _repository.GetGame(game.GameId);
+
+            Assert.That(savedGame, Is.Not.Null);
+
+            Assert.That(savedGame.ExperimentId, Is.EqualTo(game.ExperimentId));
+            Assert.That(savedGame.Generation, Is.EqualTo(game.Generation));
+        }
+
+        [Test]
+        public async Task DeleteGame_CannotRetrieve()
+        {
+            var topItem = await SaveItem();
+            var bottomItem = await SaveItem();
+
+            var game = new GameRecord(Guid.NewGuid(), topItem, bottomItem);
+            await _repository.SaveGame(game);
+
+            await _repository.DeleteGame(game.GameId);
+
+            var savedGame = await _repository.GetGame(game.GameId);
+            Assert.That(savedGame, Is.Null);
+        }
+
+        [Test]
+        public async Task NoGameLogs_RetrievesEmptyList()
+        {
+            var topItem = await SaveItem();
+            var bottomItem = await SaveItem();
+
+            var game = new GameRecord(Guid.NewGuid(), topItem, bottomItem);
+            await _repository.SaveGame(game);
+
+            var logs = await _repository.GetGameLogs(game.GameId);
+
+            Assert.That(logs, Is.Empty);
+        }
+
+        [Test]
+        public async Task SaveGameLog_CanRetrieve()
+        {
+            var topItem = await SaveItem();
+            var bottomItem = await SaveItem();
+
+            var game = new GameRecord(Guid.NewGuid(), topItem, bottomItem);
+            await _repository.SaveGame(game);
+
+            var firstLog = new GameLogRecord(game.GameId, 0, 1, "Stuff");
+            var secondLog = new GameLogRecord(game.GameId, 1, 1, "Other Stuff");
+
+            await _repository.SaveGameLog(firstLog);
+            await _repository.SaveGameLog(secondLog);
+
+            var logs = await _repository.GetGameLogs(game.GameId);
+
+            Assert.That(logs, Has.Exactly(2).Items);
+            Assert.That(logs[0], Is.EqualTo(firstLog));
+            Assert.That(logs[1], Is.EqualTo(secondLog));
+        }
+
+        [Test]
+        public async Task SaveGameLogs_RetrievedInSpecifiedOrder()
+        {
+            var topItem = await SaveItem();
+            var bottomItem = await SaveItem();
+
+            var game = new GameRecord(Guid.NewGuid(), topItem, bottomItem);
+            await _repository.SaveGame(game);
+
+            var firstLog = new GameLogRecord(game.GameId, 0, 1, "Stuff");
+            var secondLog = new GameLogRecord(game.GameId, 1, 1, "Other Stuff");
+
+            await _repository.SaveGameLog(secondLog);
+            await _repository.SaveGameLog(firstLog);
+
+            var logs = await _repository.GetGameLogs(game.GameId);
+
+            Assert.That(logs, Has.Exactly(2).Items);
+            Assert.That(logs[0], Is.EqualTo(firstLog));
+            Assert.That(logs[1], Is.EqualTo(secondLog));
+        }
+
+        #endregion
+
         #region Helper Functions
 
         /// <summary>
@@ -780,6 +948,46 @@ namespace Snapdragon.Postgresql.Tests
             var now = DateTimeOffset.UtcNow;
             var extraTicks = now.Ticks % 10;
             return now.Subtract(TimeSpan.FromTicks(extraTicks));
+        }
+
+        /// <summary>
+        /// Saves a test <see cref="CardGeneSequence"/> (with no associated population)
+        /// and returns the <see cref="CardGeneSequence.Id"/>;
+        /// </summary>
+        private async Task<Guid> SaveItem()
+        {
+            var cardNames = new string[]
+            {
+                "Ant Man",
+                "Hawkeye",
+                "Iron Man",
+                "Rocket Raccoon",
+                "Hulk",
+                "Wolfsbane",
+                "The Thing",
+                "Gamora",
+                "Klaw",
+                "White Tiger",
+                "Spectrum",
+                "Heimdall"
+            };
+
+            var cards = cardNames.Select(n => SnapCards.ByName[n]).ToImmutableList();
+
+            var item = new CardGeneSequence(
+                cards,
+                SnapCards.All,
+                Guid.NewGuid(),
+                200,
+                new RandomCardOrder(),
+                null,
+                null,
+                new MonteCarloSearchController(5)
+            );
+
+            await _repository.SaveItem(item);
+
+            return item.Id;
         }
 
         /// <summary>
@@ -867,6 +1075,8 @@ namespace Snapdragon.Postgresql.Tests
             using var datasource = NpgsqlDataSource.Create(_connectionString);
             using var connection = await datasource.OpenConnectionAsync();
 
+            await connection.ExecuteAsync("DELETE FROM game_log");
+            await connection.ExecuteAsync("DELETE FROM game");
             await connection.ExecuteAsync("DELETE FROM item_carddefinition");
             await connection.ExecuteAsync("DELETE FROM population_item");
             await connection.ExecuteAsync("DELETE FROM item");

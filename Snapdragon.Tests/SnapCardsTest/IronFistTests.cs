@@ -6,9 +6,9 @@ namespace Snapdragon.Tests.SnapCardsTest
     {
         [Test]
         [TestCaseSource(typeof(AllSidesAndColumns))]
-        public void MovesNextCardRightToMiddle(Side side, Column column)
+        public async Task MovesNextCardRightToMiddle(Side side, Column column)
         {
-            var game = TestHelpers
+            var game = await TestHelpers
                 .PlayCards(side, column, "Iron Fist")
                 .PlayCards(side, Column.Right, "Misty Knight");
 
@@ -31,9 +31,9 @@ namespace Snapdragon.Tests.SnapCardsTest
 
         [Test]
         [TestCaseSource(typeof(AllSidesAndColumns))]
-        public void MovesNextCardMiddleToLeft(Side side, Column column)
+        public async Task MovesNextCardMiddleToLeft(Side side, Column column)
         {
-            var game = TestHelpers
+            var game = await TestHelpers
                 .PlayCards(side, column, "Iron Fist")
                 .PlayCards(side, Column.Middle, "Misty Knight");
 
@@ -56,9 +56,9 @@ namespace Snapdragon.Tests.SnapCardsTest
 
         [Test]
         [TestCaseSource(typeof(AllSidesAndColumns))]
-        public void DoesNotMoveNextCardFromLeft(Side side, Column column)
+        public async Task DoesNotMoveNextCardFromLeft(Side side, Column column)
         {
-            var game = TestHelpers
+            var game = await TestHelpers
                 .PlayCards(side, column, "Iron Fist")
                 .PlayCards(side, Column.Left, "Misty Knight");
 
@@ -78,9 +78,9 @@ namespace Snapdragon.Tests.SnapCardsTest
 
         [Test]
         [TestCaseSource(typeof(AllSidesAndColumns))]
-        public void MovesCardPlayedSameTurn(Side side, Column column)
+        public async Task MovesCardPlayedSameTurn(Side side, Column column)
         {
-            var game = TestHelpers.PlayCards(
+            var game = await TestHelpers.PlayCards(
                 side,
                 ("Iron Fist", column),
                 ("Misty Knight", Column.Right)
@@ -105,9 +105,9 @@ namespace Snapdragon.Tests.SnapCardsTest
 
         [Test]
         [TestCaseSource(typeof(AllSidesAndColumns))]
-        public void DoesNotMoveCardRevealedFirst(Side side, Column column)
+        public async Task DoesNotMoveCardRevealedFirst(Side side, Column column)
         {
-            var game = TestHelpers.PlayCards(
+            var game = await TestHelpers.PlayCards(
                 side,
                 ("Misty Knight", Column.Right),
                 ("Iron Fist", column)
@@ -124,9 +124,9 @@ namespace Snapdragon.Tests.SnapCardsTest
 
         [Test]
         [TestCaseSource(typeof(AllSidesAndColumns))]
-        public void DoesNotMoveSecondCardPlayed(Side side, Column column)
+        public async Task DoesNotMoveSecondCardPlayed(Side side, Column column)
         {
-            var game = TestHelpers
+            var game = await TestHelpers
                 .PlayCards(side, column, "Iron Fist")
                 .PlayCards(side, Column.Right, "Misty Knight", "Rocket Raccoon");
 
@@ -144,9 +144,9 @@ namespace Snapdragon.Tests.SnapCardsTest
 
         [Test]
         [TestCaseSource(typeof(AllSidesAndColumns))]
-        public void DoesNotMoveOpponentCard(Side side, Column column)
+        public async Task DoesNotMoveOpponentCard(Side side, Column column)
         {
-            var game = TestHelpers
+            var game = await TestHelpers
                 .PlayCards(side, column, "Iron Fist")
                 .PlayCards(side.Other(), Column.Right, "Misty Knight");
 

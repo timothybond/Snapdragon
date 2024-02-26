@@ -9,13 +9,13 @@ namespace Snapdragon.Tests
     {
         [Test]
         [TestCaseSource(typeof(AllSidesAndDifferentColumns))]
-        public void CardWithoutAbility_AttemptingMoveDoesNothing(
+        public async Task CardWithoutAbility_AttemptingMoveDoesNothingAsync(
             Side side,
             Column initial,
             Column target
         )
         {
-            var game = TestHelpers.PlayCards(side, initial, "Misty Knight");
+            var game = await TestHelpers.PlayCards(side, initial, "Misty Knight");
 
             var playerController = game[side].Controller as TestPlayerController;
 

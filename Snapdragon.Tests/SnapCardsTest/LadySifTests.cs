@@ -1,5 +1,5 @@
-﻿using System.Collections.Immutable;
-using Snapdragon.Events;
+﻿using Snapdragon.Events;
+using System.Collections.Immutable;
 
 namespace Snapdragon.Tests.SnapCardsTest
 {
@@ -7,7 +7,7 @@ namespace Snapdragon.Tests.SnapCardsTest
     {
         [Test]
         [TestCaseSource(typeof(AllSidesAndColumns))]
-        public void DiscardsHighestCostCardInHand(Side side, Column column)
+        public async Task DiscardsHighestCostCardInHand(Side side, Column column)
         {
             var game = TestHelpers.NewGame();
 
@@ -17,7 +17,7 @@ namespace Snapdragon.Tests.SnapCardsTest
                 .ToImmutableList();
             game = game.WithPlayer(game[side] with { Hand = hand });
 
-            game = TestHelpers.PlayCards(game, side, column, "Lady Sif");
+            game = await TestHelpers.PlayCards(game, side, column, "Lady Sif");
 
             Assert.That(game[side].Hand.Count, Is.EqualTo(2));
 
@@ -33,7 +33,7 @@ namespace Snapdragon.Tests.SnapCardsTest
 
         [Test]
         [TestCaseSource(typeof(AllSidesAndColumns))]
-        public void OnlyDiscardsOneCardIfTieForHighestCost(Side side, Column column)
+        public async Task OnlyDiscardsOneCardIfTieForHighestCost(Side side, Column column)
         {
             var game = TestHelpers.NewGame();
 
@@ -43,7 +43,7 @@ namespace Snapdragon.Tests.SnapCardsTest
                 .ToImmutableList();
             game = game.WithPlayer(game[side] with { Hand = hand });
 
-            game = TestHelpers.PlayCards(game, side, column, "Lady Sif");
+            game = await TestHelpers.PlayCards(game, side, column, "Lady Sif");
 
             Assert.That(game[side].Hand.Count, Is.EqualTo(3));
 
@@ -60,7 +60,7 @@ namespace Snapdragon.Tests.SnapCardsTest
 
         [Test]
         [TestCaseSource(typeof(AllSidesAndColumns))]
-        public void DoesNotMakeOpponentDiscard(Side side, Column column)
+        public async Task DoesNotMakeOpponentDiscard(Side side, Column column)
         {
             var game = TestHelpers.NewGame();
 
@@ -70,7 +70,7 @@ namespace Snapdragon.Tests.SnapCardsTest
                 .ToImmutableList();
             game = game.WithPlayer(game[side.Other()] with { Hand = hand });
 
-            game = TestHelpers.PlayCards(game, side, column, "Lady Sif");
+            game = await TestHelpers.PlayCards(game, side, column, "Lady Sif");
 
             Assert.That(game[side.Other()].Hand.Count, Is.EqualTo(3));
 

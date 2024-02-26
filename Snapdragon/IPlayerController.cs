@@ -2,6 +2,6 @@
 {
     public interface IPlayerController
     {
-        IReadOnlyList<IPlayerAction> GetActions(Game game, Side side);
+        Task<IReadOnlyList<IPlayerAction>> GetActions(Game game, Side side);
     }
 }

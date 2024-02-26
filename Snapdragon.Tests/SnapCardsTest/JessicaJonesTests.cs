@@ -5,9 +5,9 @@
         [Test]
         [TestCase(Side.Top, Column.Middle)]
         [TestCase(Side.Bottom, Column.Middle)]
-        public void NoCardsPlayed_PowerIsNine(Side side, Column column)
+        public async Task NoCardsPlayed_PowerIsNine(Side side, Column column)
         {
-            var game = TestHelpers.PlayCards(
+            var game = await TestHelpers.PlayCards(
                 5,
                 side == Side.Top ? new[] { ("Jessica Jones", column) } : new (string, Column)[] { },
                 side == Side.Bottom
@@ -16,7 +16,7 @@
             );
 
             var engine = new Engine(new NullLogger());
-            game = game.PlaySingleTurn();
+            game = await game.PlaySingleTurn();
 
             Assert.That(game[column][side].Count, Is.EqualTo(1));
 
@@ -29,9 +29,9 @@
         [Test]
         [TestCase(Side.Top, Column.Middle)]
         [TestCase(Side.Bottom, Column.Middle)]
-        public void CardPlayed_PowerRemainsAtFive(Side side, Column column)
+        public async Task CardPlayed_PowerRemainsAtFive(Side side, Column column)
         {
-            var game = TestHelpers.PlayCards(
+            var game = await TestHelpers.PlayCards(
                 5,
                 side == Side.Top ? new[] { ("Jessica Jones", column) } : new (string, Column)[] { },
                 side == Side.Bottom
@@ -39,7 +39,7 @@
                     : new (string, Column)[] { }
             );
 
-            game = TestHelpers.PlayCards(
+            game = await TestHelpers.PlayCards(
                 game,
                 6,
                 side == Side.Top ? new[] { ("Misty Knight", column) } : new (string, Column)[] { },

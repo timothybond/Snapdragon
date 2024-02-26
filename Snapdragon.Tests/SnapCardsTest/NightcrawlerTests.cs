@@ -6,9 +6,9 @@ namespace Snapdragon.Tests.SnapCardsTest
     {
         [Test]
         [TestCaseSource(typeof(AllSidesAndDifferentColumns))]
-        public void HasNotMoved_CanMove(Side side, Column column, Column otherColumn)
+        public async Task HasNotMoved_CanMove(Side side, Column column, Column otherColumn)
         {
-            var game = TestHelpers.PlayCards(side, column, "Nightcrawler");
+            var game = await TestHelpers.PlayCards(side, column, "Nightcrawler");
 
             Assert.That(game[column][side].Count, Is.EqualTo(1));
             var nightcrawler = game[column][side][0];
@@ -21,14 +21,14 @@ namespace Snapdragon.Tests.SnapCardsTest
 
         [Test]
         [TestCaseSource(typeof(AllSidesAndThreeDifferentColumns))]
-        public void HasMoved_CanNotMove(
+        public async Task HasMoved_CanNotMove(
             Side side,
             Column initial,
             Column moveTo,
             Column remainingColumn
         )
         {
-            var game = TestHelpers.PlayCards(side, initial, "Nightcrawler");
+            var game = await TestHelpers.PlayCards(side, initial, "Nightcrawler");
             var nightcrawler = game[initial][side][0];
 
             var controller = (TestPlayerController)game[side].Controller;
@@ -37,7 +37,7 @@ namespace Snapdragon.Tests.SnapCardsTest
                 new MoveCardAction(side, nightcrawler, initial, moveTo)
             };
 
-            game = game.PlaySingleTurn();
+            game = await game.PlaySingleTurn();
 
             nightcrawler = game[moveTo][side][0];
             Assert.That(nightcrawler.Name, Is.EqualTo("Nightcrawler"));
@@ -48,9 +48,9 @@ namespace Snapdragon.Tests.SnapCardsTest
 
         [Test]
         [TestCaseSource(typeof(AllSidesAndDifferentColumns))]
-        public void WhenMoved_TransitionsColumns(Side side, Column initial, Column moveTo)
+        public async Task WhenMoved_TransitionsColumns(Side side, Column initial, Column moveTo)
         {
-            var game = TestHelpers.PlayCards(side, initial, "Nightcrawler");
+            var game = await TestHelpers.PlayCards(side, initial, "Nightcrawler");
             var nightcrawler = game[initial][side][0];
 
             var controller = (TestPlayerController)game[side].Controller;
@@ -59,7 +59,7 @@ namespace Snapdragon.Tests.SnapCardsTest
                 new MoveCardAction(side, nightcrawler, initial, moveTo)
             };
 
-            game = game.PlaySingleTurn();
+            game = await game.PlaySingleTurn();
 
             Assert.That(game[initial][side].Count, Is.EqualTo(0));
             Assert.That(game[moveTo][side].Count, Is.EqualTo(1));

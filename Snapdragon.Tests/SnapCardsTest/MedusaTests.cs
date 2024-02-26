@@ -1,16 +1,13 @@
-﻿using System.Data.Common;
-using Snapdragon.TargetFilters;
-
-namespace Snapdragon.Tests.SnapCardsTest
+﻿namespace Snapdragon.Tests.SnapCardsTest
 {
     public class MedusaTests
     {
         [Test]
         [TestCase(Side.Top)]
         [TestCase(Side.Bottom)]
-        public void PlayedInMiddle_PowerIsFive(Side side)
+        public async Task PlayedInMiddle_PowerIsFive(Side side)
         {
-            var game = TestHelpers.PlayCards(2, side, new[] { ("Medusa", Column.Middle) });
+            var game = await TestHelpers.PlayCards(2, side, new[] { ("Medusa", Column.Middle) });
 
             Assert.That(game[Column.Middle][side].Count == 1);
 
@@ -25,9 +22,9 @@ namespace Snapdragon.Tests.SnapCardsTest
         [TestCase(Column.Left, Side.Bottom)]
         [TestCase(Column.Right, Side.Top)]
         [TestCase(Column.Right, Side.Bottom)]
-        public void PlayedNotInMiddle_PowerIsTwo(Column column, Side side)
+        public async Task PlayedNotInMiddle_PowerIsTwo(Column column, Side side)
         {
-            var game = TestHelpers.PlayCards(2, side, new[] { ("Medusa", column) });
+            var game = await TestHelpers.PlayCards(2, side, new[] { ("Medusa", column) });
 
             Assert.That(game[column][side].Count == 1);
 

@@ -16,7 +16,7 @@
             this.actions = initialActions;
         }
 
-        public IReadOnlyList<IPlayerAction> GetActions(Game game, Side side)
+        public async Task<IReadOnlyList<IPlayerAction>> GetActions(Game game, Side side)
         {
             if (this.actions != null)
             {
@@ -25,7 +25,7 @@
                 return actions;
             }
 
-            return this.randomController.GetActions(game, side);
+            return await this.randomController.GetActions(game, side);
         }
     }
 }

@@ -6,13 +6,21 @@ namespace Snapdragon.Tests
     {
         private StringBuilder output = new StringBuilder();
 
-        public void LogEvent(Event e)
+        public Task LogEvent(Event e)
         {
             Console.WriteLine(e.ToString());
             output.AppendLine(e.ToString());
+
+            return Task.CompletedTask;
         }
 
-        public void LogGameState(Game game)
+        public Task LogFinishedGame(Game game)
+        {
+            // Do nothing - we already write detailed logs throughout the game with this implementation.
+            return Task.CompletedTask;
+        }
+
+        public Task LogGameState(Game game)
         {
             output.AppendLine();
             output.AppendLine(LoggerUtilities.GameStateLog(game));
@@ -21,9 +29,11 @@ namespace Snapdragon.Tests
             Console.WriteLine();
             Console.WriteLine(LoggerUtilities.GameStateLog(game));
             Console.WriteLine();
+
+            return Task.CompletedTask;
         }
 
-        public void LogHands(Game game)
+        public Task LogHands(Game game)
         {
             output.AppendLine();
             output.AppendLine(LoggerUtilities.HandsLog(game));
@@ -32,6 +42,8 @@ namespace Snapdragon.Tests
             Console.WriteLine();
             Console.WriteLine(LoggerUtilities.HandsLog(game));
             Console.WriteLine();
+
+            return Task.CompletedTask;
         }
 
         public override string ToString()

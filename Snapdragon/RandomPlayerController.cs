@@ -14,7 +14,7 @@ namespace Snapdragon
             return "Random";
         }
 
-        public IReadOnlyList<IPlayerAction> GetActions(Game game, Side side)
+        public Task<IReadOnlyList<IPlayerAction>> GetActions(Game game, Side side)
         {
             // This function implementation basically follows the logic in
             // ControllerUtilities.GetPossibleActionSets, except that it
@@ -109,7 +109,7 @@ namespace Snapdragon
 
             if (cardsToPlay.Count == 0)
             {
-                return moves;
+                return Task.FromResult<IReadOnlyList<IPlayerAction>>(moves);
             }
 
             var columnChoiceSets = GetPossibleColumnChoices(cardsToPlay.Count, availableColumns);
@@ -126,10 +126,12 @@ namespace Snapdragon
                     .Any(blocked => blocked)
             )
             {
-                return moves
-                    .Cast<IPlayerAction>()
-                    .Concat(GetPlayCardActions(cardsToPlay, randomColumnChoices, side))
-                    .ToList();
+                return Task.FromResult<IReadOnlyList<IPlayerAction>>(
+                    moves
+                        .Cast<IPlayerAction>()
+                        .Concat(GetPlayCardActions(cardsToPlay, randomColumnChoices, side))
+                        .ToList()
+                );
             }
 
             // If there were play restrictions above, try to find a set of column choices that passes.
@@ -141,7 +143,9 @@ namespace Snapdragon
 
             if (nonBlockedActionSets.Count > 0)
             {
-                return moves.Cast<IPlayerAction>().Concat(Random.Of(nonBlockedActionSets)).ToList();
+                return Task.FromResult<IReadOnlyList<IPlayerAction>>(
+                    moves.Cast<IPlayerAction>().Concat(Random.Of(nonBlockedActionSets)).ToList()
+                );
             }
 
             // Apparently there were no valid places to play these cards.
@@ -151,7 +155,9 @@ namespace Snapdragon
                 .Select((c, i) => new PlayCardAction(side, c, randomColumnChoices[i]))
                 .Where(a => !IsBlocked(a, game));
 
-            return moves.Cast<IPlayerAction>().Concat(remainingValidPlays).ToList();
+            return Task.FromResult<IReadOnlyList<IPlayerAction>>(
+                moves.Cast<IPlayerAction>().Concat(remainingValidPlays).ToList()
+            );
         }
 
         private static IReadOnlyList<MoveCardAction> GetRandomMoves(

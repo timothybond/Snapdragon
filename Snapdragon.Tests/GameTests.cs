@@ -87,17 +87,17 @@ namespace Snapdragon.Tests
         [TestCase(5)]
         [TestCase(6)]
         [TestCase(7)]
-        public void StartTurn_GivesPlayerEnergy(int turn)
+        public async Task StartTurn_GivesPlayerEnergy(int turn)
         {
             var engine = new Engine(new NullLogger());
             var game = GetInitialGame(engine);
 
             for (var i = 0; i < turn - 1; i++)
             {
-                game = game.PlaySingleTurn();
+                game = await game.PlaySingleTurn();
             }
 
-            game = game.StartNextTurn();
+            game = await game.StartNextTurn();
 
             Assert.That(game.Top.Energy, Is.EqualTo(turn));
             Assert.That(game.Bottom.Energy, Is.EqualTo(turn));
@@ -111,7 +111,7 @@ namespace Snapdragon.Tests
         [TestCase(5, true, true, true)]
         [TestCase(6, true, true, true)]
         [TestCase(7, true, true, true)]
-        public void StartTurn_RevealsLocationForTurn(
+        public async Task StartTurn_RevealsLocationForTurn(
             int turn,
             bool leftRevealed,
             bool middleRevealed,
@@ -123,10 +123,10 @@ namespace Snapdragon.Tests
 
             for (var i = 0; i < turn - 1; i++)
             {
-                game = game.PlaySingleTurn();
+                game = await game.PlaySingleTurn();
             }
 
-            game = game.StartNextTurn();
+            game = await game.StartNextTurn();
 
             Assert.That(game.Left.Revealed, Is.EqualTo(leftRevealed));
             Assert.That(game.Middle.Revealed, Is.EqualTo(middleRevealed));
@@ -137,17 +137,17 @@ namespace Snapdragon.Tests
         [TestCase(1, Column.Left)]
         [TestCase(2, Column.Middle)]
         [TestCase(3, Column.Right)]
-        public void StartTurn_RaisesRevealLocationEvent(int turn, Column column)
+        public async Task StartTurn_RaisesRevealLocationEvent(int turn, Column column)
         {
             var engine = new Engine(new NullLogger());
             var game = GetInitialGame(engine);
 
             for (var i = 0; i < turn - 1; i++)
             {
-                game = game.PlaySingleTurn();
+                game = await game.PlaySingleTurn();
             }
 
-            game = game.StartNextTurn();
+            game = await game.StartNextTurn();
 
             var lastReveal = game.PastEvents.OfType<LocationRevealedEvent>().Last();
 
@@ -155,7 +155,7 @@ namespace Snapdragon.Tests
         }
 
         [Test]
-        public void StartTurn_DrawsCard()
+        public async Task StartTurn_DrawsCard()
         {
             var engine = new Engine(new NullLogger());
             var playerController = new TestPlayerController();
@@ -173,7 +173,7 @@ namespace Snapdragon.Tests
 
             var game = engine.CreateGame(topPlayerConfig, bottomPlayerConfig, false);
 
-            game = game.StartNextTurn();
+            game = await game.StartNextTurn();
 
             // Note: Start of game gives three cards, as tested elsewhere.
             Assert.That(game.Top.Hand.Count, Is.EqualTo(4));
@@ -187,7 +187,7 @@ namespace Snapdragon.Tests
         [TestCase(Column.Left)]
         [TestCase(Column.Middle)]
         [TestCase(Column.Right)]
-        public void PlaySingleTurn_PutsCardIntoColumn(Column column)
+        public async Task PlaySingleTurn_PutsCardIntoColumn(Column column)
         {
             var engine = new Engine(new NullLogger());
             var playerController = new TestPlayerController();
@@ -211,7 +211,7 @@ namespace Snapdragon.Tests
                 new PlayCardAction(Side.Top, game.Top.Hand[0], column)
             };
 
-            game = game.PlaySingleTurn();
+            game = await game.PlaySingleTurn();
 
             Assert.That(game[column].TopPlayerCards.Count, Is.EqualTo(1));
         }
@@ -220,7 +220,7 @@ namespace Snapdragon.Tests
         [TestCase(Column.Left)]
         [TestCase(Column.Middle)]
         [TestCase(Column.Right)]
-        public void PlaySingleTurn_SetsCardRevealed(Column column)
+        public async Task PlaySingleTurn_SetsCardRevealed(Column column)
         {
             var engine = new Engine(new NullLogger());
             var playerController = new TestPlayerController();
@@ -244,7 +244,7 @@ namespace Snapdragon.Tests
                 new PlayCardAction(Side.Top, game.Top.Hand[0], column)
             };
 
-            game = game.PlaySingleTurn();
+            game = await game.PlaySingleTurn();
 
             Assert.That(game[column].TopPlayerCards[0].State, Is.EqualTo(CardState.InPlay));
         }
@@ -256,7 +256,10 @@ namespace Snapdragon.Tests
         [TestCase(Side.Bottom, Column.Left)]
         [TestCase(Side.Bottom, Column.Middle)]
         [TestCase(Side.Bottom, Column.Right)]
-        public void PlaySingleTurn_SetsLeaderAsFirstRevealedForNextTurn(Side side, Column column)
+        public async Task PlaySingleTurn_SetsLeaderAsFirstRevealedForNextTurn(
+            Side side,
+            Column column
+        )
         {
             var engine = new Engine(new NullLogger());
             var topPlayerController = new TestPlayerController();
@@ -290,7 +293,7 @@ namespace Snapdragon.Tests
                 };
             }
 
-            game = game.PlaySingleTurn();
+            game = await game.PlaySingleTurn();
 
             Assert.That(game.FirstRevealed, Is.EqualTo(side));
         }
@@ -299,7 +302,7 @@ namespace Snapdragon.Tests
         [TestCase(Column.Left)]
         [TestCase(Column.Middle)]
         [TestCase(Column.Right)]
-        public void PlaySingleTurn_RaisesCardRevealedEvent(Column column)
+        public async Task PlaySingleTurn_RaisesCardRevealedEvent(Column column)
         {
             var engine = new Engine(new NullLogger());
             var playerController = new TestPlayerController();
@@ -323,7 +326,7 @@ namespace Snapdragon.Tests
                 new PlayCardAction(Side.Top, game.Top.Hand[0], column)
             };
 
-            game = game.PlaySingleTurn();
+            game = await game.PlaySingleTurn();
 
             var cardRevealedEvent = game.PastEvents.SingleOrDefault(e =>
                 e.Type == EventType.CardRevealed
@@ -338,23 +341,23 @@ namespace Snapdragon.Tests
         #region PlayGame
 
         [Test]
-        public void PlayGame_PlaysSixTurnsByDefault()
+        public async Task PlayGame_PlaysSixTurnsByDefault()
         {
             var engine = new Engine(new NullLogger());
             var game = GetInitialGame(engine);
 
-            game = game.PlayGame();
+            game = await game.PlayGame();
 
             Assert.That(game.Turn, Is.EqualTo(6));
         }
 
         [Test]
-        public void PlayGame_GameOverIsTrue()
+        public async Task PlayGame_GameOverIsTrue()
         {
             var engine = new Engine(new NullLogger());
             var game = GetInitialGame(engine);
 
-            game = game.PlayGame();
+            game = await game.PlayGame();
 
             Assert.That(game.GameOver, Is.True);
         }

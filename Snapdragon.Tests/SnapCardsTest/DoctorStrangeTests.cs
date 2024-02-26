@@ -4,9 +4,9 @@
     {
         [Test]
         [TestCaseSource(typeof(AllSidesAndDifferentColumns))]
-        public void MovesOnlyOtherCard(Side side, Column column, Column otherColumn)
+        public async Task MovesOnlyOtherCard(Side side, Column column, Column otherColumn)
         {
-            var game = TestHelpers
+            var game = await TestHelpers
                 .PlayCards(side, otherColumn, "Misty Knight")
                 .PlayCards(side, column, "Doctor Strange");
 
@@ -18,9 +18,9 @@
 
         [Test]
         [TestCaseSource(typeof(AllSidesAndDifferentColumns))]
-        public void DoesNotMoveEnemyCard(Side side, Column column, Column otherColumn)
+        public async Task DoesNotMoveEnemyCard(Side side, Column column, Column otherColumn)
         {
-            var game = TestHelpers
+            var game = await TestHelpers
                 .PlayCards(side.Other(), otherColumn, "Misty Knight")
                 .PlayCards(side, column, "Doctor Strange");
 
@@ -33,10 +33,10 @@
 
         [Test]
         [TestCaseSource(typeof(AllSidesAndDifferentColumns))]
-        public void MovesHighestPowerCard(Side side, Column column, Column otherColumn)
+        public async Task MovesHighestPowerCard(Side side, Column column, Column otherColumn)
         {
             // Note: Hawkeye's ability will trigger, giving him 4 power total
-            var game = TestHelpers
+            var game = await TestHelpers
                 .PlayCards(side, otherColumn, "Hawkeye")
                 .PlayCards(side, otherColumn, "Misty Knight")
                 .PlayCards(side, column, "Doctor Strange");
@@ -53,10 +53,14 @@
 
         [Test]
         [TestCaseSource(typeof(AllSidesAndDifferentColumns))]
-        public void TieForHighestPower_MovesBothCards(Side side, Column column, Column otherColumn)
+        public async Task TieForHighestPower_MovesBothCards(
+            Side side,
+            Column column,
+            Column otherColumn
+        )
         {
             // Note: Hawkeye's ability will trigger, giving him 4 power total
-            var game = TestHelpers
+            var game = await TestHelpers
                 .PlayCards(side, otherColumn, "Hawkeye")
                 .PlayCards(side, otherColumn, "Cloak")
                 .PlayCards(side, column, "Doctor Strange");

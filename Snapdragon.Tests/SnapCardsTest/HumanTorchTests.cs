@@ -4,9 +4,9 @@
     {
         [Test]
         [TestCaseSource(typeof(AllSidesAndColumns))]
-        public void WhenFirstPlayed_PowerIsTwo(Side side, Column column)
+        public async Task WhenFirstPlayed_PowerIsTwo(Side side, Column column)
         {
-            var game = TestHelpers.PlayCards(side, column, "Human Torch");
+            var game = await TestHelpers.PlayCards(side, column, "Human Torch");
 
             Assert.That(game[column][side].Count, Is.EqualTo(1));
             var humanTorch = game[column][side][0];
@@ -17,9 +17,9 @@
 
         [Test]
         [TestCaseSource(typeof(AllSidesAndDifferentColumns))]
-        public void WhenMoved_PowerIsFour(Side side, Column column, Column otherColumn)
+        public async Task WhenMoved_PowerIsFour(Side side, Column column, Column otherColumn)
         {
-            var game = TestHelpers
+            var game = await TestHelpers
                 .PlayCards(side, column, "Human Torch")
                 .PlayCards(side, otherColumn, "Cloak")
                 .MoveCards(side, column, otherColumn, "Human Torch");
@@ -33,9 +33,13 @@
 
         [Test]
         [TestCaseSource(typeof(AllSidesAndDifferentColumns))]
-        public void WhenBuffedThenMoved_BuffIsDoubled(Side side, Column column, Column otherColumn)
+        public async Task WhenBuffedThenMoved_BuffIsDoubled(
+            Side side,
+            Column column,
+            Column otherColumn
+        )
         {
-            var game = TestHelpers
+            var game = await TestHelpers
                 .PlayCards(side, column, "Human Torch")
                 .PlayCards(side, otherColumn, "Cloak")
                 .MoveCards(side, column, otherColumn, "Human Torch");
@@ -49,9 +53,9 @@
 
         [Test]
         [TestCaseSource(typeof(AllSidesAndDifferentColumns))]
-        public void WhenMovedTwice_PowerIsEight(Side side, Column column, Column otherColumn)
+        public async Task WhenMovedTwice_PowerIsEight(Side side, Column column, Column otherColumn)
         {
-            var game = TestHelpers
+            var game = await TestHelpers
                 .PlayCards(side, column, "Human Torch")
                 .PlayCards(side, column, "Ironheart")
                 .PlayCards(side, otherColumn, "Doctor Strange");

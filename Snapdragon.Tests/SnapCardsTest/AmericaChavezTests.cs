@@ -6,7 +6,7 @@ namespace Snapdragon.Tests.SnapCardsTest
     {
         [Test]
         [TestCaseSource(typeof(AllSidesAndColumns))]
-        public void AddsPowerToTopLibraryCard(Side side, Column column)
+        public async Task AddsPowerToTopLibraryCard(Side side, Column column)
         {
             var game = TestHelpers.NewGame();
 
@@ -19,7 +19,7 @@ namespace Snapdragon.Tests.SnapCardsTest
 
             game = game.WithPlayer(game[side] with { Library = library });
 
-            game = TestHelpers.PlayCards(game, side, column, "America Chavez");
+            game = await TestHelpers.PlayCards(game, side, column, "America Chavez");
 
             Assert.That(game[side].Library.Count, Is.EqualTo(2));
 
@@ -31,7 +31,7 @@ namespace Snapdragon.Tests.SnapCardsTest
 
         [Test]
         [TestCaseSource(typeof(AllSidesAndColumns))]
-        public void DoesNotAddPowerToNextLibraryCard(Side side, Column column)
+        public async Task DoesNotAddPowerToNextLibraryCard(Side side, Column column)
         {
             var game = TestHelpers.NewGame();
 
@@ -44,7 +44,7 @@ namespace Snapdragon.Tests.SnapCardsTest
 
             game = game.WithPlayer(game[side] with { Library = library });
 
-            game = TestHelpers.PlayCards(game, side, column, "America Chavez");
+            game = await TestHelpers.PlayCards(game, side, column, "America Chavez");
 
             Assert.That(game[side].Library.Count, Is.EqualTo(2));
 
@@ -56,7 +56,7 @@ namespace Snapdragon.Tests.SnapCardsTest
 
         [Test]
         [TestCaseSource(typeof(AllSidesAndColumns))]
-        public void DoesNotAddPowerToOpponentTopLibraryCard(Side side, Column column)
+        public async Task DoesNotAddPowerToOpponentTopLibraryCard(Side side, Column column)
         {
             var game = TestHelpers.NewGame();
 
@@ -68,7 +68,7 @@ namespace Snapdragon.Tests.SnapCardsTest
 
             game = game.WithPlayer(game[side.Other()] with { Library = library });
 
-            game = TestHelpers.PlayCards(game, side, column, "America Chavez");
+            game = await TestHelpers.PlayCards(game, side, column, "America Chavez");
 
             Assert.That(game[side.Other()].Library.Count, Is.EqualTo(2));
 

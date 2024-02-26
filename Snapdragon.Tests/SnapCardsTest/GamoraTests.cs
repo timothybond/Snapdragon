@@ -5,9 +5,9 @@
         [Test]
         [TestCase(Side.Top, Column.Middle)]
         [TestCase(Side.Bottom, Column.Middle)]
-        public void PlayCardAlone_PowerIsSeven(Side side, Column column)
+        public async Task PlayCardAlone_PowerIsSeven(Side side, Column column)
         {
-            var game = TestHelpers.PlayCards(
+            var game = await TestHelpers.PlayCards(
                 6,
                 side == Side.Top ? new[] { ("Gamora", column) } : new (string, Column)[] { },
                 side == Side.Bottom ? new[] { ("Gamora", column) } : new (string, Column)[] { }
@@ -24,9 +24,9 @@
         [Test]
         [TestCase(Side.Top, Column.Middle)]
         [TestCase(Side.Bottom, Column.Middle)]
-        public void PlayCardWithAnotherCardOnSameSide_PowerIsSeven(Side side, Column column)
+        public async Task PlayCardWithAnotherCardOnSameSide_PowerIsSeven(Side side, Column column)
         {
-            var game = TestHelpers.PlayCards(
+            var game = await TestHelpers.PlayCards(
                 6,
                 side == Side.Top
                     ? new[] { ("Gamora", column), ("Misty Knight", column) }
@@ -47,9 +47,9 @@
         [Test]
         [TestCase(Side.Top, Column.Middle)]
         [TestCase(Side.Bottom, Column.Middle)]
-        public void PlayCardWithAnotherCardOnOpposingSide_PowerIsTwelve(Side side, Column column)
+        public async Task PlayCardWithAnotherCardOnOpposingSide_PowerIsTwelve(Side side, Column column)
         {
-            var game = TestHelpers.PlayCards(
+            var game = await TestHelpers.PlayCards(
                 6,
                 side == Side.Top
                     ? new[] { ("Gamora", column) }

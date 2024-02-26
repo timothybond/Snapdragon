@@ -4,11 +4,12 @@
     {
         [Test]
         [TestCaseSource(typeof(AllSidesAndDifferentColumns))]
-        public void WhenMoved_CreatesCopy(Side side, Column column, Column otherColumn)
+        public async Task WhenMoved_CreatesCopy(Side side, Column column, Column otherColumn)
         {
-            var game = TestHelpers.PlayCards(side, column, "Multiple Man");
-            game = game.PlayCards(side, otherColumn, "Cloak");
-            game = game.MoveCards(side, column, otherColumn, "Multiple Man");
+            var game = await TestHelpers
+                .PlayCards(side, column, "Multiple Man")
+                .PlayCards(side, otherColumn, "Cloak")
+                .MoveCards(side, column, otherColumn, "Multiple Man");
 
             Assert.That(game[column][side].Count, Is.EqualTo(1));
             Assert.That(game[otherColumn][side].Count, Is.EqualTo(2));
@@ -22,11 +23,12 @@
 
         [Test]
         [TestCaseSource(typeof(AllSidesAndDifferentColumns))]
-        public void WhenMoved_CopyHasDifferentId(Side side, Column column, Column otherColumn)
+        public async Task WhenMoved_CopyHasDifferentId(Side side, Column column, Column otherColumn)
         {
-            var game = TestHelpers.PlayCards(side, column, "Multiple Man");
-            game = game.PlayCards(side, otherColumn, "Cloak");
-            game = game.MoveCards(side, column, otherColumn, "Multiple Man");
+            var game = await TestHelpers
+                .PlayCards(side, column, "Multiple Man")
+                .PlayCards(side, otherColumn, "Cloak")
+                .MoveCards(side, column, otherColumn, "Multiple Man");
 
             Assert.That(game[column][side].Count, Is.EqualTo(1));
             Assert.That(game[otherColumn][side].Count, Is.EqualTo(2));
@@ -38,16 +40,17 @@
 
         [Test]
         [TestCaseSource(typeof(AllSidesAndDifferentColumns))]
-        public void WhenMoved_CopyIncludesPowerAdjustments(
+        public async Task WhenMoved_CopyIncludesPowerAdjustments(
             Side side,
             Column column,
             Column otherColumn
         )
         {
-            var game = TestHelpers.PlayCards(side, column, "Multiple Man");
-            game = game.PlayCards(side, column, "Ironheart"); // Will now have power 5
-            game = game.PlayCards(side, otherColumn, "Cloak");
-            game = game.MoveCards(side, column, otherColumn, "Multiple Man");
+            var game = await TestHelpers
+                .PlayCards(side, column, "Multiple Man")
+                .PlayCards(side, column, "Ironheart") // Will now have power 5
+                .PlayCards(side, otherColumn, "Cloak")
+                .MoveCards(side, column, otherColumn, "Multiple Man");
 
             Assert.That(game[column][side].Count, Is.EqualTo(2));
             Assert.That(game[otherColumn][side].Count, Is.EqualTo(2));

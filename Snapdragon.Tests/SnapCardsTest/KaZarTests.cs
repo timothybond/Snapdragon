@@ -1,14 +1,11 @@
-﻿using System.Data.Common;
-using System.Drawing;
-
-namespace Snapdragon.Tests.SnapCardsTest
+﻿namespace Snapdragon.Tests.SnapCardsTest
 {
     public class KaZarTests
     {
         [Test]
         [TestCase(Side.Top)]
         [TestCase(Side.Bottom)]
-        public void DoesNotAddToSelf(Side side)
+        public async Task DoesNotAddToSelf(Side side)
         {
             var noCards = new (string CardName, Column Column)[] { };
             (string CardName, Column Column)[] cardsToPlay = new[]
@@ -17,7 +14,7 @@ namespace Snapdragon.Tests.SnapCardsTest
                 ("Misty Knight", Column.Right)
             };
 
-            var game = TestHelpers.PlayCards(
+            var game = await TestHelpers.PlayCards(
                 6,
                 side == Side.Top ? cardsToPlay : noCards,
                 side == Side.Bottom ? cardsToPlay : noCards
@@ -35,7 +32,7 @@ namespace Snapdragon.Tests.SnapCardsTest
         [Test]
         [TestCase(Side.Top)]
         [TestCase(Side.Bottom)]
-        public void AddsToOneCostCard(Side side)
+        public async Task AddsToOneCostCard(Side side)
         {
             var noCards = new (string CardName, Column Column)[] { };
             (string CardName, Column Column)[] cardsToPlay = new[]
@@ -44,7 +41,7 @@ namespace Snapdragon.Tests.SnapCardsTest
                 ("Misty Knight", Column.Right)
             };
 
-            var game = TestHelpers.PlayCards(
+            var game = await TestHelpers.PlayCards(
                 6,
                 side == Side.Top ? cardsToPlay : noCards,
                 side == Side.Bottom ? cardsToPlay : noCards
@@ -62,7 +59,7 @@ namespace Snapdragon.Tests.SnapCardsTest
         [Test]
         [TestCase(Side.Top)]
         [TestCase(Side.Bottom)]
-        public void DoesNotAddToTwoCostCard(Side side)
+        public async Task DoesNotAddToTwoCostCard(Side side)
         {
             var noCards = new (string CardName, Column Column)[] { };
             (string CardName, Column Column)[] cardsToPlay = new[]
@@ -71,7 +68,7 @@ namespace Snapdragon.Tests.SnapCardsTest
                 ("Star-Lord", Column.Right)
             };
 
-            var game = TestHelpers.PlayCards(
+            var game = await TestHelpers.PlayCards(
                 6,
                 side == Side.Top ? cardsToPlay : noCards,
                 side == Side.Bottom ? cardsToPlay : noCards
@@ -89,7 +86,7 @@ namespace Snapdragon.Tests.SnapCardsTest
         [Test]
         [TestCase(Side.Top)]
         [TestCase(Side.Bottom)]
-        public void DoesNotAddToOpponentCard(Side side)
+        public async Task DoesNotAddToOpponentCard(Side side)
         {
             (string CardName, Column Column)[] cardsToPlay = new[] { ("Ka-Zar", Column.Left), };
             (string CardName, Column Column)[] opponentCardsToPlay = new[]
@@ -97,7 +94,7 @@ namespace Snapdragon.Tests.SnapCardsTest
                 ("Misty Knight", Column.Right)
             };
 
-            var game = TestHelpers.PlayCards(
+            var game = await TestHelpers.PlayCards(
                 6,
                 side == Side.Top ? cardsToPlay : opponentCardsToPlay,
                 side == Side.Bottom ? cardsToPlay : opponentCardsToPlay

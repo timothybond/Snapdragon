@@ -13,25 +13,40 @@
             PlayerConfiguration topPlayer,
             PlayerConfiguration bottomPlayer,
             bool shuffle = true,
-            Side? firstRevealed = null
+            Side? firstRevealed = null,
+            ISnapdragonRepository? repository = null
         )
         {
             var firstRevealedOrRandom = firstRevealed ?? Random.Side();
 
             // TODO: Specify different Locations, with effects
             // TODO: Handle card abilities that put them in a specific draw order
-            return new Game(
+            var game = new Game(
+                Guid.NewGuid(),
                 0,
                 new Location("Left", Column.Left),
                 new Location("Middle", Column.Middle),
                 new Location("Right", Column.Right),
-                topPlayer.ToPlayer(Side.Top, shuffle).DrawCard().DrawCard().DrawCard(),
-                bottomPlayer.ToPlayer(Side.Bottom, shuffle).DrawCard().DrawCard().DrawCard(),
+                topPlayer.ToPlayer(Side.Top, shuffle),
+                bottomPlayer.ToPlayer(Side.Bottom, shuffle),
                 firstRevealedOrRandom,
                 [],
                 [],
                 this.logger
             );
+
+            if (repository != null)
+            {
+                game = game with { Logger = new RepositoryGameLogger(repository, game.Id) };
+            }
+
+            game = game with
+            {
+                Top = game.Top.DrawCard().DrawCard().DrawCard(),
+                Bottom = game.Bottom.DrawCard().DrawCard().DrawCard()
+            };
+
+            return game;
         }
     }
 }

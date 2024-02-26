@@ -7,9 +7,9 @@ namespace Snapdragon.Tests.SnapCardsTest
         [Test]
         [TestCase(Side.Top)]
         [TestCase(Side.Bottom)]
-        public void MovesOtherCardsLeft(Side side)
+        public async Task MovesOtherCardsLeft(Side side)
         {
-            var game = TestHelpers
+            var game = await TestHelpers
                 .PlayCards(side, Column.Left, "Ant Man")
                 .PlayCards(side, Column.Middle, "Misty Knight")
                 .PlayCards(side, Column.Right, "Rocket Raccoon")
@@ -37,9 +37,9 @@ namespace Snapdragon.Tests.SnapCardsTest
         [Test]
         [TestCase(Side.Top)]
         [TestCase(Side.Bottom)]
-        public void DoesNotMoveOpponentCards(Side side)
+        public async Task DoesNotMoveOpponentCards(Side side)
         {
-            var game = TestHelpers
+            var game = await TestHelpers
                 .PlayCards(side.Other(), Column.Left, "Ant Man")
                 .PlayCards(side.Other(), Column.Middle, "Misty Knight")
                 .PlayCards(side.Other(), Column.Right, "Rocket Raccoon")

@@ -13,12 +13,12 @@
 
         public IReadOnlyList<IPlayerAction> Actions { get; set; }
 
-        public IReadOnlyList<IPlayerAction> GetActions(Game game, Side player)
+        public Task<IReadOnlyList<IPlayerAction>> GetActions(Game game, Side player)
         {
             var actions = this.Actions;
             this.Actions = new List<IPlayerAction>();
 
-            return actions;
+            return Task.FromResult(actions);
         }
     }
 }

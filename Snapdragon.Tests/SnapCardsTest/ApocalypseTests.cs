@@ -6,12 +6,12 @@ namespace Snapdragon.Tests.SnapCardsTest
     {
         [Test]
         [TestCaseSource(typeof(AllSidesAndColumns))]
-        public void OnDiscard_ReturnsToHand(Side side, Column column)
+        public async Task OnDiscard_ReturnsToHand(Side side, Column column)
         {
             var game = TestHelpers.NewGame();
             game = game.WithCardsInHand(side, "Apocalypse");
 
-            game = game.PlayCards(side, column, "Blade");
+            game = await game.PlayCards(side, column, "Blade");
 
             Assert.That(game[side].Hand.Count, Is.EqualTo(1));
             Assert.That(game[side].Hand[0].Name, Is.EqualTo("Apocalypse"));
@@ -24,11 +24,11 @@ namespace Snapdragon.Tests.SnapCardsTest
 
         [Test]
         [TestCaseSource(typeof(AllSidesAndColumns))]
-        public void OnDiscard_PowerIncreasedByFour(Side side, Column column)
+        public async Task OnDiscard_PowerIncreasedByFour(Side side, Column column)
         {
             var game = TestHelpers.NewGame();
             game = game.WithCardsInHand(side, "Apocalypse");
-            game = game.PlayCards(side, column, "Blade");
+            game = await game.PlayCards(side, column, "Blade");
 
             Assert.That(game[side].Hand.Count, Is.EqualTo(1));
             Assert.That(game[side].Hand[0].Name, Is.EqualTo("Apocalypse"));
@@ -37,12 +37,12 @@ namespace Snapdragon.Tests.SnapCardsTest
 
         [Test]
         [TestCaseSource(typeof(AllSidesAndColumns))]
-        public void OnDiscardTwice_PowerIncreasedByEight(Side side, Column column)
+        public async Task OnDiscardTwice_PowerIncreasedByEight(Side side, Column column)
         {
             var game = TestHelpers.NewGame();
-            game = game.WithCardsInHand(side, "Apocalypse");
-            game = game.PlayCards(side, column, "Blade");
-            game = game.PlayCards(side, column, "Lady Sif");
+            game = await game.WithCardsInHand(side, "Apocalypse")
+                .PlayCards(side, column, "Blade")
+                .PlayCards(side, column, "Lady Sif");
 
             Assert.That(game[side].Hand.Count, Is.EqualTo(1));
             Assert.That(game[side].Hand[0].Name, Is.EqualTo("Apocalypse"));

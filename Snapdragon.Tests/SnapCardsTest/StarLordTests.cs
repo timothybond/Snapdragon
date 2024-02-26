@@ -5,9 +5,9 @@
         [Test]
         [TestCase(Side.Top, Column.Middle)]
         [TestCase(Side.Bottom, Column.Middle)]
-        public void PlayCardAlone_PowerIsTwo(Side side, Column column)
+        public async Task PlayCardAlone_PowerIsTwo(Side side, Column column)
         {
-            var game = TestHelpers.PlayCards(
+            var game = await TestHelpers.PlayCards(
                 3,
                 side == Side.Top ? new[] { ("Star-Lord", column) } : new (string, Column)[] { },
                 side == Side.Bottom ? new[] { ("Star-Lord", column) } : new (string, Column)[] { }
@@ -24,9 +24,9 @@
         [Test]
         [TestCase(Side.Top, Column.Middle)]
         [TestCase(Side.Bottom, Column.Middle)]
-        public void PlayCardWithAnotherCardOnSameSide_PowerIsTwo(Side side, Column column)
+        public async Task PlayCardWithAnotherCardOnSameSide_PowerIsTwo(Side side, Column column)
         {
-            var game = TestHelpers.PlayCards(
+            var game = await TestHelpers.PlayCards(
                 3,
                 side == Side.Top
                     ? new[] { ("Star-Lord", column), ("Misty Knight", column) }
@@ -47,9 +47,9 @@
         [Test]
         [TestCase(Side.Top, Column.Middle)]
         [TestCase(Side.Bottom, Column.Middle)]
-        public void PlayCardWithAnotherCardOnOpposingSide_PowerIsFive(Side side, Column column)
+        public async Task PlayCardWithAnotherCardOnOpposingSide_PowerIsFive(Side side, Column column)
         {
-            var game = TestHelpers.PlayCards(
+            var game = await TestHelpers.PlayCards(
                 3,
                 side == Side.Top
                     ? new[] { ("Star-Lord", column) }

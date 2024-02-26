@@ -1,14 +1,11 @@
-﻿using System.Data.Common;
-using System.Drawing;
-
-namespace Snapdragon.Tests.SnapCardsTest
+﻿namespace Snapdragon.Tests.SnapCardsTest
 {
     public class BlueMarvelTests
     {
         [Test]
         [TestCase(Side.Top)]
         [TestCase(Side.Bottom)]
-        public void DoesNotAddToSelf(Side side)
+        public async Task DoesNotAddToSelf(Side side)
         {
             var noCards = new (string CardName, Column Column)[] { };
             (string CardName, Column Column)[] cardsToPlay = new[]
@@ -17,7 +14,7 @@ namespace Snapdragon.Tests.SnapCardsTest
                 ("Misty Knight", Column.Right)
             };
 
-            var game = TestHelpers.PlayCards(
+            var game = await TestHelpers.PlayCards(
                 6,
                 side == Side.Top ? cardsToPlay : noCards,
                 side == Side.Bottom ? cardsToPlay : noCards
@@ -35,7 +32,7 @@ namespace Snapdragon.Tests.SnapCardsTest
         [Test]
         [TestCase(Side.Top)]
         [TestCase(Side.Bottom)]
-        public void AddsToOtherCard(Side side)
+        public async Task AddsToOtherCard(Side side)
         {
             var noCards = new (string CardName, Column Column)[] { };
             (string CardName, Column Column)[] cardsToPlay = new[]
@@ -44,7 +41,7 @@ namespace Snapdragon.Tests.SnapCardsTest
                 ("Misty Knight", Column.Right)
             };
 
-            var game = TestHelpers.PlayCards(
+            var game = await TestHelpers.PlayCards(
                 6,
                 side == Side.Top ? cardsToPlay : noCards,
                 side == Side.Bottom ? cardsToPlay : noCards
@@ -62,7 +59,7 @@ namespace Snapdragon.Tests.SnapCardsTest
         [Test]
         [TestCase(Side.Top)]
         [TestCase(Side.Bottom)]
-        public void DoesNotAddToOpponentCard(Side side)
+        public async Task DoesNotAddToOpponentCard(Side side)
         {
             var noCards = new (string CardName, Column Column)[] { };
 
@@ -75,7 +72,7 @@ namespace Snapdragon.Tests.SnapCardsTest
                 ("Misty Knight", Column.Right)
             };
 
-            var game = TestHelpers.PlayCards(
+            var game = await TestHelpers.PlayCards(
                 6,
                 side == Side.Top ? cardsToPlay : opponentCardsToPlay,
                 side == Side.Bottom ? cardsToPlay : opponentCardsToPlay

@@ -5,7 +5,7 @@ namespace Snapdragon.Runner.Experiments
 {
     public class VultureExperiment
     {
-        public void Run()
+        public async Task Run()
         {
             const int Simulations = 10;
             const int MutationsPer = 100;
@@ -30,7 +30,7 @@ namespace Snapdragon.Runner.Experiments
                 "Vulture Experiment",
                 DateTimeOffset.UtcNow
             );
-            populationExperiment.Run(
+            await populationExperiment.Run(
                 general,
                 vulturePinned,
                 "general-for-vulture",

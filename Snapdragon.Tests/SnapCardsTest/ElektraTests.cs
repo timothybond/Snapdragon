@@ -6,10 +6,10 @@ namespace Snapdragon.Tests.SnapCardsTest
     {
         [Test]
         [TestCaseSource(typeof(AllSidesAndColumns))]
-        public void EnemyOneCostCard_SameLocation_DestroysCard(Side side, Column column)
+        public async Task EnemyOneCostCard_SameLocation_DestroysCard(Side side, Column column)
         {
-            var game = TestHelpers.PlayCards(side.Other(), column, "Ant Man");
-            game = TestHelpers.PlayCards(game, side, column, "Elektra");
+            var game = await TestHelpers.PlayCards(side.Other(), column, "Ant Man");
+            game = await TestHelpers.PlayCards(game, side, column, "Elektra");
 
             Assert.That(game[column][side.Other()].Count, Is.EqualTo(0));
 
@@ -23,14 +23,14 @@ namespace Snapdragon.Tests.SnapCardsTest
 
         [Test]
         [TestCaseSource(typeof(AllSidesAndDifferentColumns))]
-        public void EnemyOneCostCard_DifferentLocation_DoesNotDestroyCard(
+        public async Task EnemyOneCostCard_DifferentLocation_DoesNotDestroyCard(
             Side side,
             Column firstColumn,
             Column secondColumn
         )
         {
-            var game = TestHelpers.PlayCards(side.Other(), firstColumn, "Ant Man");
-            game = TestHelpers.PlayCards(game, side, secondColumn, "Elektra");
+            var game = await TestHelpers.PlayCards(side.Other(), firstColumn, "Ant Man");
+            game = await TestHelpers.PlayCards(game, side, secondColumn, "Elektra");
 
             Assert.That(game[firstColumn][side.Other()].Count, Is.EqualTo(1));
             Assert.That(game[firstColumn][side.Other()][0].Name, Is.EqualTo("Ant Man"));
@@ -40,10 +40,10 @@ namespace Snapdragon.Tests.SnapCardsTest
 
         [Test]
         [TestCaseSource(typeof(AllSidesAndColumns))]
-        public void EnemyTwoCostCard_DoesNotDestroyCard(Side side, Column column)
+        public async Task EnemyTwoCostCard_DoesNotDestroyCard(Side side, Column column)
         {
-            var game = TestHelpers.PlayCards(side.Other(), column, "Star-Lord");
-            game = TestHelpers.PlayCards(game, side, column, "Elektra");
+            var game = await TestHelpers.PlayCards(side.Other(), column, "Star-Lord");
+            game = await TestHelpers.PlayCards(game, side, column, "Elektra");
 
             Assert.That(game[column][side.Other()].Count, Is.EqualTo(1));
             Assert.That(game[column][side.Other()][0].Name, Is.EqualTo("Star-Lord"));
@@ -53,17 +53,17 @@ namespace Snapdragon.Tests.SnapCardsTest
 
         [Test]
         [TestCaseSource(typeof(AllSidesAndColumns))]
-        public void DestroysNewlyPlayedCardIfRevealedFirst(Side side, Column column)
+        public async Task DestroysNewlyPlayedCardIfRevealedFirst(Side side, Column column)
         {
             // Ensures that this side will reveal first
-            var game = TestHelpers.PlayCards(side.Other(), column, "Star-Lord");
+            var game = await TestHelpers.PlayCards(side.Other(), column, "Star-Lord");
 
             (string, Column)[] topCards =
                 side == Side.Top ? [("Elektra", column)] : [("Ant Man", column)];
             (string, Column)[] bottomCards =
                 side == Side.Bottom ? [("Elektra", column)] : [("Ant Man", column)];
 
-            game = TestHelpers.PlayCards(game, 3, topCards, bottomCards);
+            game = await TestHelpers.PlayCards(game, 3, topCards, bottomCards);
 
             Assert.That(game[column][side.Other()].Count, Is.EqualTo(1));
             Assert.That(game[column][side.Other()][0].Name, Is.EqualTo("Star-Lord"));
@@ -78,17 +78,17 @@ namespace Snapdragon.Tests.SnapCardsTest
 
         [Test]
         [TestCaseSource(typeof(AllSidesAndColumns))]
-        public void DoesNotDestroyPlayedButUnrevealedCard(Side side, Column column)
+        public async Task DoesNotDestroyPlayedButUnrevealedCard(Side side, Column column)
         {
             // Ensures that this side will reveal first
-            var game = TestHelpers.PlayCards(side, column, "Misty Knight");
+            var game = await TestHelpers.PlayCards(side, column, "Misty Knight");
 
             (string, Column)[] topCards =
                 side == Side.Top ? [("Elektra", column)] : [("Ant Man", column)];
             (string, Column)[] bottomCards =
                 side == Side.Bottom ? [("Elektra", column)] : [("Ant Man", column)];
 
-            game = TestHelpers.PlayCards(game, 2, topCards, bottomCards);
+            game = await TestHelpers.PlayCards(game, 2, topCards, bottomCards);
 
             Assert.That(game[column][side.Other()].Count, Is.EqualTo(1));
             Assert.That(game[column][side.Other()][0].Name, Is.EqualTo("Ant Man"));
@@ -98,11 +98,11 @@ namespace Snapdragon.Tests.SnapCardsTest
 
         [Test]
         [TestCaseSource(typeof(AllSidesAndColumns))]
-        public void DoesNotDestroyOwnCard(Side side, Column column)
+        public async Task DoesNotDestroyOwnCard(Side side, Column column)
         {
             // Ensures that this side will reveal first
-            var game = TestHelpers.PlayCards(side, column, "Misty Knight");
-            game = TestHelpers.PlayCards(game, side, column, "Elektra");
+            var game = await TestHelpers.PlayCards(side, column, "Misty Knight");
+            game = await TestHelpers.PlayCards(game, side, column, "Elektra");
 
             Assert.That(game[column][side].Count, Is.EqualTo(2));
             Assert.That(game[column][side][0].Name, Is.EqualTo("Misty Knight"));

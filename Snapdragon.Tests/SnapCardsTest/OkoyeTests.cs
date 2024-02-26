@@ -6,7 +6,7 @@ namespace Snapdragon.Tests.SnapCardsTest
     {
         [Test]
         [TestCaseSource(typeof(AllSidesAndColumns))]
-        public void AddsPowerToAllLibraryCards(Side side, Column column)
+        public async Task AddsPowerToAllLibraryCards(Side side, Column column)
         {
             var game = TestHelpers.NewGame();
 
@@ -19,7 +19,7 @@ namespace Snapdragon.Tests.SnapCardsTest
 
             game = game.WithPlayer(game[side] with { Library = library });
 
-            game = TestHelpers.PlayCards(game, side, column, "Okoye");
+            game = await TestHelpers.PlayCards(game, side, column, "Okoye");
 
             Assert.That(game[side].Library.Count, Is.EqualTo(2));
 
@@ -32,7 +32,7 @@ namespace Snapdragon.Tests.SnapCardsTest
 
         [Test]
         [TestCaseSource(typeof(AllSidesAndColumns))]
-        public void DoesNotAddPowerToOpponentLibraryCards(Side side, Column column)
+        public async Task DoesNotAddPowerToOpponentLibraryCards(Side side, Column column)
         {
             var game = TestHelpers.NewGame();
 
@@ -45,7 +45,7 @@ namespace Snapdragon.Tests.SnapCardsTest
 
             game = game.WithPlayer(game[side.Other()] with { Library = library });
 
-            game = TestHelpers.PlayCards(game, side, column, "Okoye");
+            game = await TestHelpers.PlayCards(game, side, column, "Okoye");
 
             Assert.That(game[side.Other()].Library.Count, Is.EqualTo(2));
 

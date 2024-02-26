@@ -9,9 +9,9 @@
         [TestCase(Side.Bottom, Column.Left, 4, 6, 0)]
         [TestCase(Side.Bottom, Column.Middle, 0, 4, 6)]
         [TestCase(Side.Bottom, Column.Right, 0, 0, 4)]
-        public void AddsExpectedPower(Side side, Column column, int left, int middle, int right)
+        public async Task AddsExpectedPower(Side side, Column column, int left, int middle, int right)
         {
-            var game = TestHelpers.PlayCards(5, side, [("Klaw", column)]);
+            var game = await TestHelpers.PlayCards(5, side, [("Klaw", column)]);
 
             var scores = game.GetCurrentScores();
 
@@ -27,9 +27,9 @@
         [TestCase(Side.Bottom, Column.Left)]
         [TestCase(Side.Bottom, Column.Middle)]
         [TestCase(Side.Bottom, Column.Right)]
-        public void DoesNotAddPowerToOtherSide(Side side, Column column)
+        public async Task DoesNotAddPowerToOtherSide(Side side, Column column)
         {
-            var game = TestHelpers.PlayCards(5, side, [("Klaw", column)]);
+            var game = await TestHelpers.PlayCards(5, side, [("Klaw", column)]);
 
             var scores = game.GetCurrentScores();
 

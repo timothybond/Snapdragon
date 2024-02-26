@@ -9,7 +9,7 @@ namespace Snapdragon.Tests.SnapCardsTest
         [TestCase(Side.Bottom)]
         public void CannotPlayOnRight(Side side)
         {
-            Assert.Throws<InvalidOperationException>(
+            Assert.ThrowsAsync<InvalidOperationException>(
                 () => TestHelpers.PlayCards(side, Column.Right, "Sentry")
             );
         }
@@ -17,15 +17,12 @@ namespace Snapdragon.Tests.SnapCardsTest
         [Test]
         [TestCase(Side.Top)]
         [TestCase(Side.Bottom)]
-        public void PlayOnRightNotConsideredPossibleMove(Side side)
+        public async Task PlayOnRightNotConsideredPossibleMove(Side side)
         {
-            var game = TestHelpers
-                .NewGame()
-                .PlaySingleTurn()
-                .PlaySingleTurn()
-                .PlaySingleTurn()
-                .WithCardsInHand(side, "Sentry")
-                .StartNextTurn();
+            var game = await TestHelpers.NewGame().PlaySingleTurn();
+            game = await game.PlaySingleTurn();
+            game = await game.PlaySingleTurn();
+            game = await game.WithCardsInHand(side, "Sentry").StartNextTurn();
 
             var possibleActionSets = ControllerUtilities.GetPossibleActionSets(game, side);
 
@@ -52,9 +49,9 @@ namespace Snapdragon.Tests.SnapCardsTest
         [TestCase(Side.Top, Column.Middle)]
         [TestCase(Side.Bottom, Column.Left)]
         [TestCase(Side.Bottom, Column.Middle)]
-        public void AddsVoidToRightSide(Side side, Column column)
+        public async Task AddsVoidToRightSide(Side side, Column column)
         {
-            var game = TestHelpers.PlayCards(side, column, "Sentry");
+            var game = await TestHelpers.PlayCards(side, column, "Sentry");
 
             Assert.That(game.Right[side].Count, Is.EqualTo(1));
             Assert.That(game.Right[side][0].Name, Is.EqualTo("Void"));
@@ -66,9 +63,9 @@ namespace Snapdragon.Tests.SnapCardsTest
         [TestCase(Side.Top, Column.Middle)]
         [TestCase(Side.Bottom, Column.Left)]
         [TestCase(Side.Bottom, Column.Middle)]
-        public void RightSideIsFull_DoesNotAddVoid(Side side, Column column)
+        public async Task RightSideIsFull_DoesNotAddVoid(Side side, Column column)
         {
-            var game = TestHelpers
+            var game = await TestHelpers
                 .PlayCards(side, Column.Right, "Wasp", "Hawkeye", "Misty Knight", "Ant Man")
                 .PlayCards(side, column, "Sentry");
 

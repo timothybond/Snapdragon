@@ -5,10 +5,24 @@
     /// </summary>
     public class NullLogger : IGameLogger
     {
-        public void LogEvent(Event e) { }
+        public Task LogEvent(Event e)
+        {
+            return Task.CompletedTask;
+        }
 
-        public void LogGameState(Game game) { }
+        public Task LogFinishedGame(Game game)
+        {
+            return Task.CompletedTask;
+        }
 
-        public void LogHands(Game game) { }
+        public Task LogGameState(Game game)
+        {
+            return Task.CompletedTask;
+        }
+
+        public Task LogHands(Game game)
+        {
+            return Task.CompletedTask;
+        }
     }
 }

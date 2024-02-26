@@ -5,16 +5,16 @@
         [Test]
         [TestCase(Side.Top, Column.Middle)]
         [TestCase(Side.Bottom, Column.Middle)]
-        public void NoCardsPlayed_PowerRemainsAtOne(Side side, Column column)
+        public async Task NoCardsPlayed_PowerRemainsAtOne(Side side, Column column)
         {
-            var game = TestHelpers.PlayCards(
+            var game = await TestHelpers.PlayCards(
                 1,
                 side == Side.Top ? new[] { ("Hawkeye", column) } : new (string, Column)[] { },
                 side == Side.Bottom ? new[] { ("Hawkeye", column) } : new (string, Column)[] { }
             );
 
             var engine = new Engine(new NullLogger());
-            game = game.PlaySingleTurn();
+            game = await game.PlaySingleTurn();
 
             Assert.That(game[column][side].Count, Is.EqualTo(1));
 
@@ -27,15 +27,15 @@
         [Test]
         [TestCase(Side.Top, Column.Middle)]
         [TestCase(Side.Bottom, Column.Middle)]
-        public void CardPlayedTooLate_PowerRemainsAtOne(Side side, Column column)
+        public async Task CardPlayedTooLate_PowerRemainsAtOne(Side side, Column column)
         {
-            var game = TestHelpers.PlayCards(
+            var game = await TestHelpers.PlayCards(
                 1,
                 side == Side.Top ? new[] { ("Hawkeye", column) } : new (string, Column)[] { },
                 side == Side.Bottom ? new[] { ("Hawkeye", column) } : new (string, Column)[] { }
             );
 
-            game = TestHelpers.PlayCards(
+            game = await TestHelpers.PlayCards(
                 game,
                 3,
                 side == Side.Top ? new[] { ("Misty Knight", column) } : new (string, Column)[] { },
@@ -55,15 +55,15 @@
         [Test]
         [TestCase(Side.Top, Column.Middle)]
         [TestCase(Side.Bottom, Column.Middle)]
-        public void CardPlayed_PowerIsFour(Side side, Column column)
+        public async Task CardPlayed_PowerIsFour(Side side, Column column)
         {
-            var game = TestHelpers.PlayCards(
+            var game = await TestHelpers.PlayCards(
                 1,
                 side == Side.Top ? new[] { ("Hawkeye", column) } : new (string, Column)[] { },
                 side == Side.Bottom ? new[] { ("Hawkeye", column) } : new (string, Column)[] { }
             );
 
-            game = TestHelpers.PlayCards(
+            game = await TestHelpers.PlayCards(
                 game,
                 2,
                 side == Side.Top ? new[] { ("Misty Knight", column) } : new (string, Column)[] { },
@@ -83,15 +83,15 @@
         [Test]
         [TestCase(Side.Top, Column.Middle)]
         [TestCase(Side.Bottom, Column.Middle)]
-        public void TwoCardsPlayed_PowerIsFour(Side side, Column column)
+        public async Task TwoCardsPlayed_PowerIsFour(Side side, Column column)
         {
-            var game = TestHelpers.PlayCards(
+            var game = await TestHelpers.PlayCards(
                 1,
                 side == Side.Top ? new[] { ("Hawkeye", column) } : new (string, Column)[] { },
                 side == Side.Bottom ? new[] { ("Hawkeye", column) } : new (string, Column)[] { }
             );
 
-            game = TestHelpers.PlayCards(
+            game = await TestHelpers.PlayCards(
                 game,
                 2,
                 side == Side.Top

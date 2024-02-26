@@ -5,9 +5,9 @@
         [Test]
         [TestCase(Side.Top)]
         [TestCase(Side.Bottom)]
-        public void PlayedAlone_PowerIsOne(Side side)
+        public async Task PlayedAlone_PowerIsOne(Side side)
         {
-            var game = TestHelpers.PlayCards(3, side, [("Wolfsbane", Column.Middle)]);
+            var game = await TestHelpers.PlayCards(3, side, [("Wolfsbane", Column.Middle)]);
 
             var wolfsbane = game[Column.Middle][side].Single();
             Assert.That(wolfsbane.Name, Is.EqualTo("Wolfsbane"));
@@ -22,15 +22,15 @@
         [TestCase(Side.Bottom, "Hawkeye")]
         [TestCase(Side.Bottom, "Hawkeye", "Ant Man")]
         [TestCase(Side.Bottom, "Hawkeye", "Ant Man", "Wasp")]
-        public void AddsPowerPerExistingCard(Side side, params string[] otherCardNames)
+        public async Task AddsPowerPerExistingCard(Side side, params string[] otherCardNames)
         {
-            var game = TestHelpers.PlayCards(
+            var game = await TestHelpers.PlayCards(
                 3,
                 side,
                 otherCardNames.Select(n => (n, Column.Middle))
             );
 
-            game = TestHelpers.PlayCards(game, 4, side, [("Wolfsbane", Column.Middle)]);
+            game = await TestHelpers.PlayCards(game, 4, side, [("Wolfsbane", Column.Middle)]);
 
             Assert.That(game[Column.Middle][side].Count, Is.EqualTo(otherCardNames.Length + 1));
 
@@ -47,15 +47,15 @@
         [TestCase(Side.Bottom, "Hawkeye")]
         [TestCase(Side.Bottom, "Hawkeye", "Ant Man")]
         [TestCase(Side.Bottom, "Hawkeye", "Ant Man", "Wasp")]
-        public void DoesNotAddPowerForEnemyCards(Side side, params string[] otherCardNames)
+        public async Task DoesNotAddPowerForEnemyCards(Side side, params string[] otherCardNames)
         {
-            var game = TestHelpers.PlayCards(
+            var game = await TestHelpers.PlayCards(
                 3,
                 side.Other(),
                 otherCardNames.Select(n => (n, Column.Middle))
             );
 
-            game = TestHelpers.PlayCards(game, 4, side, [("Wolfsbane", Column.Middle)]);
+            game = await TestHelpers.PlayCards(game, 4, side, [("Wolfsbane", Column.Middle)]);
 
             var wolfsbane = game[Column.Middle][side].Single();
             Assert.That(wolfsbane.Name, Is.EqualTo("Wolfsbane"));
@@ -70,18 +70,18 @@
         [TestCase(Side.Bottom, "Hawkeye")]
         [TestCase(Side.Bottom, "Hawkeye", "Ant Man")]
         [TestCase(Side.Bottom, "Hawkeye", "Ant Man", "Wasp")]
-        public void DoesNotAddPowerForCardsAtOtherLocations(
+        public async Task DoesNotAddPowerForCardsAtOtherLocations(
             Side side,
             params string[] otherCardNames
         )
         {
-            var game = TestHelpers.PlayCards(
+            var game = await TestHelpers.PlayCards(
                 3,
                 side,
                 otherCardNames.Select(n => (n, Column.Right))
             );
 
-            game = TestHelpers.PlayCards(game, 4, side, [("Wolfsbane", Column.Middle)]);
+            game = await TestHelpers.PlayCards(game, 4, side, [("Wolfsbane", Column.Middle)]);
 
             var wolfsbane = game[Column.Middle][side].Single();
             Assert.That(wolfsbane.Name, Is.EqualTo("Wolfsbane"));

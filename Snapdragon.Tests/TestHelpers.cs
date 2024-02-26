@@ -1,5 +1,5 @@
-﻿using System.Collections.Immutable;
-using Snapdragon.PlayerActions;
+﻿using Snapdragon.PlayerActions;
+using System.Collections.Immutable;
 
 namespace Snapdragon.Tests
 {
@@ -61,6 +61,11 @@ namespace Snapdragon.Tests
             return game.WithPlayer(game[side] with { Hand = game[side].Hand.AddRange(cards) });
         }
 
+        public static async Task<Game> WithCardsInHand(this Task<Game> game, Side side, params string[] cardNames)
+        {
+            return (await game).WithCardsInHand(side, cardNames);
+        }
+
         /// <summary>
         /// Helper function for testing what happens when certain cards are moved.
         ///
@@ -73,7 +78,7 @@ namespace Snapdragon.Tests
         /// <param name="to">End location for moved cards.</param>
         /// <param name="cardNames">Names of cards to move.</param>
         /// <returns></returns>
-        public static Game MoveCards(
+        public static async Task<Game> MoveCards(
             this Game game,
             Side side,
             Column from,
@@ -88,7 +93,30 @@ namespace Snapdragon.Tests
             var controller = (TestPlayerController)game[side].Controller;
             controller.Actions = moveActions;
 
-            return game.PlaySingleTurn();
+            return await game.PlaySingleTurn();
+        }
+
+        /// <summary>
+        /// Helper function for testing what happens when certain cards are moved.
+        ///
+        /// Note this will take any matching cards by name/side/location, even duplicates,
+        /// and will ignore it if there are some names that don't match.
+        /// </summary>
+        /// <param name="game">Prior game state.</param>
+        /// <param name="side">Which side to move cards for.</param>
+        /// <param name="from">Start location for moved cards.</param>
+        /// <param name="to">End location for moved cards.</param>
+        /// <param name="cardNames">Names of cards to move.</param>
+        /// <returns></returns>
+        public static async Task<Game> MoveCards(
+            this Task<Game> game,
+            Side side,
+            Column from,
+            Column to,
+            params string[] cardNames
+        )
+        {
+            return await MoveCards(await game, side, from, to, cardNames);
         }
 
         /// <summary>
@@ -100,14 +128,18 @@ namespace Snapdragon.Tests
         /// <param name="column">The location to play all of the cards.</param>
         /// <param name="cardNames">The cards to play, in order.</param>
         /// <returns></returns>
-        public static Game PlayCards(Side side, Column column, params string[] cardNames)
+        public static async Task<Game> PlayCards(
+            Side side,
+            Column column,
+            params string[] cardNames
+        )
         {
             var cards = GetCards(side, cardNames);
 
             var turn = cards.Select(c => c.Cost).Sum();
 
             // TODO: Refactor this to avoid getting the cards twice, although it doesn't matter much.
-            return PlayCards(turn, side, cardNames.Select(c => (c, column)));
+            return await PlayCards(turn, side, cardNames.Select(c => (c, column)));
         }
 
         /// <summary>
@@ -121,7 +153,7 @@ namespace Snapdragon.Tests
         /// <param name="column">The location to play all of the cards.</param>
         /// <param name="cardNames">The cards to play, in order.</param>
         /// <returns></returns>
-        public static Game PlayCards(
+        public static async Task<Game> PlayCards(
             this Game game,
             Side side,
             Column column,
@@ -134,11 +166,32 @@ namespace Snapdragon.Tests
 
             while (game.Turn < turn - 1)
             {
-                game = game.PlaySingleTurn();
+                game = await game.PlaySingleTurn();
             }
 
             // TODO: Refactor this to avoid getting the cards twice, although it doesn't matter much.
-            return PlayCards(game, game.Turn + 1, side, cardNames.Select(c => (c, column)));
+            return await PlayCards(game, game.Turn + 1, side, cardNames.Select(c => (c, column)));
+        }
+
+        /// <summary>
+        /// Helper function for testing what happens when certain cards are played on one side.
+        ///
+        /// Will automatically increment the turn to the first one with enough energy to play the given cards,
+        /// or the next available turn if it's already high enough.
+        /// </summary>
+        /// <param name="game">The prior game state.</param>
+        /// <param name="side">Which side to play cards for.</param>
+        /// <param name="column">The location to play all of the cards.</param>
+        /// <param name="cardNames">The cards to play, in order.</param>
+        /// <returns></returns>
+        public static async Task<Game> PlayCards(
+            this Task<Game> game,
+            Side side,
+            Column column,
+            params string[] cardNames
+        )
+        {
+            return await (await game).PlayCards(side, column, cardNames);
         }
 
         /// <summary>
@@ -150,12 +203,15 @@ namespace Snapdragon.Tests
         /// <param name="side">Which side to play cards for.</param>
         /// <param name="cards">Cards for the given player to play on the given turn.</param>
         /// <returns>The game state after the given turn has elapsed and all effects have resolved.</returns>
-        public static Game PlayCards(Side side, params (string CardName, Column Column)[] cards)
+        public static async Task<Game> PlayCards(
+            Side side,
+            params (string CardName, Column Column)[] cards
+        )
         {
             var cardsToPlay = cards.ToList();
             var turn = GetCards(side, cards.Select(c => c.CardName)).Select(c => c.Cost).Sum();
 
-            return PlayCards(turn, side, cards);
+            return await PlayCards(turn, side, cards);
         }
 
         /// <summary>
@@ -165,7 +221,7 @@ namespace Snapdragon.Tests
         /// <param name="side">Which side to play cards for.</param>
         /// <param name="cards">Cards for the given player to play on the given turn.</param>
         /// <returns>The game state after the given turn has elapsed and all effects have resolved.</returns>
-        public static Game PlayCards(
+        public static async Task<Game> PlayCards(
             int turn,
             Side side,
             IEnumerable<(string CardName, Column Column)> cards
@@ -174,9 +230,9 @@ namespace Snapdragon.Tests
             switch (side)
             {
                 case Side.Top:
-                    return PlayCards(turn, cards, []);
+                    return await PlayCards(turn, cards, []);
                 case Side.Bottom:
-                    return PlayCards(turn, [], cards);
+                    return await PlayCards(turn, [], cards);
                 default:
                     throw new NotImplementedException();
             }
@@ -189,7 +245,7 @@ namespace Snapdragon.Tests
         /// <param name="topPlayerCards">Cards for the top player to play on the given turn.</param>
         /// <param name="bottomPlayerCards">Cards for the bottom player to play on the given turn.</param>
         /// <returns>The game state after the given turn has elapsed and all effects have resolved.</returns>
-        public static Game PlayCards(
+        public static async Task<Game> PlayCards(
             this Game game,
             IEnumerable<(string CardName, Column Column)> topPlayerCards,
             IEnumerable<(string CardName, Column Column)> bottomPlayerCards
@@ -202,7 +258,7 @@ namespace Snapdragon.Tests
 
             for (var i = game.Turn; i < minimumTurn - 1; i++)
             {
-                game = game.PlaySingleTurn();
+                game = await game.PlaySingleTurn();
             }
 
             game = game with
@@ -221,7 +277,7 @@ namespace Snapdragon.Tests
                 )
             };
 
-            game = game.PlaySingleTurn();
+            game = await game.PlaySingleTurn();
 
             return game;
         }
@@ -233,7 +289,23 @@ namespace Snapdragon.Tests
         /// <param name="topPlayerCards">Cards for the top player to play on the given turn.</param>
         /// <param name="bottomPlayerCards">Cards for the bottom player to play on the given turn.</param>
         /// <returns>The game state after the given turn has elapsed and all effects have resolved.</returns>
-        public static Game PlayCards(
+        public static async Task<Game> PlayCards(
+            this Task<Game> game,
+            IEnumerable<(string CardName, Column Column)> topPlayerCards,
+            IEnumerable<(string CardName, Column Column)> bottomPlayerCards
+        )
+        {
+            return await (await game).PlayCards(topPlayerCards, bottomPlayerCards);
+        }
+
+        /// <summary>
+        /// Helper function for testing what happens when certain cards are played.
+        /// </summary>
+        /// <param name="turn">The turn count - all prior turns will pass with no actions.</param>
+        /// <param name="topPlayerCards">Cards for the top player to play on the given turn.</param>
+        /// <param name="bottomPlayerCards">Cards for the bottom player to play on the given turn.</param>
+        /// <returns>The game state after the given turn has elapsed and all effects have resolved.</returns>
+        public static async Task<Game> PlayCards(
             int turn,
             IEnumerable<(string CardName, Column Column)> topPlayerCards,
             IEnumerable<(string CardName, Column Column)> bottomPlayerCards
@@ -243,7 +315,7 @@ namespace Snapdragon.Tests
 
             for (var i = 1; i < turn; i++)
             {
-                game = game.PlaySingleTurn();
+                game = await game.PlaySingleTurn();
             }
 
             game = game with
@@ -262,7 +334,7 @@ namespace Snapdragon.Tests
                 )
             };
 
-            game = game.PlaySingleTurn();
+            game = await game.PlaySingleTurn();
 
             return game;
         }
@@ -275,7 +347,7 @@ namespace Snapdragon.Tests
         /// <param name="topPlayerCards">Cards for the top player to play on the given turn.</param>
         /// <param name="bottomPlayerCards">Cards for the bottom player to play on the given turn.</param>
         /// <returns>The game state after the given turn has elapsed and all effects have resolved.</returns>
-        public static Game PlayCards(
+        public static async Task<Game> PlayCards(
             Game game,
             int turn,
             IEnumerable<(string CardName, Column Column)> topPlayerCards,
@@ -306,7 +378,7 @@ namespace Snapdragon.Tests
 
             for (var i = 1; i < turn - game.Turn; i++)
             {
-                game = game.PlaySingleTurn();
+                game = await game.PlaySingleTurn();
             }
 
             game = game with
@@ -320,7 +392,7 @@ namespace Snapdragon.Tests
                 )
             };
 
-            game = game.PlaySingleTurn();
+            game = await game.PlaySingleTurn();
 
             return game;
         }
@@ -333,7 +405,7 @@ namespace Snapdragon.Tests
         /// <param name="topPlayerCards">Cards for the top player to play on the given turn.</param>
         /// <param name="bottomPlayerCards">Cards for the bottom player to play on the given turn.</param>
         /// <returns>The game state after the given turn has elapsed and all effects have resolved.</returns>
-        public static Game PlayCards(
+        public static async Task<Game> PlayCards(
             Game game,
             int turn,
             Side side,
@@ -343,9 +415,9 @@ namespace Snapdragon.Tests
             switch (side)
             {
                 case Side.Top:
-                    return PlayCards(game, turn, cardsToPlay, []);
+                    return await PlayCards(game, turn, cardsToPlay, []);
                 case Side.Bottom:
-                    return PlayCards(game, turn, [], cardsToPlay);
+                    return await PlayCards(game, turn, [], cardsToPlay);
                 default:
                     throw new NotImplementedException();
             }

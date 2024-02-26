@@ -8,7 +8,7 @@ namespace Snapdragon.Tests
     public class GeneticsTests
     {
         [Test]
-        public void PlaysCorrectNumberOfGames()
+        public async Task PlaysCorrectNumberOfGames()
         {
             var g = new CardGenetics(
                 TestHelpers.GetInitialCardDefinitions(),
@@ -22,7 +22,7 @@ namespace Snapdragon.Tests
             var engine = new Engine(new NullLogger());
 
             // Two games per Deck (and two Decks per game) should mean 32 games)
-            var wins = g.RunPopulationGames(population, engine, 2);
+            var wins = await g.RunPopulationGames(population, 2);
 
             // Technically we will sometimes have draws.
             Assert.That(wins.Sum(), Is.GreaterThan(0));
@@ -30,7 +30,7 @@ namespace Snapdragon.Tests
         }
 
         [Test]
-        public void ControllerPopulationTest()
+        public async Task ControllerPopulationTest()
         {
             var allControllers = new IPlayerController[]
             {
@@ -54,7 +54,7 @@ namespace Snapdragon.Tests
 
             for (var i = 0; i < Generations; i++)
             {
-                var wins = g.RunPopulationGames(population, engine, 2);
+                var wins = await g.RunPopulationGames(population, 2);
                 population = g.ReproducePopulation(population, wins);
             }
 
@@ -99,7 +99,7 @@ namespace Snapdragon.Tests
         }
 
         [Test]
-        public void PopulationTest()
+        public async Task PopulationTest()
         {
             // This is just a basic sanity check of the genetic algorithm.
             //
@@ -130,7 +130,7 @@ namespace Snapdragon.Tests
 
             for (var i = 0; i < Generations; i++)
             {
-                var wins = g.RunPopulationGames(population, engine, 2);
+                var wins = await g.RunPopulationGames(population, 2);
                 population = g.ReproducePopulation(population, wins);
             }
 

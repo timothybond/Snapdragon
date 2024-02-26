@@ -1,6 +1,4 @@
-﻿using System.Data.Common;
-
-namespace Snapdragon.Tests.SnapCardsTest
+﻿namespace Snapdragon.Tests.SnapCardsTest
 {
     public class IronManTests
     {
@@ -11,9 +9,9 @@ namespace Snapdragon.Tests.SnapCardsTest
         [TestCase(Side.Bottom, Column.Left)]
         [TestCase(Side.Bottom, Column.Middle)]
         [TestCase(Side.Bottom, Column.Right)]
-        public void Alone_AddsNoPower(Side side, Column column)
+        public async Task Alone_AddsNoPower(Side side, Column column)
         {
-            var game = TestHelpers.PlayCards(5, side, [("Iron Man", column)]);
+            var game = await TestHelpers.PlayCards(5, side, [("Iron Man", column)]);
 
             var scores = game.GetCurrentScores();
 
@@ -33,11 +31,11 @@ namespace Snapdragon.Tests.SnapCardsTest
         [TestCase(Side.Bottom, Column.Left)]
         [TestCase(Side.Bottom, Column.Middle)]
         [TestCase(Side.Bottom, Column.Right)]
-        public void WithOtherCards_DoublesPower(Side side, Column column)
+        public async Task WithOtherCards_DoublesPower(Side side, Column column)
         {
-            var game = TestHelpers.PlayCards(4, side, [("Hawkeye", column), ("Ant Man", column)]);
-            game = TestHelpers.PlayCards(game, 5, side, [("Iron Man", column)]);
-            game = TestHelpers.PlayCards(game, 6, side, [("Hulk", column)]);
+            var game = await TestHelpers.PlayCards(4, side, [("Hawkeye", column), ("Ant Man", column)]);
+            game = await TestHelpers.PlayCards(game, 5, side, [("Iron Man", column)]);
+            game = await TestHelpers.PlayCards(game, 6, side, [("Hulk", column)]);
 
             var scores = game.GetCurrentScores();
 
@@ -49,14 +47,14 @@ namespace Snapdragon.Tests.SnapCardsTest
         [Test]
         [TestCase(Side.Top)]
         [TestCase(Side.Bottom)]
-        public void WithOtherLocationAddingCards_DoublesAllAddedPower(Side side)
+        public async Task WithOtherLocationAddingCards_DoublesAllAddedPower(Side side)
         {
             var column = Column.Middle;
 
-            var game = TestHelpers.PlayCards(3, side, [("Mister Fantastic", Column.Right)]);
-            game = TestHelpers.PlayCards(game, 4, side, [("Hawkeye", column), ("Ant Man", column)]);
-            game = TestHelpers.PlayCards(game, 5, side, [("Iron Man", column)]);
-            game = TestHelpers.PlayCards(game, 6, side, [("Hulk", column)]);
+            var game = await TestHelpers.PlayCards(3, side, [("Mister Fantastic", Column.Right)]);
+            game = await TestHelpers.PlayCards(game, 4, side, [("Hawkeye", column), ("Ant Man", column)]);
+            game = await TestHelpers.PlayCards(game, 5, side, [("Iron Man", column)]);
+            game = await TestHelpers.PlayCards(game, 6, side, [("Hulk", column)]);
 
             var scores = game.GetCurrentScores();
 
@@ -67,16 +65,16 @@ namespace Snapdragon.Tests.SnapCardsTest
         [Test]
         [TestCase(Side.Top)]
         [TestCase(Side.Bottom)]
-        public void DoesNotAffectEnemyPower(Side side)
+        public async Task DoesNotAffectEnemyPower(Side side)
         {
             var column = Column.Middle;
 
-            var game = TestHelpers.PlayCards(1, side, [("Hawkeye", column)]);
-            game = TestHelpers.PlayCards(game, 2, side, [("Misty Knight", column)]);
-            game = TestHelpers.PlayCards(game, 3, side, [("Mister Fantastic", Column.Right)]);
-            game = TestHelpers.PlayCards(game, 4, side, [("Ant Man", column)]);
-            game = TestHelpers.PlayCards(game, 5, side.Other(), [("Iron Man", column)]);
-            game = TestHelpers.PlayCards(game, 6, side, [("Hulk", column)]);
+            var game = await TestHelpers.PlayCards(1, side, [("Hawkeye", column)]);
+            game = await TestHelpers.PlayCards(game, 2, side, [("Misty Knight", column)]);
+            game = await TestHelpers.PlayCards(game, 3, side, [("Mister Fantastic", Column.Right)]);
+            game = await TestHelpers.PlayCards(game, 4, side, [("Ant Man", column)]);
+            game = await TestHelpers.PlayCards(game, 5, side.Other(), [("Iron Man", column)]);
+            game = await TestHelpers.PlayCards(game, 6, side, [("Hulk", column)]);
 
             var scores = game.GetCurrentScores();
 

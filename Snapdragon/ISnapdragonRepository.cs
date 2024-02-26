@@ -127,5 +127,36 @@ namespace Snapdragon
         /// For idempotency, does not throw an error if the <see cref="CardDefinition"/> does not exist.
         /// </summary>
         Task DeleteCardDefinition(string cardName);
+
+        /// <summary>
+        /// Saves an entry for a <see cref="Game"/>, which can then be logged against.
+        /// </summary>
+        Task SaveGame(GameRecord gameRecord);
+
+        /// <summary>
+        /// Gets an entry for a <see cref="Game"/>.
+        /// </summary>
+        Task<GameRecord?> GetGame(Guid id);
+
+        /// <summary>
+        /// Deletes an entry for a <see cref="Game"/> and all of its associated logs.
+        /// </summary>
+        Task DeleteGame(Guid id);
+
+        /// <summary>
+        /// Saves a single log for a <see cref="Game"/>.
+        ///
+        /// Note that unlike most other Save methods on this interface,
+        /// this is insert-only, and attempts to perform updates will fail.
+        ///
+        /// Uniqueness is enforced by the combination of the game's
+        /// unique identifier and the "order" value on the logs.
+        /// </summary>
+        Task SaveGameLog(GameLogRecord log);
+
+        /// <summary>
+        /// Gets all logs for a <see cref="Game"/>, in order.
+        /// </summary>
+        Task<IReadOnlyList<GameLogRecord>> GetGameLogs(Guid gameId);
     }
 }

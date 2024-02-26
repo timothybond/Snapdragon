@@ -18,7 +18,7 @@
             return $"MonteCarlo({simulationCount})";
         }
 
-        public IReadOnlyList<IPlayerAction> GetActions(Game game, Side side)
+        public async Task<IReadOnlyList<IPlayerAction>> GetActions(Game game, Side side)
         {
             IReadOnlyList<IPlayerAction> noActions = new List<IPlayerAction>();
             var bestActionSets = new List<IReadOnlyList<IPlayerAction>> { noActions };
@@ -34,7 +34,7 @@
 
                 for (var i = 0; i < this.simulationCount; i++)
                 {
-                    var endState = SimulateToEnd(game, side, possibleActions);
+                    var endState = await SimulateToEnd(game, side, possibleActions);
 
                     if (endState.GetLeader() == side)
                     {
@@ -62,7 +62,7 @@
             return Random.Of(bestActionSets);
         }
 
-        private static Game SimulateToEnd(
+        private static async Task<Game> SimulateToEnd(
             Game game,
             Side side,
             IReadOnlyList<IPlayerAction> actions
@@ -93,11 +93,11 @@
                 Logger = new NullLogger()
             };
 
-            game = game.PlayAlreadyStartedTurn();
+            game = await game.PlayAlreadyStartedTurn();
 
             while (!game.GameOver)
             {
-                game = game.PlaySingleTurn();
+                game = await game.PlaySingleTurn();
             }
 
             return game;

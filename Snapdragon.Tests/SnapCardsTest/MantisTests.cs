@@ -5,7 +5,7 @@ namespace Snapdragon.Tests.SnapCardsTest
     public class MantisTests
     {
         [Test]
-        public void OpponentPlaysCardSameLocation_DrawsOpponentCard()
+        public async Task OpponentPlaysCardSameLocation_DrawsOpponentCard()
         {
             // Note: Both sides will draw 3 cards during setup.
             var engine = new Engine(new NullLogger());
@@ -47,9 +47,9 @@ namespace Snapdragon.Tests.SnapCardsTest
                 false
             );
 
-            game = game.PlaySingleTurn();
-            game = game.PlaySingleTurn();
-            game = game.StartNextTurn();
+            game = await game.PlaySingleTurn();
+            game = await game.PlaySingleTurn();
+            game = await game.StartNextTurn();
 
             var mantisCard = game[Side.Top].Hand.Single(c => string.Equals(c.Name, "Mantis"));
 
@@ -62,7 +62,7 @@ namespace Snapdragon.Tests.SnapCardsTest
                 new PlayCardAction(Side.Bottom, game[Side.Bottom].Hand.First(), Column.Middle)
             };
 
-            game = game.PlayAlreadyStartedTurn();
+            game = await game.PlayAlreadyStartedTurn();
 
             // We drew six cards (three at start of game, three for turns),
             // then played one, but should have drawn one from the opponent
@@ -71,7 +71,7 @@ namespace Snapdragon.Tests.SnapCardsTest
         }
 
         [Test]
-        public void OpponentPlaysCardDifferentLocation_DoesNotDraw()
+        public async Task OpponentPlaysCardDifferentLocation_DoesNotDraw()
         {
             // Note: Both sides will draw 3 cards during setup.
             var engine = new Engine(new NullLogger());
@@ -113,9 +113,9 @@ namespace Snapdragon.Tests.SnapCardsTest
                 false
             );
 
-            game = game.PlaySingleTurn();
-            game = game.PlaySingleTurn();
-            game = game.StartNextTurn();
+            game = await game.PlaySingleTurn();
+            game = await game.PlaySingleTurn();
+            game = await game.StartNextTurn();
 
             var mantisCard = game[Side.Top].Hand.Single(c => string.Equals(c.Name, "Mantis"));
 
@@ -128,14 +128,14 @@ namespace Snapdragon.Tests.SnapCardsTest
                 new PlayCardAction(Side.Bottom, game[Side.Bottom].Hand.First(), Column.Right)
             };
 
-            game = game.PlayAlreadyStartedTurn();
+            game = await game.PlayAlreadyStartedTurn();
 
             // We drew six cards (three at start of game, three for turns), then played one
             Assert.That(game[Side.Top].Hand.Count, Is.EqualTo(5));
         }
 
         [Test]
-        public void PlaysTwoCardsToSameLocation_DoesNotDraw()
+        public async Task PlaysTwoCardsToSameLocation_DoesNotDraw()
         {
             // Note: Both sides will draw 3 cards during setup.
             var engine = new Engine(new NullLogger());
@@ -177,9 +177,9 @@ namespace Snapdragon.Tests.SnapCardsTest
                 false
             );
 
-            game = game.PlaySingleTurn();
-            game = game.PlaySingleTurn();
-            game = game.StartNextTurn();
+            game = await game.PlaySingleTurn();
+            game = await game.PlaySingleTurn();
+            game = await game.StartNextTurn();
 
             var mantisCard = game[Side.Top].Hand.Single(c => string.Equals(c.Name, "Mantis"));
 
@@ -189,14 +189,14 @@ namespace Snapdragon.Tests.SnapCardsTest
                 new PlayCardAction(Side.Top, game[Side.Top].Hand.First(), Column.Middle)
             };
 
-            game = game.PlayAlreadyStartedTurn();
+            game = await game.PlayAlreadyStartedTurn();
 
             // We drew six cards (three at start of game, three for turns), then played two
             Assert.That(game[Side.Top].Hand.Count, Is.EqualTo(4));
         }
 
         [Test]
-        public void OpponentDeckEmpty_NothingBreaks()
+        public async Task OpponentDeckEmpty_NothingBreaks()
         {
             // Note: Both sides will draw 3 cards during setup.
             var engine = new Engine(new NullLogger());
@@ -237,9 +237,9 @@ namespace Snapdragon.Tests.SnapCardsTest
                 false
             );
 
-            game = game.PlaySingleTurn();
-            game = game.PlaySingleTurn();
-            game = game.StartNextTurn();
+            game = await game.PlaySingleTurn();
+            game = await game.PlaySingleTurn();
+            game = await game.StartNextTurn();
 
             var mantisCard = game[Side.Top].Hand.Single(c => string.Equals(c.Name, "Mantis"));
 
@@ -252,7 +252,7 @@ namespace Snapdragon.Tests.SnapCardsTest
                 new PlayCardAction(Side.Bottom, game[Side.Bottom].Hand.First(), Column.Middle)
             };
 
-            game = game.PlayAlreadyStartedTurn();
+            game = await game.PlayAlreadyStartedTurn();
 
             // We drew six cards (three at start of game, three for turns), then played one
             Assert.That(game[Side.Top].Hand.Count, Is.EqualTo(5));

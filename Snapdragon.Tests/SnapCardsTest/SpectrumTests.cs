@@ -5,7 +5,7 @@
         [Test]
         [TestCase(Side.Top)]
         [TestCase(Side.Bottom)]
-        public void DoesNotAddToSelf(Side side)
+        public async Task DoesNotAddToSelf(Side side)
         {
             var noCards = new (string CardName, Column Column)[] { };
             (string CardName, Column Column)[] cardsToPlay = new[]
@@ -15,11 +15,11 @@
             };
 
             // Put other cards on both sides
-            var game = TestHelpers.PlayCards(5, cardsToPlay, cardsToPlay);
+            var game = await TestHelpers.PlayCards(5, cardsToPlay, cardsToPlay);
 
             (string CardName, Column Column)[] playSpectrum = new[] { ("Spectrum", Column.Right), };
 
-            game = TestHelpers.PlayCards(
+            game = await TestHelpers.PlayCards(
                 game,
                 6,
                 side == Side.Top ? playSpectrum : noCards,
@@ -37,7 +37,7 @@
         [Test]
         [TestCase(Side.Top)]
         [TestCase(Side.Bottom)]
-        public void DoesNotAddToCardWithoutOngoingAbility(Side side)
+        public async Task DoesNotAddToCardWithoutOngoingAbility(Side side)
         {
             var noCards = new (string CardName, Column Column)[] { };
             (string CardName, Column Column)[] cardsToPlay = new[]
@@ -47,11 +47,11 @@
             };
 
             // Put other cards on both sides
-            var game = TestHelpers.PlayCards(5, cardsToPlay, cardsToPlay);
+            var game = await TestHelpers.PlayCards(5, cardsToPlay, cardsToPlay);
 
             (string CardName, Column Column)[] playSpectrum = new[] { ("Spectrum", Column.Right), };
 
-            game = TestHelpers.PlayCards(
+            game = await TestHelpers.PlayCards(
                 game,
                 6,
                 side == Side.Top ? playSpectrum : noCards,
@@ -69,7 +69,7 @@
         [Test]
         [TestCase(Side.Top)]
         [TestCase(Side.Bottom)]
-        public void AddsToCardWithOngoingAbility(Side side)
+        public async Task AddsToCardWithOngoingAbility(Side side)
         {
             var noCards = new (string CardName, Column Column)[] { };
             (string CardName, Column Column)[] cardsToPlay = new[]
@@ -79,11 +79,11 @@
             };
 
             // Put other cards on both sides
-            var game = TestHelpers.PlayCards(5, cardsToPlay, cardsToPlay);
+            var game = await TestHelpers.PlayCards(5, cardsToPlay, cardsToPlay);
 
             (string CardName, Column Column)[] playSpectrum = new[] { ("Spectrum", Column.Right), };
 
-            game = TestHelpers.PlayCards(
+            game = await TestHelpers.PlayCards(
                 game,
                 6,
                 side == Side.Top ? playSpectrum : noCards,
@@ -101,7 +101,7 @@
         [Test]
         [TestCase(Side.Top)]
         [TestCase(Side.Bottom)]
-        public void DoesNotAddToEnemyCardWithOngoingAbility(Side side)
+        public async Task DoesNotAddToEnemyCardWithOngoingAbility(Side side)
         {
             var noCards = new (string CardName, Column Column)[] { };
             (string CardName, Column Column)[] cardsToPlay = new[]
@@ -111,11 +111,11 @@
             };
 
             // Put other cards on both sides
-            var game = TestHelpers.PlayCards(5, cardsToPlay, cardsToPlay);
+            var game = await TestHelpers.PlayCards(5, cardsToPlay, cardsToPlay);
 
             (string CardName, Column Column)[] playSpectrum = new[] { ("Spectrum", Column.Right), };
 
-            game = TestHelpers.PlayCards(
+            game = await TestHelpers.PlayCards(
                 game,
                 6,
                 side == Side.Top ? playSpectrum : noCards,

@@ -6,9 +6,14 @@ namespace Snapdragon.Tests.SnapCardsTest
     {
         [Test]
         [TestCaseSource(typeof(AllSidesAndThreeDifferentColumns))]
-        public void CanPlayOnFirstThreeTurns(Side side, Column first, Column second, Column third)
+        public async Task CanPlayOnFirstThreeTurns(
+            Side side,
+            Column first,
+            Column second,
+            Column third
+        )
         {
-            var game = TestHelpers
+            var game = await TestHelpers
                 .PlayCards(side, first, "Ebony Maw")
                 .PlayCards(side, second, "Ebony Maw")
                 .PlayCards(side, third, "Ebony Maw");
@@ -25,30 +30,27 @@ namespace Snapdragon.Tests.SnapCardsTest
 
         [Test]
         [TestCaseSource(typeof(AllSidesAndColumns))]
-        public void CannotPlayOnTurnFour(Side side, Column column)
+        public async Task CannotPlayOnTurnFour(Side side, Column column)
         {
             var game = TestHelpers.NewGame();
             while (game.Turn < 3)
             {
-                game = game.PlaySingleTurn();
+                game = await game.PlaySingleTurn();
             }
 
-            Assert.Throws<InvalidOperationException>(
+            Assert.ThrowsAsync<InvalidOperationException>(
                 () => game.PlayCards(side, column, "Ebony Maw")
             );
         }
 
         [Test]
         [TestCaseSource(typeof(AllSidesAndColumns))]
-        public void NotConsideredPossiblePlayActionOnTurnFour(Side side, Column column)
+        public async Task NotConsideredPossiblePlayActionOnTurnFour(Side side, Column column)
         {
-            var game = TestHelpers
-                .NewGame()
-                .PlaySingleTurn()
-                .PlaySingleTurn()
-                .PlaySingleTurn()
-                .WithCardsInHand(side, "Ebony Maw")
-                .StartNextTurn();
+            var game = await TestHelpers.NewGame().PlaySingleTurn();
+            game = await game.PlaySingleTurn();
+            game = await game.PlaySingleTurn();
+            game = await game.WithCardsInHand(side, "Ebony Maw").StartNextTurn();
 
             var possibleActionSets = ControllerUtilities.GetPossibleActionSets(game, side);
 
@@ -59,9 +61,9 @@ namespace Snapdragon.Tests.SnapCardsTest
 
         [Test]
         [TestCaseSource(typeof(AllSidesAndColumns))]
-        public void CanPlayOtherCardsBeforeRevealed(Side side, Column column)
+        public async Task CanPlayOtherCardsBeforeRevealed(Side side, Column column)
         {
-            var game = TestHelpers.PlayCards(side, column, "Ebony Maw", "Misty Knight");
+            var game = await TestHelpers.PlayCards(side, column, "Ebony Maw", "Misty Knight");
 
             Assert.That(game[column][side].Count, Is.EqualTo(2));
             Assert.That(game[column][side][1].Name, Is.EqualTo("Misty Knight"));
@@ -69,9 +71,9 @@ namespace Snapdragon.Tests.SnapCardsTest
 
         [Test]
         [TestCaseSource(typeof(AllSidesAndDifferentColumns))]
-        public void CanPlayOtherCardsElsewhere(Side side, Column first, Column second)
+        public async Task CanPlayOtherCardsElsewhere(Side side, Column first, Column second)
         {
-            var game = TestHelpers
+            var game = await TestHelpers
                 .PlayCards(side, first, "Ebony Maw")
                 .PlayCards(side, second, "Misty Knight");
 
@@ -81,23 +83,26 @@ namespace Snapdragon.Tests.SnapCardsTest
 
         [Test]
         [TestCaseSource(typeof(AllSidesAndColumns))]
-        public void CannotPlayOtherCardsSameLocation(Side side, Column column)
+        public async Task CannotPlayOtherCardsSameLocation(Side side, Column column)
         {
-            var game = TestHelpers.PlayCards(side, column, "Ebony Maw");
+            var game = await TestHelpers.PlayCards(side, column, "Ebony Maw");
 
-            Assert.Throws<InvalidOperationException>(
+            Assert.ThrowsAsync<InvalidOperationException>(
                 () => game.PlayCards(side, column, "Misty Knight")
             );
         }
 
         [Test]
         [TestCaseSource(typeof(AllSidesAndColumns))]
-        public void PlayOtherCardsSameLocationNotConsideredPossibleMove(Side side, Column column)
+        public async Task PlayOtherCardsSameLocationNotConsideredPossibleMove(
+            Side side,
+            Column column
+        )
         {
-            var game = TestHelpers
+            var game = await TestHelpers
                 .PlayCards(side, column, "Ebony Maw")
-                .WithCardsInHand(side, "Misty Knight")
-                .StartNextTurn();
+                .WithCardsInHand(side, "Misty Knight");
+            game = await game.StartNextTurn();
 
             var possibleActionSets = ControllerUtilities.GetPossibleActionSets(game, side);
 

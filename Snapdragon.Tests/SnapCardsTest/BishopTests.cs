@@ -4,13 +4,13 @@
     {
         [Test]
         [TestCaseSource(typeof(AllSidesAndColumns))]
-        public void NothingElsePlayed_DoesNotAddPower(Side side, Column column)
+        public async Task NothingElsePlayed_DoesNotAddPower(Side side, Column column)
         {
-            var game = TestHelpers.PlayCards(3, side, [("Bishop", column)]);
+            var game = await TestHelpers.PlayCards(3, side, [("Bishop", column)]);
 
-            game = game.PlaySingleTurn();
-            game = game.PlaySingleTurn();
-            game = game.PlaySingleTurn();
+            game = await game.PlaySingleTurn();
+            game = await game.PlaySingleTurn();
+            game = await game.PlaySingleTurn();
 
             Assert.That(game[column][side].Count, Is.EqualTo(1));
             var bishop = game[column][side][0];
@@ -22,12 +22,12 @@
 
         [Test]
         [TestCaseSource(typeof(AllSidesAndColumns))]
-        public void AnotherCardPlayed_AddsToPower(Side side, Column column)
+        public async Task AnotherCardPlayed_AddsToPower(Side side, Column column)
         {
-            var game = TestHelpers.PlayCards(3, side, [("Bishop", column)]);
-            game = TestHelpers.PlayCards(game, 4, side, [("Ant Man", column)]);
-            game = game.PlaySingleTurn();
-            game = game.PlaySingleTurn();
+            var game = await TestHelpers.PlayCards(3, side, [("Bishop", column)]);
+            game = await TestHelpers.PlayCards(game, 4, side, [("Ant Man", column)]);
+            game = await game.PlaySingleTurn();
+            game = await game.PlaySingleTurn();
 
             Assert.That(game[column][side].Count, Is.EqualTo(2));
             var bishop = game[column][side][0];
@@ -39,11 +39,11 @@
 
         [Test]
         [TestCaseSource(typeof(AllSidesAndColumns))]
-        public void CardPlayedSameTurnButLater_AddsToPower(Side side, Column column)
+        public async Task CardPlayedSameTurnButLater_AddsToPower(Side side, Column column)
         {
-            var game = TestHelpers.PlayCards(4, side, [("Bishop", column), ("Ant Man", column)]);
-            game = game.PlaySingleTurn();
-            game = game.PlaySingleTurn();
+            var game = await TestHelpers.PlayCards(4, side, [("Bishop", column), ("Ant Man", column)]);
+            game = await game.PlaySingleTurn();
+            game = await game.PlaySingleTurn();
 
             Assert.That(game[column][side].Count, Is.EqualTo(2));
             var bishop = game[column][side][0];
@@ -55,11 +55,11 @@
 
         [Test]
         [TestCaseSource(typeof(AllSidesAndColumns))]
-        public void CardPlayedSameTurnButEarlier_DoesNotAddToPower(Side side, Column column)
+        public async Task CardPlayedSameTurnButEarlier_DoesNotAddToPower(Side side, Column column)
         {
-            var game = TestHelpers.PlayCards(4, side, [("Ant Man", column), ("Bishop", column)]);
-            game = game.PlaySingleTurn();
-            game = game.PlaySingleTurn();
+            var game = await TestHelpers.PlayCards(4, side, [("Ant Man", column), ("Bishop", column)]);
+            game = await game.PlaySingleTurn();
+            game = await game.PlaySingleTurn();
 
             Assert.That(game[column][side].Count, Is.EqualTo(2));
             var bishop = game[column][side][1];
@@ -71,12 +71,12 @@
 
         [Test]
         [TestCaseSource(typeof(AllSidesAndColumns))]
-        public void CardPlayedOtherSide_DoesNotAddToPower(Side side, Column column)
+        public async Task CardPlayedOtherSide_DoesNotAddToPower(Side side, Column column)
         {
-            var game = TestHelpers.PlayCards(3, side, [("Bishop", column)]);
-            game = TestHelpers.PlayCards(game, 4, side.Other(), [("Ant Man", column)]);
-            game = game.PlaySingleTurn();
-            game = game.PlaySingleTurn();
+            var game = await TestHelpers.PlayCards(3, side, [("Bishop", column)]);
+            game = await TestHelpers.PlayCards(game, 4, side.Other(), [("Ant Man", column)]);
+            game = await game.PlaySingleTurn();
+            game = await game.PlaySingleTurn();
 
             Assert.That(game[column][side].Count, Is.EqualTo(1));
             var bishop = game[column][side][0];
@@ -89,12 +89,12 @@
         [Test]
         [TestCase(Side.Top)]
         [TestCase(Side.Bottom)]
-        public void CardPlayedOtherLocation_AddsToPower(Side side)
+        public async Task CardPlayedOtherLocation_AddsToPower(Side side)
         {
-            var game = TestHelpers.PlayCards(3, side, [("Bishop", Column.Middle)]);
-            game = TestHelpers.PlayCards(game, 4, side, [("Ant Man", Column.Left)]);
-            game = game.PlaySingleTurn();
-            game = game.PlaySingleTurn();
+            var game = await TestHelpers.PlayCards(3, side, [("Bishop", Column.Middle)]);
+            game = await TestHelpers.PlayCards(game, 4, side, [("Ant Man", Column.Left)]);
+            game = await game.PlaySingleTurn();
+            game = await game.PlaySingleTurn();
 
             Assert.That(game[Column.Middle][side].Count, Is.EqualTo(1));
             var bishop = game[Column.Middle][side][0];

@@ -4,9 +4,9 @@
     {
         [Test]
         [TestCaseSource(typeof(AllSidesAndDifferentColumns))]
-        public void OnTurnPlayed_OtherCardsCannotMove(Side side, Column column, Column otherColumn)
+        public async Task OnTurnPlayed_OtherCardsCannotMove(Side side, Column column, Column otherColumn)
         {
-            var game = TestHelpers.PlayCards(
+            var game = await TestHelpers.PlayCards(
                 side,
                 new[] { ("Cloak", column), ("Misty Knight", otherColumn) }
             );
@@ -21,14 +21,14 @@
 
         [Test]
         [TestCaseSource(typeof(AllSidesAndDifferentColumns))]
-        public void OnNextTurn_OtherCardsCanMoveHere(Side side, Column column, Column otherColumn)
+        public async Task OnNextTurn_OtherCardsCanMoveHere(Side side, Column column, Column otherColumn)
         {
-            var game = TestHelpers.PlayCards(
+            var game = await TestHelpers.PlayCards(
                 side,
                 new[] { ("Cloak", column), ("Misty Knight", otherColumn) }
             );
 
-            game = game.StartNextTurn();
+            game = await game.StartNextTurn();
 
             Assert.That(game[otherColumn][side].Count, Is.EqualTo(1));
             var mistyKnight = game[otherColumn][side][0];
@@ -40,19 +40,19 @@
 
         [Test]
         [TestCaseSource(typeof(AllSidesAndThreeDifferentColumns))]
-        public void OnNextTurn_OtherCardsCannotMoveToRemainingLocation(
+        public async Task OnNextTurn_OtherCardsCannotMoveToRemainingLocation(
             Side side,
             Column column,
             Column otherColumn,
             Column remainingColumn
         )
         {
-            var game = TestHelpers.PlayCards(
+            var game = await TestHelpers.PlayCards(
                 side,
                 new[] { ("Cloak", column), ("Misty Knight", otherColumn) }
             );
 
-            game = game.StartNextTurn();
+            game = await game.StartNextTurn();
 
             Assert.That(game[otherColumn][side].Count, Is.EqualTo(1));
             var mistyKnight = game[otherColumn][side][0];
@@ -64,17 +64,17 @@
 
         [Test]
         [TestCaseSource(typeof(AllSidesAndDifferentColumns))]
-        public void OnNextTurn_OpponentCardsCanMoveHere(
+        public async Task OnNextTurn_OpponentCardsCanMoveHere(
             Side side,
             Column column,
             Column otherColumn
         )
         {
-            var game = TestHelpers
+            var game = await TestHelpers
                 .PlayCards(side.Other(), otherColumn, "Misty Knight")
                 .PlayCards(side, column, "Cloak");
 
-            game = game.StartNextTurn();
+            game = await game.StartNextTurn();
 
             Assert.That(game[otherColumn][side.Other()].Count, Is.EqualTo(1));
             var mistyKnight = game[otherColumn][side.Other()][0];
@@ -86,19 +86,19 @@
 
         [Test]
         [TestCaseSource(typeof(AllSidesAndDifferentColumns))]
-        public void OnTwoTurnsLater_OtherCardsCannotMoveHere(
+        public async Task OnTwoTurnsLater_OtherCardsCannotMoveHere(
             Side side,
             Column column,
             Column otherColumn
         )
         {
-            var game = TestHelpers.PlayCards(
+            var game = await TestHelpers.PlayCards(
                 side,
                 new[] { ("Cloak", column), ("Misty Knight", otherColumn) }
             );
 
-            game = game.PlaySingleTurn();
-            game = game.StartNextTurn();
+            game = await game.PlaySingleTurn();
+            game = await game.StartNextTurn();
 
             Assert.That(game[otherColumn][side].Count, Is.EqualTo(1));
             var mistyKnight = game[otherColumn][side][0];

@@ -6,10 +6,10 @@ namespace Snapdragon.Tests.SnapCardsTest
     {
         [Test]
         [TestCaseSource(typeof(AllSidesAndColumns))]
-        public void BlocksDestroyingCardsAtSameLocation(Side side, Column column)
+        public async Task BlocksDestroyingCardsAtSameLocation(Side side, Column column)
         {
-            var game = TestHelpers.PlayCards(side, column, "Armor", "Misty Knight");
-            game = TestHelpers.PlayCards(game, side.Other(), column, "Elektra");
+            var game = await TestHelpers.PlayCards(side, column, "Armor", "Misty Knight");
+            game = await TestHelpers.PlayCards(game, side.Other(), column, "Elektra");
 
             Assert.That(game[column][side].Count, Is.EqualTo(2));
             Assert.That(game[column][side][1].Name, Is.EqualTo("Misty Knight"));
@@ -17,15 +17,15 @@ namespace Snapdragon.Tests.SnapCardsTest
 
         [Test]
         [TestCaseSource(typeof(AllSidesAndDifferentColumns))]
-        public void DoesNotBlockDestroyingCardsAtOtherLocation(
+        public async Task DoesNotBlockDestroyingCardsAtOtherLocation(
             Side side,
             Column column,
             Column otherColumn
         )
         {
-            var game = TestHelpers.PlayCards(side, column, "Armor");
-            game = TestHelpers.PlayCards(game, side, otherColumn, "Misty Knight");
-            game = TestHelpers.PlayCards(game, side.Other(), otherColumn, "Elektra");
+            var game = await TestHelpers.PlayCards(side, column, "Armor");
+            game = await TestHelpers.PlayCards(game, side, otherColumn, "Misty Knight");
+            game = await TestHelpers.PlayCards(game, side.Other(), otherColumn, "Elektra");
 
             Assert.That(game[otherColumn][side].Count, Is.EqualTo(0));
 

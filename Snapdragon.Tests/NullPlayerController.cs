@@ -5,9 +5,9 @@
     /// </summary>
     public class NullPlayerController : IPlayerController
     {
-        public IReadOnlyList<IPlayerAction> GetActions(Game game, Side player)
+        public Task<IReadOnlyList<IPlayerAction>> GetActions(Game game, Side player)
         {
-            return new List<IPlayerAction>();
+            return Task.FromResult<IReadOnlyList<IPlayerAction>>(new List<IPlayerAction>());
         }
     }
 }

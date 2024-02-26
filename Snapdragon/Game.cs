@@ -1,11 +1,11 @@
 ﻿using System.Collections.Immutable;
 using Snapdragon.Events;
 using Snapdragon.OngoingAbilities;
-using Snapdragon.PlayerActions;
 
 namespace Snapdragon
 {
     public record Game(
+        Guid Id,
         int Turn,
         Location Left,
         Location Middle,
@@ -475,13 +475,13 @@ namespace Snapdragon
         /// <summary>
         /// Plays the game until it finishes.
         /// </summary>
-        public Game PlayGame()
+        public async Task<Game> PlayGame()
         {
             var game = this;
 
             while (!game.GameOver)
             {
-                game = game.PlaySingleTurn();
+                game = await game.PlaySingleTurn();
             }
 
             return game;
@@ -496,43 +496,25 @@ namespace Snapdragon
         /// triggering the start-of-turn logic.
         /// </summary>
         /// <returns></returns>
-        public Game PlayAlreadyStartedTurn()
+        public async Task<Game> PlayAlreadyStartedTurn()
         {
             var game = this;
 
             // Get player actions
-            var topPlayerActions = game.Top.Controller.GetActions(game, Side.Top);
-            var bottomPlayerActions = game.Bottom.Controller.GetActions(game, Side.Bottom);
-
-            foreach (var top in topPlayerActions)
-            {
-                if (top is MoveCardAction move && move.Card.Name == "Ebony Maw")
-                {
-                    var test = 0;
-                    test += 1;
-                }
-            }
-
-            foreach (var bottom in bottomPlayerActions)
-            {
-                if (bottom is MoveCardAction move && move.Card.Name == "Ebony Maw")
-                {
-                    var test = 0;
-                    test += 1;
-                }
-            }
+            var topPlayerActions = await game.Top.Controller.GetActions(game, Side.Top);
+            var bottomPlayerActions = await game.Bottom.Controller.GetActions(game, Side.Bottom);
 
             // Resolve player actions
-            game = game.ProcessPlayerActions(topPlayerActions, bottomPlayerActions);
+            game = await game.ProcessPlayerActions(topPlayerActions, bottomPlayerActions);
 
             // Reveal cards
-            game = this.RevealCards(game);
+            game = await this.RevealCards(game);
 
             game = game.EndTurn();
-            game = game.ProcessEvents();
+            game = await game.ProcessEvents();
             game = game.RecalculateOngoingEffects();
 
-            this.Logger.LogGameState(game);
+            await this.Logger.LogGameState(game);
 
             // TODO: Allow for abilities that alter the number of turns
             if (game.Turn >= 6)
@@ -549,7 +531,7 @@ namespace Snapdragon
         /// Processes a single Turn, including all <see cref="Player"/> actions and any triggered effects.
         /// </summary>
         /// <returns>The <see cref="Game"/> at the end of the new Turn.</returns>
-        public Game PlaySingleTurn()
+        public async Task<Game> PlaySingleTurn()
         {
             var lastTurn = this.Turn;
 
@@ -561,14 +543,14 @@ namespace Snapdragon
                 return this;
             }
 
-            var game = this.StartNextTurn();
+            var game = await this.StartNextTurn();
 
-            game = game.PlayAlreadyStartedTurn();
+            game = await game.PlayAlreadyStartedTurn();
 
             return game;
         }
 
-        Game ProcessPlayerActions(
+        private async Task<Game> ProcessPlayerActions(
             IReadOnlyList<IPlayerAction> topPlayerActions,
             IReadOnlyList<IPlayerAction> bottomPlayerActions
         )
@@ -592,7 +574,7 @@ namespace Snapdragon
                 game = action.Apply(game);
             }
 
-            return game.ProcessEvents();
+            return await game.ProcessEvents();
         }
 
         void ValidatePlayerActions(IReadOnlyList<IPlayerAction> actions, Side side)
@@ -606,10 +588,10 @@ namespace Snapdragon
             }
         }
 
-        Game RevealCards(Game game)
+        private async Task<Game> RevealCards(Game game)
         {
-            game = RevealCardsForOneSide(game, game.FirstRevealed);
-            game = RevealCardsForOneSide(game, game.FirstRevealed.Other());
+            game = await RevealCardsForOneSide(game, game.FirstRevealed);
+            game = await RevealCardsForOneSide(game, game.FirstRevealed.Other());
 
             return game;
         }
@@ -617,7 +599,7 @@ namespace Snapdragon
         /// <summary>
         /// Helper function that reveals only one Player's cards. Called in order by <see cref="RevealCards"/>.
         /// </summary>
-        private Game RevealCardsForOneSide(Game game, Side side)
+        private async Task<Game> RevealCardsForOneSide(Game game, Side side)
         {
             // TODO: Handle anything that delays revealing cards
             // Note all instances of CardPlayedEvent in the previous phase
@@ -637,7 +619,7 @@ namespace Snapdragon
 
             foreach (var card in unrevealedCards)
             {
-                game = game.RevealCard(card);
+                game = await game.RevealCard(card);
             }
 
             return game;
@@ -646,7 +628,7 @@ namespace Snapdragon
         /// <summary>
         /// Helper function that reveals a single card, then processes any triggered events.
         /// </summary>
-        private Game RevealCard(Card card)
+        private async Task<Game> RevealCard(Card card)
         {
             var game = this.WithModifiedCard(
                 card,
@@ -664,7 +646,7 @@ namespace Snapdragon
                 }
             );
 
-            return game.ProcessEvents();
+            return await game.ProcessEvents();
         }
 
         /// <summary>
@@ -675,7 +657,7 @@ namespace Snapdragon
         /// <returns>
         /// The <see cref="Game"/> at the start of the new Turn, before any <see cref="PlayerConfiguration"/> actions.
         /// </returns>
-        public Game StartNextTurn()
+        public async Task<Game> StartNextTurn()
         {
             // Note the check for Games going over is in PlaySingleTurn
             var game = this with
@@ -683,7 +665,7 @@ namespace Snapdragon
                 Turn = this.Turn + 1
             };
             game = game.RevealLocation();
-            game = game.ProcessEvents();
+            game = await game.ProcessEvents();
 
             // Each Player draws a card, and gets an amount of energy equal to the turn count
             var topPlayer = game.Top.DrawCard() with
@@ -694,11 +676,11 @@ namespace Snapdragon
 
             game = game with { Top = topPlayer, Bottom = bottomPlayer };
 
-            Logger.LogHands(game);
+            await Logger.LogHands(game);
 
             // Raise an event for the start of the turn
             game = game.WithEvent(new TurnStartedEvent(game.Turn));
-            game = game.ProcessEvents();
+            game = await game.ProcessEvents();
 
             return game;
         }
@@ -737,19 +719,19 @@ namespace Snapdragon
         /// cref="Game.PastEvents"/> list when finished.
         /// </summary>
         /// <returns>The new state with the appropriate changes applied.</returns>
-        public Game ProcessEvents()
+        public async Task<Game> ProcessEvents()
         {
             var game = this;
 
             while (game.NewEvents.Count > 0)
             {
-                game = game.ProcessNextEvent();
+                game = await game.ProcessNextEvent();
             }
 
             return game;
         }
 
-        private Game ProcessNextEvent()
+        private async Task<Game> ProcessNextEvent()
         {
             if (NewEvents.Count == 0)
             {
@@ -758,7 +740,7 @@ namespace Snapdragon
 
             var nextEvent = NewEvents[0];
 
-            this.Logger.LogEvent(nextEvent);
+            await this.Logger.LogEvent(nextEvent);
 
             var remainingEvents = NewEvents.Skip(1).ToImmutableList();
 

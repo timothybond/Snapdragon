@@ -4,9 +4,9 @@
     {
         [Test]
         [TestCaseSource(typeof(AllSidesAndColumns))]
-        public void AddsTigerToOtherLocation(Side side, Column column)
+        public async Task AddsTigerToOtherLocation(Side side, Column column)
         {
-            var game = TestHelpers.PlayCards(side, column, "White Tiger");
+            var game = await TestHelpers.PlayCards(side, column, "White Tiger");
 
             var cards = new List<Card>();
             foreach (var location in game.Locations)
@@ -28,9 +28,9 @@
 
         [Test]
         [TestCaseSource(typeof(AllSidesAndColumns))]
-        public void DoesNotAddTigerToOwnLocation(Side side, Column column)
+        public async Task DoesNotAddTigerToOwnLocation(Side side, Column column)
         {
-            var game = TestHelpers.PlayCards(side, column, "White Tiger");
+            var game = await TestHelpers.PlayCards(side, column, "White Tiger");
 
             Assert.That(game[column][side].Count, Is.EqualTo(1));
             Assert.That(game[column][side][0].Name, Is.EqualTo("White Tiger"));

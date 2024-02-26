@@ -5,13 +5,13 @@
         [Test]
         [TestCase(Side.Top)]
         [TestCase(Side.Bottom)]
-        public void GetsExpectedTotals_NoAbilities(Side side)
+        public async Task GetsExpectedTotals_NoAbilities(Side side)
         {
-            var game = TestHelpers.PlayCards(1, side, [("Misty Knight", Column.Left)]);
-            game = TestHelpers.PlayCards(game, 2, side, [("Wasp", Column.Right)]);
-            game = TestHelpers.PlayCards(game, 3, side, [("Cyclops", Column.Middle)]);
-            game = TestHelpers.PlayCards(game, 4, side, [("The Thing", Column.Left)]);
-            game = TestHelpers.PlayCards(game, 6, side, [("Hulk", Column.Right)]);
+            var game = await TestHelpers.PlayCards(1, side, [("Misty Knight", Column.Left)]);
+            game = await TestHelpers.PlayCards(game, 2, side, [("Wasp", Column.Right)]);
+            game = await TestHelpers.PlayCards(game, 3, side, [("Cyclops", Column.Middle)]);
+            game = await TestHelpers.PlayCards(game, 4, side, [("The Thing", Column.Left)]);
+            game = await TestHelpers.PlayCards(game, 6, side, [("Hulk", Column.Right)]);
 
             var scores = game.GetCurrentScores();
 
@@ -23,13 +23,13 @@
         [Test]
         [TestCase(Side.Top)]
         [TestCase(Side.Bottom)]
-        public void GetsExpectedTotals_NotIncludingOtherSide(Side side)
+        public async Task GetsExpectedTotals_NotIncludingOtherSide(Side side)
         {
-            var game = TestHelpers.PlayCards(1, side, [("Misty Knight", Column.Left)]);
-            game = TestHelpers.PlayCards(game, 2, side.Other(), [("Wasp", Column.Right)]);
-            game = TestHelpers.PlayCards(game, 3, side, [("Cyclops", Column.Middle)]);
-            game = TestHelpers.PlayCards(game, 4, side.Other(), [("The Thing", Column.Left)]);
-            game = TestHelpers.PlayCards(game, 6, side, [("Hulk", Column.Right)]);
+            var game = await TestHelpers.PlayCards(1, side, [("Misty Knight", Column.Left)]);
+            game = await TestHelpers.PlayCards(game, 2, side.Other(), [("Wasp", Column.Right)]);
+            game = await TestHelpers.PlayCards(game, 3, side, [("Cyclops", Column.Middle)]);
+            game = await TestHelpers.PlayCards(game, 4, side.Other(), [("The Thing", Column.Left)]);
+            game = await TestHelpers.PlayCards(game, 6, side, [("Hulk", Column.Right)]);
 
             var scores = game.GetCurrentScores();
 
@@ -44,10 +44,10 @@
         [TestCase(Side.Bottom, Column.Left)]
         [TestCase(Side.Bottom, Column.Middle)]
         [TestCase(Side.Bottom, Column.Right)]
-        public void GetsExpectedTotals_UsesAdjustedPower(Side side, Column column)
+        public async Task GetsExpectedTotals_UsesAdjustedPower(Side side, Column column)
         {
-            var game = TestHelpers.PlayCards(5, side, [("Hawkeye", column)]);
-            game = TestHelpers.PlayCards(
+            var game = await TestHelpers.PlayCards(5, side, [("Hawkeye", column)]);
+            game = await TestHelpers.PlayCards(
                 game,
                 6,
                 side,

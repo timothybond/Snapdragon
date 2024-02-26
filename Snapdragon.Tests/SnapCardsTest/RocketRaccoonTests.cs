@@ -5,9 +5,9 @@
         [Test]
         [TestCase(Side.Top, Column.Middle)]
         [TestCase(Side.Bottom, Column.Middle)]
-        public void PlayCardAlone_PowerIsTwo(Side side, Column column)
+        public async Task PlayCardAlone_PowerIsTwo(Side side, Column column)
         {
-            var game = TestHelpers.PlayCards(
+            var game = await TestHelpers.PlayCards(
                 1,
                 side == Side.Top
                     ? new[] { ("Rocket Raccoon", column) }
@@ -28,9 +28,9 @@
         [Test]
         [TestCase(Side.Top, Column.Middle)]
         [TestCase(Side.Bottom, Column.Middle)]
-        public void PlayCardWithAnotherCardOnSameSide_PowerIsTwo(Side side, Column column)
+        public async Task PlayCardWithAnotherCardOnSameSide_PowerIsTwo(Side side, Column column)
         {
-            var game = TestHelpers.PlayCards(
+            var game = await TestHelpers.PlayCards(
                 2,
                 side == Side.Top
                     ? new[] { ("Rocket Raccoon", column), ("Misty Knight", column) }
@@ -51,9 +51,9 @@
         [Test]
         [TestCase(Side.Top, Column.Middle)]
         [TestCase(Side.Bottom, Column.Middle)]
-        public void PlayCardWithAnotherCardOnOpposingSide_PowerIsFour(Side side, Column column)
+        public async Task PlayCardWithAnotherCardOnOpposingSide_PowerIsFour(Side side, Column column)
         {
-            var game = TestHelpers.PlayCards(
+            var game = await TestHelpers.PlayCards(
                 1,
                 side == Side.Top
                     ? new[] { ("Rocket Raccoon", column) }

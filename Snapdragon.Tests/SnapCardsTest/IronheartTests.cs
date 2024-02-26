@@ -5,12 +5,12 @@
         [Test]
         [TestCase(Side.Top, Column.Middle)]
         [TestCase(Side.Bottom, Column.Middle)]
-        public void DoesNotAddToSelf(Side side, Column column)
+        public async Task DoesNotAddToSelf(Side side, Column column)
         {
-            var game = TestHelpers.PlayCards(6, side, new[] { ("Ironheart", column) });
+            var game = await TestHelpers.PlayCards(6, side, new[] { ("Ironheart", column) });
 
             var engine = new Engine(new NullLogger());
-            game = game.PlaySingleTurn();
+            game = await game.PlaySingleTurn();
             Assert.That(game[column][side].Count, Is.EqualTo(1));
 
             var ironheart = game[column][side][0];
@@ -22,10 +22,10 @@
         [Test]
         [TestCase(Side.Top)]
         [TestCase(Side.Bottom)]
-        public void AddsToOtherCardOnce(Side side)
+        public async Task AddsToOtherCardOnce(Side side)
         {
-            var game = TestHelpers.PlayCards(5, side, new[] { ("Hawkeye", Column.Left) });
-            game = TestHelpers.PlayCards(game, 6, side, new[] { ("Ironheart", Column.Right) });
+            var game = await TestHelpers.PlayCards(5, side, new[] { ("Hawkeye", Column.Left) });
+            game = await TestHelpers.PlayCards(game, 6, side, new[] { ("Ironheart", Column.Right) });
 
             var hawkeye = game[Column.Left][side].Single();
             Assert.That(hawkeye.Name, Is.EqualTo("Hawkeye"));
@@ -41,14 +41,14 @@
         [TestCase(Side.Bottom, "Hawkeye")]
         [TestCase(Side.Bottom, "Hawkeye", "Ant Man")]
         [TestCase(Side.Bottom, "Hawkeye", "Ant Man", "Wasp")]
-        public void AddsToUpToThreeCards(Side side, params string[] cardNames)
+        public async Task AddsToUpToThreeCards(Side side, params string[] cardNames)
         {
-            var game = TestHelpers.PlayCards(
+            var game = await TestHelpers.PlayCards(
                 5,
                 side,
                 cardNames.Select(name => (name, Column.Left)).ToArray()
             );
-            game = TestHelpers.PlayCards(game, 6, side, new[] { ("Ironheart", Column.Right) });
+            game = await TestHelpers.PlayCards(game, 6, side, new[] { ("Ironheart", Column.Right) });
 
             Assert.That(game[Column.Left][side].Count, Is.EqualTo(cardNames.Length));
 
@@ -62,16 +62,16 @@
         [Test]
         [TestCase(Side.Top)]
         [TestCase(Side.Bottom)]
-        public void DoesNotAddToFourthCard(Side side)
+        public async Task DoesNotAddToFourthCard(Side side)
         {
             var cardNames = new[] { "Agent 13", "Misty Knight", "Rocket Raccoon", "Nightcrawler" };
 
-            var game = TestHelpers.PlayCards(
+            var game = await TestHelpers.PlayCards(
                 5,
                 side,
                 cardNames.Select(name => (name, Column.Left)).ToArray()
             );
-            game = TestHelpers.PlayCards(game, 6, side, new[] { ("Ironheart", Column.Right) });
+            game = await TestHelpers.PlayCards(game, 6, side, new[] { ("Ironheart", Column.Right) });
 
             Assert.That(game[Column.Left][side].Count, Is.EqualTo(4));
 

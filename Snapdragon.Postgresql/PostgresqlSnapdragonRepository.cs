@@ -11,8 +11,8 @@ namespace Snapdragon.Postgresql
     {
         private readonly string _connectionString;
         private readonly NpgsqlDataSource _dataSource;
-        private NpgsqlConnection? _connection = null;
         private bool disposed = false;
+        private SemaphoreSlim _semaphore = new SemaphoreSlim(50);
 
         public PostgresqlSnapdragonRepository(string connectionString)
         {
@@ -31,7 +31,8 @@ namespace Snapdragon.Postgresql
                 Created = experiment.Started
             };
 
-            var conn = GetConnection();
+            using var container = await GetConnection();
+            var conn = container.Connection;
 
             await conn.ExecuteAsync(
                 "INSERT INTO experiment (id, name, created) VALUES (@Id, @Name, @Created) "
@@ -42,7 +43,8 @@ namespace Snapdragon.Postgresql
 
         public async Task<Experiment?> GetExperiment(Guid id)
         {
-            var conn = GetConnection();
+            using var container = await GetConnection();
+            var conn = container.Connection;
 
             var row = await conn.QueryFirstOrDefaultAsync<Data.Experiment>(
                 "SELECT Id, Name, Created FROM experiment WHERE Id = @Id",
@@ -59,7 +61,8 @@ namespace Snapdragon.Postgresql
 
         public async Task<IReadOnlyList<Experiment>> GetExperiments()
         {
-            var conn = GetConnection();
+            using var container = await GetConnection();
+            var conn = container.Connection;
 
             var rows = await conn.QueryAsync<Data.Experiment>(
                 "SELECT Id, Name, Created FROM experiment"
@@ -70,7 +73,8 @@ namespace Snapdragon.Postgresql
 
         public async Task DeleteExperiment(Guid id)
         {
-            var conn = GetConnection();
+            using var container = await GetConnection();
+            var conn = container.Connection;
 
             await conn.ExecuteAsync("DELETE FROM experiment WHERE id = @Id", new { Id = id });
         }
@@ -82,7 +86,8 @@ namespace Snapdragon.Postgresql
         public async Task SavePopulation<T>(Population<T> population)
             where T : IGeneSequence<T>
         {
-            var conn = GetConnection();
+            using var container = await GetConnection();
+            var conn = container.Connection;
 
             var fixedCards = new HashSet<string>(
                 population.Genetics.GetFixedCards().Select(c => c.Name)
@@ -151,7 +156,8 @@ namespace Snapdragon.Postgresql
         public async Task<Population<T>?> GetPopulation<T>(Guid id)
             where T : IGeneSequence<T>
         {
-            var conn = GetConnection();
+            using var container = await GetConnection();
+            var conn = container.Connection;
 
             // TODO: Decide whether this needs to be wrapped in a transaction or something
 
@@ -168,7 +174,8 @@ namespace Snapdragon.Postgresql
         public async Task<Population<T>?> GetPopulation<T>(Guid experimentId, int generation)
             where T : IGeneSequence<T>
         {
-            var conn = GetConnection();
+            using var container = await GetConnection();
+            var conn = container.Connection;
 
             // TODO: Decide whether this needs to be wrapped in a transaction or something
 
@@ -259,7 +266,8 @@ namespace Snapdragon.Postgresql
 
         public async Task DeletePopulation(Guid id)
         {
-            var conn = GetConnection();
+            using var container = await GetConnection();
+            var conn = container.Connection;
 
             using (var transaction = await conn.BeginTransactionAsync())
             {
@@ -299,7 +307,8 @@ namespace Snapdragon.Postgresql
                 Controller = controller
             };
 
-            var conn = GetConnection();
+            using var container = await GetConnection();
+            var conn = container.Connection;
 
             using var transaction = await conn.BeginTransactionAsync();
 
@@ -351,7 +360,8 @@ namespace Snapdragon.Postgresql
 
         public async Task AddItemToPopulation(Guid itemId, Guid populationId, int generation)
         {
-            var conn = GetConnection();
+            using var container = await GetConnection();
+            var conn = container.Connection;
 
             await conn.ExecuteAsync(
                 "INSERT INTO population_item (populationid, itemid, generation) "
@@ -367,7 +377,8 @@ namespace Snapdragon.Postgresql
 
         public async Task RemoveItemFromPopulation(Guid itemId, Guid populationId, int generation)
         {
-            var conn = GetConnection();
+            using var container = await GetConnection();
+            var conn = container.Connection;
 
             await conn.ExecuteAsync(
                 "DELETE FROM population_item "
@@ -386,7 +397,8 @@ namespace Snapdragon.Postgresql
         public async Task<T?> GetItem<T>(Guid id)
             where T : class, IGeneSequence<T>
         {
-            var conn = GetConnection();
+            using var container = await GetConnection();
+            var conn = container.Connection;
 
             var row = await conn.QueryFirstOrDefaultAsync<Data.Item>(
                 "SELECT id, controller, firstparentid, secondparentid "
@@ -418,7 +430,8 @@ namespace Snapdragon.Postgresql
         public async Task<IReadOnlyList<T>> GetItems<T>(Guid populationId, int generation)
             where T : class, IGeneSequence<T>
         {
-            var conn = GetConnection();
+            using var container = await GetConnection();
+            var conn = container.Connection;
 
             var population = await GetPopulation<T>(populationId);
 
@@ -442,7 +455,8 @@ namespace Snapdragon.Postgresql
 
         public async Task DeleteItem(Guid id)
         {
-            var conn = GetConnection();
+            using var container = await GetConnection();
+            var conn = container.Connection;
 
             using var transaction = await conn.BeginTransactionAsync();
 
@@ -479,7 +493,8 @@ namespace Snapdragon.Postgresql
         {
             var row = (Data.CardDefinition)cardDefinition;
 
-            var conn = GetConnection();
+            using var container = await GetConnection();
+            var conn = container.Connection;
 
             await conn.ExecuteAsync(
                 "INSERT INTO carddefinition (name, cost, power) VALUES (@Name, @Cost, @Power) "
@@ -490,7 +505,8 @@ namespace Snapdragon.Postgresql
 
         public async Task<CardDefinition?> GetCardDefinition(string cardName)
         {
-            var conn = GetConnection();
+            using var container = await GetConnection();
+            var conn = container.Connection;
 
             var row = await conn.QueryFirstOrDefaultAsync<Data.CardDefinition>(
                 "SELECT name, cost, power FROM carddefinition WHERE name = @Name",
@@ -507,7 +523,8 @@ namespace Snapdragon.Postgresql
 
         public async Task<IReadOnlyList<CardDefinition>> GetCardDefinitions()
         {
-            var conn = GetConnection();
+            using var container = await GetConnection();
+            var conn = container.Connection;
 
             var rows = await conn.QueryAsync<Data.CardDefinition>(
                 "SELECT name, cost, power FROM carddefinition"
@@ -518,12 +535,107 @@ namespace Snapdragon.Postgresql
 
         public async Task DeleteCardDefinition(string cardName)
         {
-            var conn = GetConnection();
+            using var container = await GetConnection();
+            var conn = container.Connection;
 
             await conn.ExecuteAsync(
                 "DELETE FROM carddefinition WHERE name = @Name",
                 new { Name = cardName }
             );
+        }
+
+        #endregion
+
+        #region Games / Logs
+
+        public async Task SaveGame(GameRecord gameRecord)
+        {
+            using var container = await GetConnection();
+            var conn = container.Connection;
+
+            var row = (Data.GameRecord)gameRecord;
+
+            await conn.ExecuteAsync(
+                "INSERT INTO game (id, topitemid, bottomitemid, winner, experimentid, generation) "
+                    + "VALUES (@Id, @TopItemId, @BottomItemId, @Winner, @ExperimentId, @Generation) "
+                    + "ON CONFLICT(id) DO UPDATE SET "
+                    + "topitemid = EXCLUDED.topitemid, "
+                    + "bottomitemid = EXCLUDED.bottomitemid, "
+                    + "winner = EXCLUDED.winner, "
+                    + "experimentid = EXCLUDED.experimentid, "
+                    + "generation = EXCLUDED.generation;",
+                row
+            );
+        }
+
+        public async Task<GameRecord?> GetGame(Guid id)
+        {
+            using var container = await GetConnection();
+            var conn = container.Connection;
+
+            var row = await conn.QueryFirstOrDefaultAsync<Data.GameRecord>(
+                "SELECT id, topitemid, bottomitemid, winner, experimentid, generation "
+                    + "FROM game WHERE id = @Id",
+                new { Id = id }
+            );
+
+            return row == null ? null : (GameRecord)row;
+        }
+
+        public async Task DeleteGame(Guid id)
+        {
+            using var container = await GetConnection();
+            var conn = container.Connection;
+
+            using var transaction = await conn.BeginTransactionAsync();
+
+            try
+            {
+                await conn.ExecuteAsync(
+                    "DELETE FROM game_log WHERE gameid = @Id",
+                    new { Id = id },
+                    transaction
+                );
+                await conn.ExecuteAsync(
+                    "DELETE FROM game WHERE id = @Id",
+                    new { Id = id },
+                    transaction
+                );
+
+                await transaction.CommitAsync();
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
+
+        public async Task SaveGameLog(GameLogRecord log)
+        {
+            using var container = await GetConnection();
+            var conn = container.Connection;
+
+            var row = (Data.GameLog)log;
+
+            await conn.ExecuteAsync(
+                "INSERT INTO game_log (gameid, logorder, turn, contents) "
+                    + "VALUES (@GameId, @LogOrder, @Turn, @Contents)",
+                row
+            );
+        }
+
+        public async Task<IReadOnlyList<GameLogRecord>> GetGameLogs(Guid gameId)
+        {
+            using var container = await GetConnection();
+            var conn = container.Connection;
+
+            var logs = await conn.QueryAsync<Data.GameLog>(
+                "SELECT gameid, logorder, turn, contents FROM game_log WHERE gameid = @GameId ORDER BY logorder",
+                new { GameId = gameId }
+            );
+
+            return logs.Select(l => (GameLogRecord)l).ToList();
         }
 
         #endregion
@@ -617,17 +729,19 @@ namespace Snapdragon.Postgresql
             }
         }
 
-        private NpgsqlConnection GetConnection()
+        private async Task<ConnectionContainer> GetConnection()
         {
+            await _semaphore.WaitAsync();
+
             // TODO: Handle thread safety if it ever ends up mattering
             if (disposed)
             {
                 throw new ObjectDisposedException(nameof(PostgresqlSnapdragonRepository));
             }
 
-            _connection ??= _dataSource.OpenConnection();
+            var connection = await _dataSource.OpenConnectionAsync();
 
-            return _connection;
+            return new ConnectionContainer(_semaphore, connection);
         }
 
         ICardOrder ParseOrderBy(string orderBy)
@@ -679,12 +793,6 @@ namespace Snapdragon.Postgresql
         {
             if (disposing && !disposed)
             {
-                if (_connection != null)
-                {
-                    _connection.Dispose();
-                    _connection = null;
-                }
-
                 _dataSource.Dispose();
 
                 disposed = true;
@@ -692,5 +800,24 @@ namespace Snapdragon.Postgresql
         }
 
         #endregion
+    }
+
+    internal class ConnectionContainer : IDisposable
+    {
+        private readonly SemaphoreSlim _semaphore;
+
+        public ConnectionContainer(SemaphoreSlim semaphore, NpgsqlConnection connection)
+        {
+            _semaphore = semaphore;
+            Connection = connection;
+        }
+
+        public NpgsqlConnection Connection { get; }
+
+        public void Dispose()
+        {
+            Connection.Dispose();
+            _semaphore.Release();
+        }
     }
 }

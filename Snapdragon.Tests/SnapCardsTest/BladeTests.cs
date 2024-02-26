@@ -1,5 +1,5 @@
-﻿using System.Collections.Immutable;
-using Snapdragon.Events;
+﻿using Snapdragon.Events;
+using System.Collections.Immutable;
 
 namespace Snapdragon.Tests.SnapCardsTest
 {
@@ -7,7 +7,7 @@ namespace Snapdragon.Tests.SnapCardsTest
     {
         [Test]
         [TestCaseSource(typeof(AllSidesAndColumns))]
-        public void DiscardsLastCardInHand(Side side, Column column)
+        public async Task DiscardsLastCardInHand(Side side, Column column)
         {
             var game = TestHelpers.NewGame();
 
@@ -17,7 +17,7 @@ namespace Snapdragon.Tests.SnapCardsTest
                 .ToImmutableList();
             game = game.WithPlayer(game[side] with { Hand = hand });
 
-            game = TestHelpers.PlayCards(game, side, column, "Blade");
+            game = await TestHelpers.PlayCards(game, side, column, "Blade");
 
             Assert.That(game[side].Hand.Count, Is.EqualTo(2));
             Assert.That(game[side].Hand.Last().Name, Is.EqualTo(Cards.ThreeThree.Name));
@@ -30,7 +30,7 @@ namespace Snapdragon.Tests.SnapCardsTest
 
         [Test]
         [TestCaseSource(typeof(AllSidesAndColumns))]
-        public void DoesNotMakeOpponentDiscard(Side side, Column column)
+        public async Task DoesNotMakeOpponentDiscard(Side side, Column column)
         {
             var game = TestHelpers.NewGame();
 
@@ -40,7 +40,7 @@ namespace Snapdragon.Tests.SnapCardsTest
                 .ToImmutableList();
             game = game.WithPlayer(game[side.Other()] with { Hand = hand });
 
-            game = TestHelpers.PlayCards(game, side, column, "Blade");
+            game = await TestHelpers.PlayCards(game, side, column, "Blade");
 
             Assert.That(game[side.Other()].Hand.Count, Is.EqualTo(3));
 

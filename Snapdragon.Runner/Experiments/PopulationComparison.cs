@@ -8,12 +8,15 @@ namespace Snapdragon.Runner.Experiments
     /// An experiment that runs against two different populations that are co-evolving,
     /// recording the top decks of both and their card distributions over time.
     /// </summary>
-    public record PopulationComparison : Experiment
+    public record PopulationComparison(
+        Guid Id,
+        string Name,
+        DateTimeOffset Started,
+        ISnapdragonRepository? Repository = null,
+        int GamesPerDeck = 5
+    ) : Experiment(Id, Name, Started, Repository)
     {
-        public PopulationComparison(Guid Id, string Name, DateTimeOffset Started)
-            : base(Id, Name, Started) { }
-
-        public void Run<TFirst, TSecond>(
+        public async Task Run<TFirst, TSecond>(
             Genetics<TFirst> firstSchema,
             Genetics<TSecond> secondSchema,
             string firstName,
@@ -24,15 +27,28 @@ namespace Snapdragon.Runner.Experiments
             where TFirst : IGeneSequence<TFirst>
             where TSecond : IGeneSequence<TSecond>
         {
+            if (Repository != null)
+            {
+                await Repository.SaveExperiment(this);
+            }
+
             var first = new Population<TFirst>(firstSchema, deckCount, firstName, this.Id);
             var second = new Population<TSecond>(secondSchema, deckCount, secondName, this.Id);
+
+            if (Repository != null)
+            {
+                await Repository.SavePopulation(first);
+                await Repository.SavePopulation(second);
+            }
+
+            await LogDecks(first, second);
 
             WriteHeaders(first);
             WriteHeaders(second);
 
             for (var i = 0; i < generations; i++)
             {
-                (first, second) = RunGames(first, second);
+                (first, second) = await RunGames(first, second, GamesPerDeck, Repository);
 
                 Log.LogBestDeck(i, first);
                 Log.LogBestDeck(i, second);
@@ -40,11 +56,38 @@ namespace Snapdragon.Runner.Experiments
                 first = first.Reproduce();
                 second = second.Reproduce();
 
+                await LogDecks(first, second);
+
                 WriteCardCounts(first);
                 WriteCardCounts(second);
             }
 
             Console.WriteLine("Finished.");
+        }
+
+        private async Task LogDecks<TFirst, TSecond>(
+            Population<TFirst> first,
+            Population<TSecond> second
+        )
+            where TFirst : IGeneSequence<TFirst>
+            where TSecond : IGeneSequence<TSecond>
+        {
+            if (Repository == null)
+            {
+                return;
+            }
+
+            foreach (var firstItem in first.Items)
+            {
+                await Repository.SaveItem(firstItem);
+                await Repository.AddItemToPopulation(firstItem.Id, first.Id, first.Generation);
+            }
+
+            foreach (var secondItem in second.Items)
+            {
+                await Repository.SaveItem(secondItem);
+                await Repository.AddItemToPopulation(secondItem.Id, second.Id, second.Generation);
+            }
         }
 
         private void WriteCardCounts<T>(Population<T> population)
@@ -83,26 +126,28 @@ namespace Snapdragon.Runner.Experiments
             }
         }
 
-        private (Population<TFirst> First, Population<TSecond> Second) RunGames<TFirst, TSecond>(
+        private async Task<(Population<TFirst> First, Population<TSecond> Second)> RunGames<
+            TFirst,
+            TSecond
+        >(
             Population<TFirst> first,
             Population<TSecond> second,
-            int gamesPerDeck = 5
+            int gamesPerDeck = 5,
+            ISnapdragonRepository? repository = null
         )
             where TFirst : IGeneSequence<TFirst>
             where TSecond : IGeneSequence<TSecond>
         {
-            var engine = new Engine(new NullLogger());
-
             var combinedPopulations = new List<IReadOnlyList<IGeneSequence>>
             {
                 first.Items.Cast<IGeneSequence>().ToList(),
                 second.Items.Cast<IGeneSequence>().ToList()
             };
 
-            var allWins = first.Genetics.RunMixedPopulationGames(
+            var allWins = await first.Genetics.RunMixedPopulationGames(
                 combinedPopulations,
-                engine,
-                gamesPerDeck
+                gamesPerDeck,
+                repository
             );
 
             first = first with { Wins = allWins[0] };

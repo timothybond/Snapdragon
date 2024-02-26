@@ -5,7 +5,7 @@ namespace Snapdragon.Runner.Experiments
 {
     public class KaZarSoloExperiment
     {
-        public void Run()
+        public async Task Run(ISnapdragonRepository? repository = null)
         {
             const int Simulations = 10;
             const int MutationsPer = 100;
@@ -13,7 +13,8 @@ namespace Snapdragon.Runner.Experiments
             var selfPlay = new PopulationSelfPlay(
                 Guid.NewGuid(),
                 "Without Ka-Zar Self-Play",
-                DateTimeOffset.UtcNow
+                DateTimeOffset.UtcNow,
+                repository
             );
 
             var kaZarDefinition = SnapCards.ByName["Ka-Zar"];
@@ -25,12 +26,13 @@ namespace Snapdragon.Runner.Experiments
                 new RandomCardOrder()
             );
 
-            selfPlay.Run(withoutKaZar, "without-ka-zar-solo", 8, 100, 2);
+            await selfPlay.Run(withoutKaZar, "without-ka-zar-solo", 64, 100, 10);
 
             selfPlay = new PopulationSelfPlay(
                 Guid.NewGuid(),
                 "With Ka-Zar Pinned Self-Play",
-                DateTimeOffset.UtcNow
+                DateTimeOffset.UtcNow,
+                repository
             );
 
             var kaZarPinned = new PartiallyFixedGenetics(
@@ -41,7 +43,7 @@ namespace Snapdragon.Runner.Experiments
                 new RandomCardOrder()
             );
 
-            selfPlay.Run(kaZarPinned, "with-ka-zar-pinned-solo", 64, 100, 10);
+            await selfPlay.Run(kaZarPinned, "with-ka-zar-pinned-solo", 64, 100, 10);
         }
     }
 }

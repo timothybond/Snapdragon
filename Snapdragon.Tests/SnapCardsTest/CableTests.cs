@@ -5,7 +5,7 @@ namespace Snapdragon.Tests.SnapCardsTest
     public class CableTests
     {
         [Test]
-        public void DrawsOpponentCard()
+        public async Task DrawsOpponentCard()
         {
             // Note: Both sides will draw 3 cards during setup.
             var engine = new Engine(new NullLogger());
@@ -47,9 +47,9 @@ namespace Snapdragon.Tests.SnapCardsTest
                 false
             );
 
-            game = game.PlaySingleTurn();
-            game = game.PlaySingleTurn();
-            game = game.StartNextTurn();
+            game = await game.PlaySingleTurn();
+            game = await game.PlaySingleTurn();
+            game = await game.StartNextTurn();
 
             var cableCard = game[Side.Top].Hand.Single(c => string.Equals(c.Name, "Cable"));
 
@@ -58,7 +58,7 @@ namespace Snapdragon.Tests.SnapCardsTest
                 new PlayCardAction(Side.Top, cableCard, Column.Middle)
             };
 
-            game = game.PlayAlreadyStartedTurn();
+            game = await game.PlayAlreadyStartedTurn();
 
             // We drew six cards (three at start of game, three for turns), then played one, but should have drawn one from the opponent.
             Assert.That(game[Side.Top].Hand.Count, Is.EqualTo(6));
@@ -66,7 +66,7 @@ namespace Snapdragon.Tests.SnapCardsTest
         }
 
         [Test]
-        public void OpponentDeckEmpty_NothingBreaks()
+        public async Task OpponentDeckEmpty_NothingBreaks()
         {
             // Note: Both sides will draw 3 cards during setup.
             var engine = new Engine(new NullLogger());
@@ -107,9 +107,9 @@ namespace Snapdragon.Tests.SnapCardsTest
                 false
             );
 
-            game = game.PlaySingleTurn();
-            game = game.PlaySingleTurn();
-            game = game.StartNextTurn();
+            game = await game.PlaySingleTurn();
+            game = await game.PlaySingleTurn();
+            game = await game.StartNextTurn();
 
             var cableCard = game[Side.Top].Hand.Single(c => string.Equals(c.Name, "Cable"));
 
@@ -118,7 +118,7 @@ namespace Snapdragon.Tests.SnapCardsTest
                 new PlayCardAction(Side.Top, cableCard, Column.Middle)
             };
 
-            game = game.PlayAlreadyStartedTurn();
+            game = await game.PlayAlreadyStartedTurn();
 
             // We drew six cards (three at start of game, three for turns), then played one
             Assert.That(game[Side.Top].Hand.Count, Is.EqualTo(5));

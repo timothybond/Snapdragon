@@ -4,9 +4,9 @@
     {
         [Test]
         [TestCaseSource(typeof(AllSidesAndColumns))]
-        public void AddsCardsToHand(Side side, Column column)
+        public async Task AddsCardsToHand(Side side, Column column)
         {
-            var game = TestHelpers.PlayCards(3, side, [("Agent Coulson", column)]);
+            var game = await TestHelpers.PlayCards(3, side, [("Agent Coulson", column)]);
 
             // Note by default TestHelpers.PlayCards only puts the cards to be played into the hand
             var hand = game[side].Hand;

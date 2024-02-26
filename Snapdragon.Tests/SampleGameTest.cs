@@ -7,12 +7,12 @@ namespace Snapdragon.Tests
         // This is just a test to allow me to walk through a sample game
         // and make sure everything is working correctly.
         [Test]
-        public void PlayGame()
+        public async Task PlayGame()
         {
             var logger = new TestLogger();
 
             var game = GetNewGame(logger);
-            game = game.PlayGame();
+            game = await game.PlayGame();
 
             Assert.Pass(logger.ToString());
         }
@@ -35,7 +35,7 @@ namespace Snapdragon.Tests
         //[TestCase(5, 10)]
         //[TestCase(10, 20)]
         //[TestCase(20, 50)]
-        public void ComparePerformanceByControllers(int lowSimCount, int highSimCount)
+        public async Task ComparePerformanceByControllers(int lowSimCount, int highSimCount)
         {
             if (lowSimCount >= highSimCount)
             {
@@ -45,22 +45,24 @@ namespace Snapdragon.Tests
             var totalGames = 100;
             var wins = 0;
 
-            Parallel.For(
-                0,
-                totalGames,
-                (_) =>
-                {
-                    var game = GetMirrorGame(new NullLogger(), highSimCount, lowSimCount);
-                    game = game.PlayGame();
-
-                    var scores = game.GetCurrentScores();
-
-                    if (scores.Leader == Side.Top)
+            await Enumerable
+                .Range(0, totalGames)
+                .ForEachAsync(
+                    async _ =>
                     {
-                        Interlocked.Increment(ref wins);
+                        var game = GetMirrorGame(new NullLogger(), highSimCount, lowSimCount);
+                        game = await game.PlayGame();
+
+                        return game.GetCurrentScores();
+                    },
+                    (_, scores) =>
+                    {
+                        if (scores.Leader == Side.Top)
+                        {
+                            Interlocked.Increment(ref wins);
+                        }
                     }
-                }
-            );
+                );
 
             Assert.Pass($"Top wins: {wins}/{totalGames}");
         }
@@ -75,7 +77,7 @@ namespace Snapdragon.Tests
         //[TestCase(50)]
         //[TestCase(100)]
         //[TestCase(200)]
-        public void GetAverageScores(int monteCarloSimulationCount)
+        public async Task GetAverageScores(int monteCarloSimulationCount)
         {
             var scoreList = new List<CurrentScores>();
 
@@ -90,22 +92,24 @@ namespace Snapdragon.Tests
              * 200 sims: 37.185
              */
 
-            Parallel.For(
-                0,
-                20,
-                (_) =>
-                {
-                    var game = GetNewGame(new NullLogger(), monteCarloSimulationCount);
-                    game = game.PlayGame();
-
-                    var scores = game.GetCurrentScores();
-
-                    lock (scoreList)
+            await Enumerable
+                .Range(0, 20)
+                .ForEachAsync(
+                    async _ =>
                     {
-                        scoreList.Add(scores);
+                        var game = GetNewGame(new NullLogger(), monteCarloSimulationCount);
+                        game = await game.PlayGame();
+
+                        return game.GetCurrentScores();
+                    },
+                    (_, scores) =>
+                    {
+                        lock (scoreList)
+                        {
+                            scoreList.Add(scores);
+                        }
                     }
-                }
-            );
+                );
 
             var averagePlayerScore =
                 scoreList.Sum(s =>
