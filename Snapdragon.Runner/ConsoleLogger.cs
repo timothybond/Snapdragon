@@ -14,7 +14,13 @@
 
         public void LogHands(Game game)
         {
-            throw new NotImplementedException();
+            Console.WriteLine(LoggerUtilities.HandsLog(game));
+        }
+
+        public Task LogFinishedGame(Game game)
+        {
+            // Do nothing - we already write detailed logs throughout the game with this implementation.
+            return Task.CompletedTask;
         }
     }
 }

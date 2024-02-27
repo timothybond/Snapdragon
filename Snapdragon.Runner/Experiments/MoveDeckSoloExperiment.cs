@@ -5,7 +5,7 @@ namespace Snapdragon.Runner.Experiments
 {
     public class MoveDeckSoloExperiment
     {
-        public void Run()
+        public async Task Run(ISnapdragonRepositoryBuilder? repositoryBuilder = null)
         {
             const int Simulations = 10;
             const int MutationsPer = 100;
@@ -16,7 +16,8 @@ namespace Snapdragon.Runner.Experiments
             var selfPlay = new PopulationSelfPlay(
                 Guid.NewGuid(),
                 "Without Vulture/MM Self Play",
-                DateTimeOffset.UtcNow
+                DateTimeOffset.UtcNow,
+                repositoryBuilder
             );
 
             var withoutVultureOrMultipleMan = new CardGenetics(
@@ -26,12 +27,13 @@ namespace Snapdragon.Runner.Experiments
                 new RandomCardOrder()
             );
 
-            selfPlay.Run(withoutVultureOrMultipleMan, "without-vulture-mm-solo", 64, 100, 10);
+            await selfPlay.Run(withoutVultureOrMultipleMan, "without-vulture-mm-solo", 64, 100, 10);
 
             selfPlay = new PopulationSelfPlay(
                 Guid.NewGuid(),
                 "With Vulture/MM Pinned Self Play",
-                DateTimeOffset.UtcNow
+                DateTimeOffset.UtcNow,
+                repositoryBuilder
             );
 
             var vultureMultipleManPinned = new PartiallyFixedGenetics(
@@ -42,7 +44,7 @@ namespace Snapdragon.Runner.Experiments
                 new RandomCardOrder()
             );
 
-            selfPlay.Run(vultureMultipleManPinned, "with-vulture-mm-solo", 64, 100, 10);
+            await selfPlay.Run(vultureMultipleManPinned, "with-vulture-mm-solo", 64, 100, 10);
         }
     }
 }

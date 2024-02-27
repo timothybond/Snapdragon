@@ -1,6 +1,6 @@
-﻿using System.Globalization;
-using CsvHelper;
+﻿using CsvHelper;
 using Snapdragon.GeneticAlgorithm;
+using System.Globalization;
 
 namespace Snapdragon.Runner.Experiments
 {
@@ -10,10 +10,15 @@ namespace Snapdragon.Runner.Experiments
     /// </summary>
     public record PopulationSelfPlay : Experiment
     {
-        public PopulationSelfPlay(Guid Id, string Name, DateTimeOffset Started)
-            : base(Id, Name, Started) { }
+        public PopulationSelfPlay(
+            Guid Id,
+            string Name,
+            DateTimeOffset Started,
+            ISnapdragonRepositoryBuilder? RepositoryBuilder = null
+        )
+            : base(Id, Name, Started, RepositoryBuilder) { }
 
-        public void Run<T>(
+        public async Task Run<T>(
             Genetics<T> schema,
             string name,
             int deckCount = 64,
@@ -24,15 +29,25 @@ namespace Snapdragon.Runner.Experiments
         {
             var population = new Population<T>(schema, deckCount, name, this.Id);
 
+            if (RepositoryBuilder != null)
+            {
+                using var repository = RepositoryBuilder.Build();
+                await repository.SaveExperiment(this);
+                await repository.SavePopulation(population);
+            }
+
+            await LogDecks(population);
+
             WriteHeaders(population);
 
             for (var i = 0; i < generations; i++)
             {
-                population = RunGames(population, gamesPerDeck);
+                population = await RunGames(population, gamesPerDeck);
 
                 Log.LogBestDeck(i, population);
 
                 population = population.Reproduce();
+                await LogDecks(population);
 
                 WriteCardCounts(population);
             }
@@ -76,19 +91,35 @@ namespace Snapdragon.Runner.Experiments
             }
         }
 
-        private Population<T> RunGames<T>(Population<T> population, int gamesPerDeck)
+        private async Task<Population<T>> RunGames<T>(Population<T> population, int gamesPerDeck)
             where T : IGeneSequence<T>
         {
-            var engine = new Engine(new NullLogger());
-
-            var wins = population.Genetics.RunPopulationGames(
+            var wins = await population.Genetics.RunPopulationGames(
                 population.Items.Cast<IGeneSequence>().ToList(),
-                engine,
-                gamesPerDeck
+                gamesPerDeck,
+                RepositoryBuilder,
+                Id,
+                population.Generation
             );
             population = population with { Wins = wins };
 
             return population;
+        }
+
+        private async Task LogDecks<T>(Population<T> population)
+            where T : IGeneSequence<T>
+        {
+            if (RepositoryBuilder == null)
+            {
+                return;
+            }
+
+            foreach (var item in population.Items)
+            {
+                using var repository = RepositoryBuilder.Build();
+                await repository.SaveItem(item);
+                await repository.AddItemToPopulation(item.Id, population.Id, population.Generation);
+            }
         }
     }
 }

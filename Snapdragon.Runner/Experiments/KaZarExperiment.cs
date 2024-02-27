@@ -5,7 +5,7 @@ namespace Snapdragon.Runner.Experiments
 {
     public class KaZarExperiment
     {
-        public void Run()
+        public async Task Run()
         {
             const int Simulations = 10;
             const int MutationsPer = 100;
@@ -33,7 +33,7 @@ namespace Snapdragon.Runner.Experiments
                 DateTimeOffset.UtcNow
             );
 
-            populationExperiment.Run(
+            await populationExperiment.Run(
                 withoutKaZar,
                 kaZarPinned,
                 "without-ka-zar",

@@ -93,3 +93,39 @@ CREATE TABLE public.population_item
         ON UPDATE NO ACTION
         ON DELETE NO ACTION
 );
+
+CREATE TABLE public.game
+(
+    id uuid NOT NULL,
+    topitemid uuid NOT NULL,
+    bottomitemid uuid NOT NULL,
+    winner character varying(6) COLLATE pg_catalog."default",
+    experimentid uuid,
+    generation integer,
+    CONSTRAINT game_pkey PRIMARY KEY (id),
+    CONSTRAINT game_bottomitemid_fkey FOREIGN KEY (bottomitemid)
+        REFERENCES public.item (id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION,
+    CONSTRAINT game_experimentid_fkey FOREIGN KEY (experimentid)
+        REFERENCES public.experiment (id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION,
+    CONSTRAINT game_topitemid_fkey FOREIGN KEY (topitemid)
+        REFERENCES public.item (id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+);
+
+CREATE TABLE public.game_log
+(
+    gameid uuid NOT NULL,
+    logorder integer NOT NULL,
+    turn integer NOT NULL,
+    contents character varying COLLATE pg_catalog."default" NOT NULL,
+    CONSTRAINT game_log_pkey PRIMARY KEY (gameid, logorder),
+    CONSTRAINT game_gameid_fkey FOREIGN KEY (gameid)
+        REFERENCES public.game (id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+);

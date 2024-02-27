@@ -10,5 +10,10 @@
         public void LogGameState(Game game) { }
 
         public void LogHands(Game game) { }
+
+        public Task LogFinishedGame(Game game)
+        {
+            return Task.CompletedTask;
+        }
     }
 }

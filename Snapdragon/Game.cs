@@ -1,11 +1,11 @@
-﻿using System.Collections.Immutable;
-using Snapdragon.Events;
+﻿using Snapdragon.Events;
 using Snapdragon.OngoingAbilities;
-using Snapdragon.PlayerActions;
+using System.Collections.Immutable;
 
 namespace Snapdragon
 {
     public record Game(
+        Guid Id,
         int Turn,
         Location Left,
         Location Middle,
@@ -503,24 +503,6 @@ namespace Snapdragon
             // Get player actions
             var topPlayerActions = game.Top.Controller.GetActions(game, Side.Top);
             var bottomPlayerActions = game.Bottom.Controller.GetActions(game, Side.Bottom);
-
-            foreach (var top in topPlayerActions)
-            {
-                if (top is MoveCardAction move && move.Card.Name == "Ebony Maw")
-                {
-                    var test = 0;
-                    test += 1;
-                }
-            }
-
-            foreach (var bottom in bottomPlayerActions)
-            {
-                if (bottom is MoveCardAction move && move.Card.Name == "Ebony Maw")
-                {
-                    var test = 0;
-                    test += 1;
-                }
-            }
 
             // Resolve player actions
             game = game.ProcessPlayerActions(topPlayerActions, bottomPlayerActions);

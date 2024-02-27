@@ -1,4 +1,9 @@
 ﻿namespace Snapdragon.GeneticAlgorithm
 {
-    public record Experiment(Guid Id, string Name, DateTimeOffset Started) { }
+    public record Experiment(
+        Guid Id,
+        string Name,
+        DateTimeOffset Started,
+        ISnapdragonRepositoryBuilder? RepositoryBuilder = null
+    ) { }
 }

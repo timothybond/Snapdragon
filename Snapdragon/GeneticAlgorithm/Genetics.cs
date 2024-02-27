@@ -94,32 +94,54 @@ public abstract record Genetics<T>(
     /// Runs the specified number of games with each <see cref="Deck"/>, pairing them randomly against each other.
     /// </summary>
     /// <returns>The number of wins per each <see cref="Deck"/>.</returns>
-    public IReadOnlyList<int> RunPopulationGames(
+    public async Task<IReadOnlyList<int>> RunPopulationGames(
         IReadOnlyList<IGeneSequence> population,
-        Engine engine,
-        int gamesPerDeck = 5
+        int gamesPerDeck = 5,
+        ISnapdragonRepositoryBuilder? repositoryBuilder = null,
+        Guid? experimentId = null,
+        int? generation = null
     )
     {
         var pairs = GetRandomPairs(population.Count, gamesPerDeck);
 
         var totalGamesWon = population.Select(d => 0).ToList();
 
-        Parallel.ForEach(
-            pairs,
-            pair =>
-            {
-                var winner = PlayGameAndGetWinnerIndex(population, pair);
-                if (winner >= 0)
+        var repository = repositoryBuilder?.Build();
+
+        try
+        {
+            await pairs.ForEachAsync(
+                async pair =>
                 {
-                    lock (totalGamesWon)
+                    return await PlayGameAndGetWinnerIndex(
+                        population,
+                        pair,
+                        repository,
+                        experimentId,
+                        generation
+                    );
+                },
+                (pair, winner) =>
+                {
+                    if (winner >= 0)
                     {
-                        totalGamesWon[winner] += 1;
+                        lock (totalGamesWon)
+                        {
+                            totalGamesWon[winner] += 1;
+                        }
                     }
                 }
-            }
-        );
+            );
 
-        return totalGamesWon;
+            return totalGamesWon;
+        }
+        finally
+        {
+            if (repository != null)
+            {
+                repository.Dispose();
+            }
+        }
     }
 
     /// <summary>
@@ -129,10 +151,10 @@ public abstract record Genetics<T>(
     /// although it is expected that they will reproduce separately.
     /// </summary>
     /// <returns>The number of wins per each <see cref="Deck"/>.</returns>
-    public IReadOnlyList<IReadOnlyList<int>> RunMixedPopulationGames(
+    public async Task<IReadOnlyList<IReadOnlyList<int>>> RunMixedPopulationGames(
         IReadOnlyList<IReadOnlyList<IGeneSequence>> populations,
-        Engine engine,
-        int gamesPerDeck = 5
+        int gamesPerDeck = 5,
+        ISnapdragonRepositoryBuilder? repositoryBuilder = null
     )
     {
         if (populations.Count == 0)
@@ -151,7 +173,7 @@ public abstract record Genetics<T>(
         }
 
         var combinedPopulation = populations.SelectMany(p => p).ToList();
-        var wins = RunPopulationGames(combinedPopulation, engine, gamesPerDeck);
+        var wins = await RunPopulationGames(combinedPopulation, gamesPerDeck, repositoryBuilder);
 
         var winsByPopulation = new List<IReadOnlyList<int>>();
 
@@ -165,9 +187,12 @@ public abstract record Genetics<T>(
         return winsByPopulation;
     }
 
-    private int PlayGameAndGetWinnerIndex(
+    private async Task<int> PlayGameAndGetWinnerIndex(
         IReadOnlyList<IGeneSequence> population,
-        (int First, int Second) pair
+        (int First, int Second) pair,
+        ISnapdragonRepository? repository = null,
+        Guid? experimentId = null,
+        int? generation = null
     )
     {
         var engine = new Engine(new NullLogger());
@@ -178,8 +203,17 @@ public abstract record Genetics<T>(
         var topPlayerConfig = population[topIndex].GetPlayerConfiguration();
         var bottomPlayerConfig = population[bottomIndex].GetPlayerConfiguration();
 
-        var game = engine.CreateGame(topPlayerConfig, bottomPlayerConfig);
+        var game = engine.CreateGame(
+            topPlayerConfig,
+            bottomPlayerConfig,
+            repository: repository,
+            experimentId: experimentId,
+            generation: generation
+        );
+
         game = game.PlayGame();
+
+        await game.Logger.LogFinishedGame(game);
 
         // For the moment we will only count victories, not ties.
         var winner = game.GetLeader();
