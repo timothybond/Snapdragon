@@ -153,6 +153,37 @@ namespace Snapdragon.Postgresql
             }
         }
 
+        public async Task<IReadOnlyList<Population<T>>> GetPopulations<T>(Guid experimentId)
+            where T : IGeneSequence<T>
+        {
+            using var container = await GetConnection();
+            var conn = container.Connection;
+
+            // TODO: Decide whether this needs to be wrapped in a transaction or something
+
+            // TODO: Make this altogether less messy (this would probably require refactoring
+            // the Genetics/Population classes to unify them rather than having the generics)
+            var rows = await conn.QueryAsync<Data.Population>(
+                "SELECT id, experimentid, name, controller, mutationper, orderby FROM population WHERE experimentId = @ExperimentId",
+                new { ExperimentId = experimentId }
+            );
+
+            var results = new List<Population<T>>();
+
+            foreach (var row in rows)
+            {
+                var pop = await GetPopulation<T>(row, conn);
+
+                // TODO: Consider how this should be handled (not sure it can actually happen)
+                if (pop != null)
+                {
+                    results.Add(pop);
+                }
+            }
+
+            return results;
+        }
+
         public async Task<Population<T>?> GetPopulation<T>(Guid id)
             where T : IGeneSequence<T>
         {
@@ -215,8 +246,9 @@ namespace Snapdragon.Postgresql
 
             var controller = ParseController(row.Controller);
             var orderBy = ParseOrderBy(row.OrderBy);
+            var generation = await GetMaxGeneration(row.Id, conn);
 
-            if (fixedCards.Count > 0)
+            if (typeof(PartiallyFixedCardGeneSequence) == typeof(T))
             {
                 var genetics = new PartiallyFixedGenetics(
                     fixedCards,
@@ -228,19 +260,23 @@ namespace Snapdragon.Postgresql
 
                 var population = new Population<PartiallyFixedCardGeneSequence>(
                     genetics,
-                    0,
+                    [],
                     row.Name,
-                    row.ExperimentId
+                    row.Id,
+                    row.ExperimentId,
+                    generation,
+                    DateTimeOffset.MinValue // TODO: Store this or remove it
                 );
 
-                if (typeof(PartiallyFixedCardGeneSequence) != typeof(T))
-                {
-                    throw new InvalidOperationException(
-                        "Population has fixed cards, but was not requested as a PartiallyFixedCardGeneSequence population."
-                    );
-                }
+                population = population with { Generation = generation };
 
                 return population as Population<T>;
+            }
+            else if (fixedCards.Count > 0)
+            {
+                throw new InvalidOperationException(
+                    "Population has fixed cards, but was not requested as a PartiallyFixedCardGeneSequence population."
+                );
             }
             else
             {
@@ -248,20 +284,35 @@ namespace Snapdragon.Postgresql
 
                 var population = new Population<CardGeneSequence>(
                     genetics,
-                    0,
+                    [],
                     row.Name,
-                    row.ExperimentId
+                    row.Id,
+                    row.ExperimentId,
+                    generation,
+                    DateTimeOffset.MinValue // TODO: Store this or remove it
                 );
+
+                population = population with { Generation = generation };
 
                 if (typeof(CardGeneSequence) != typeof(T))
                 {
                     throw new InvalidOperationException(
-                        "Population has no fixed cards, but was not requested as a CardGeneSequence population."
+                        "In practice you can only request populations of PartiallyFixedCardGeneSequence and CardGeneSequence."
                     );
                 }
 
                 return population as Population<T>;
             }
+        }
+
+        private async Task<int> GetMaxGeneration(Guid populationId, NpgsqlConnection conn)
+        {
+            return (
+                    await conn.QueryFirstOrDefaultAsync<int?>(
+                        "SELECT MAX(generation) FROM population_item WHERE populationid = @PopulationId",
+                        new { PopulationId = populationId }
+                    )
+                ) ?? -1;
         }
 
         public async Task DeletePopulation(Guid id)
@@ -548,6 +599,21 @@ namespace Snapdragon.Postgresql
 
         #region Games / Logs
 
+
+        public async Task<IReadOnlyList<GameRecord>> GetGames<T>(Guid experimentId, int generation)
+        {
+            using var container = await GetConnection();
+            var conn = container.Connection;
+
+            var rows = await conn.QueryAsync<Data.GameRecord>(
+                "SELECT id, topitemid, bottomitemid, winner, experimentid, generation "
+                    + "FROM game WHERE experimentId = @ExperimentId AND generation = @Generation",
+                new { ExperimentId = experimentId, Generation = generation }
+            );
+
+            return rows.Select(r => (GameRecord)r).ToList();
+        }
+
         public async Task SaveGame(GameRecord gameRecord)
         {
             using var container = await GetConnection();
@@ -750,7 +816,7 @@ namespace Snapdragon.Postgresql
 
                         return new ConnectionContainer(_semaphore, connection);
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
                         // TODO: Figure out some better way to track this
                         Console.WriteLine(

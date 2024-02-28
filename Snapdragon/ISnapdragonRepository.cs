@@ -51,6 +51,14 @@ namespace Snapdragon
             where T : IGeneSequence<T>;
 
         /// <summary>
+        /// Gets the <see cref="Population{T}"/>s associated with an <see cref="Experiment"/> by its unique identifier.
+        ///
+        /// Note that this will NOT include the <see cref="Population{T}.Items"/> entries.
+        /// </summary>
+        Task<IReadOnlyList<Population<T>>> GetPopulations<T>(Guid experimentId)
+            where T : IGeneSequence<T>;
+
+        /// <summary>
         /// Gets the <see cref="Population{T}"/> by <see cref="Experiment"/> unique identifier
         /// and generation number.
         ///
@@ -132,6 +140,12 @@ namespace Snapdragon
         /// Saves an entry for a <see cref="Game"/>, which can then be logged against.
         /// </summary>
         Task SaveGame(GameRecord gameRecord);
+
+        /// <summary>
+        /// Gets the <see cref="GameRecord"/>s of all games played in a given <see cref="Experiment"/>
+        /// during a given generation.
+        /// </summary>
+        Task<IReadOnlyList<GameRecord>> GetGames<T>(Guid experimentId, int generation);
 
         /// <summary>
         /// Gets an entry for a <see cref="Game"/>.

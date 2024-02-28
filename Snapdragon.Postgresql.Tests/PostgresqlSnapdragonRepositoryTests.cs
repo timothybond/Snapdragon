@@ -254,6 +254,31 @@ namespace Snapdragon.Postgresql.Tests
         #region Population Tests
 
         [Test]
+        public async Task SavePopulation_GetsBackSameId()
+        {
+            var experimentId = await SaveExperiment("Test Id Experiment");
+
+            var population = new Population<CardGeneSequence>(
+                new CardGenetics(
+                    SnapCards.All,
+                    new RandomPlayerController(),
+                    100,
+                    new ExistingCardOrder()
+                ),
+                0,
+                "Test Pop Id",
+                experimentId
+            );
+
+            await _repository.SavePopulation(population);
+
+            var savedPopulation = await _repository.GetPopulation<CardGeneSequence>(population.Id);
+
+            Assert.That(savedPopulation, Is.Not.Null);
+            Assert.That(savedPopulation.Id, Is.EqualTo(population.Id));
+        }
+
+        [Test]
         [TestCase(20)]
         [TestCase(100)]
         [TestCase(200)]
@@ -421,9 +446,40 @@ namespace Snapdragon.Postgresql.Tests
             }
         }
 
-        // Note, can't have an empty one here, because a
-        // partially-fixed sequence must have some fixed cards
         [Test]
+        [TestCase()]
+        [TestCase("Ant Man", "Misty Knight")]
+        [TestCase("Iron Man", "Blade", "Hulk")]
+        public async Task SavePopulation_FixedCards_GetsBackSameId(params string[] cardNames)
+        {
+            var cards = cardNames.Select(n => SnapCards.ByName[n]).ToImmutableList();
+            var experimentId = await SaveExperiment("Test Fixed Cards Experiment");
+
+            var population = new Population<PartiallyFixedCardGeneSequence>(
+                new PartiallyFixedGenetics(
+                    cards,
+                    SnapCards.All,
+                    new RandomPlayerController(),
+                    25,
+                    new ExistingCardOrder()
+                ),
+                0,
+                "Test Pop Fixed Cards",
+                experimentId
+            );
+
+            await _repository.SavePopulation(population);
+
+            var savedPopulation = await _repository.GetPopulation<PartiallyFixedCardGeneSequence>(
+                population.Id
+            );
+
+            Assert.That(savedPopulation, Is.Not.Null);
+            Assert.That(savedPopulation.Id, Is.EqualTo(population.Id));
+        }
+
+        [Test]
+        [TestCase()]
         [TestCase("Ant Man", "Misty Knight")]
         [TestCase("Iron Man", "Blade", "Hulk")]
         public async Task SavePopulation_FixedCards_GetsBackCards(params string[] cardNames)
@@ -468,6 +524,46 @@ namespace Snapdragon.Postgresql.Tests
             {
                 Assert.That(savedPopulation.Genetics.AllPossibleCards, Contains.Item(anyCard));
             }
+        }
+
+        [Test]
+        public async Task SavePopulation_RetrievedByExperiment()
+        {
+            var experimentId = await SaveExperiment("Test Population By Experiment");
+
+            var population1 = new Population<CardGeneSequence>(
+                new CardGenetics(
+                    SnapCards.All,
+                    new MonteCarloSearchController(10),
+                    25,
+                    new ExistingCardOrder()
+                ),
+                0,
+                "Test Pop By Experiment 1",
+                experimentId
+            );
+            var population2 = new Population<CardGeneSequence>(
+                new CardGenetics(
+                    SnapCards.All,
+                    new MonteCarloSearchController(10),
+                    25,
+                    new ExistingCardOrder()
+                ),
+                0,
+                "Test Pop By Experiment 2",
+                experimentId
+            );
+
+            await _repository.SavePopulation(population1);
+            await _repository.SavePopulation(population2);
+
+            var savedPops = await _repository.GetPopulations<CardGeneSequence>(experimentId);
+
+            Assert.That(savedPops, Has.Exactly(2).Items);
+
+            var savedPopNames = savedPops.Select(p => p.Name);
+            Assert.That(savedPopNames, Contains.Item("Test Pop By Experiment 1"));
+            Assert.That(savedPopNames, Contains.Item("Test Pop By Experiment 2"));
         }
 
         #endregion
