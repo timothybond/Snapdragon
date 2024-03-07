@@ -1,6 +1,10 @@
 <script lang="ts">
     import SvelteTable, { type TableColumn } from "svelte-table";
-    import { itemsWithGames, selectedItemId } from "../stores/stores";
+    import {
+        itemsWithGames,
+        selectedGameId,
+        selectedItemId,
+    } from "../stores/stores";
     import type { Item, ItemWithGames } from "../types/models";
 
     let selectedKeys: (string | number)[];
@@ -17,7 +21,10 @@
 
     $: {
         if (selectedKeys) {
-            selectedItemId.set(selectedKeys[0]?.toString());
+            if ($selectedItemId !== selectedKeys[0]?.toString()) {
+                selectedGameId.set(undefined);
+                selectedItemId.set(selectedKeys[0]?.toString());
+            }
         }
     }
 </script>
