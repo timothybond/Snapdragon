@@ -495,13 +495,20 @@ namespace Snapdragon.Postgresql
                 "SELECT item.id, item.controller, item.firstparentid, item.secondparentid "
                     + "FROM item INNER JOIN population_item "
                     + "ON item.id = population_item.itemid "
-                    + "WHERE population_item.populationid = @PopulationId",
-                new { PopulationId = populationId }
+                    + "WHERE population_item.populationid = @PopulationId "
+                    + "AND population_item.generation = @Generation",
+                new { PopulationId = populationId, Generation = generation }
             );
 
-            return (
-                await Task.WhenAll(rows.Select(r => ToGeneSequence(r, population, conn)))
-            ).ToList();
+            var results = new List<T>();
+
+            // TODO: Optimize this
+            foreach (var row in rows)
+            {
+                results.Add(await ToGeneSequence(row, population, conn));
+            }
+
+            return results;
         }
 
         public async Task DeleteItem(Guid id)
@@ -736,15 +743,8 @@ namespace Snapdragon.Postgresql
             var fixedCardsForPopulation =
                 population?.Genetics.GetFixedCards() ?? ImmutableList<CardDefinition>.Empty;
 
-            if (fixedCardsForPopulation.Count > 0)
+            if (typeof(T) == typeof(PartiallyFixedCardGeneSequence))
             {
-                if (typeof(T) != typeof(PartiallyFixedCardGeneSequence))
-                {
-                    throw new InvalidOperationException(
-                        "Item had fixed cards (based on its population) but was not requested as a PartiallyFixedCardGeneSequence"
-                    );
-                }
-
                 var remainingCards = itemCards
                     .Where(c => !fixedCardsForPopulation.Contains(c))
                     .ToImmutableList();
@@ -770,15 +770,20 @@ namespace Snapdragon.Postgresql
 
                 return (geneSequence as T)!;
             }
-            else // No fixed cards
+            else if (fixedCardsForPopulation.Count > 0)
             {
-                if (typeof(T) != typeof(CardGeneSequence))
-                {
-                    throw new InvalidOperationException(
-                        "Item had no fixed cards (based on its population) but was not requested as a CardGeneSequence."
-                    );
-                }
-
+                throw new InvalidOperationException(
+                    "Item had fixed cards (based on its population) but was not requested as a PartiallyFixedCardGeneSequence"
+                );
+            }
+            else if (typeof(T) != typeof(CardGeneSequence))
+            {
+                throw new InvalidOperationException(
+                    "In practice you can only request populations of PartiallyFixedCardGeneSequence and CardGeneSequence."
+                );
+            }
+            else
+            {
                 // All of the defaults for an unset population below are pretty mediocre
                 var geneSequence = new CardGeneSequence(
                     itemCards,

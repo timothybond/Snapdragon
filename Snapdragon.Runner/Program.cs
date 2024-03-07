@@ -15,8 +15,9 @@ using (var repository = repositoryBuilder.Build())
     await SnapCards.All.ForEachAsync(repository.SaveCardDefinition);
 }
 
-//var moveExperiment = new MoveDeckSoloExperiment();
-var kaZarExperiment = new KaZarSoloExperiment();
+var moveExperiment = new MoveDeckSoloExperiment();
+await moveExperiment.Run(repositoryBuilder);
 
-//moveExperiment.Run();
-await kaZarExperiment.Run(repositoryBuilder);
+//var kaZarExperiment = new KaZarSoloExperiment();
+
+//await kaZarExperiment.Run(repositoryBuilder);

@@ -18,10 +18,21 @@ namespace Snapdragon.Api.Controllers
             _logger = logger;
         }
 
-        [HttpGet]
-        public async Task<ActionResult<IReadOnlyList<Data.Card>>> GetAsync()
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Data.Game>> GetAsync(Guid id)
         {
-            return (await _repository.GetCardDefinitions()).Select(cd => (Data.Card)cd).ToList();
+            var gameRecord = await _repository.GetGame(id);
+            if (gameRecord == null)
+            {
+                return NotFound();
+            }
+
+            var game = (Data.Game)gameRecord;
+
+            var gameLogs = await _repository.GetGameLogs(id);
+            game.Logs = gameLogs.OrderBy(gl => gl.Order).Select(gl => (Data.GameLog)gl).ToList();
+
+            return game;
         }
     }
 }

@@ -19,20 +19,9 @@ namespace Snapdragon.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<Data.Game>> GetAsync(Guid id)
+        public async Task<ActionResult<IReadOnlyList<Data.Card>>> GetAsync()
         {
-            var gameRecord = await _repository.GetGame(id);
-            if (gameRecord == null)
-            {
-                return NotFound();
-            }
-
-            var game = (Data.Game)gameRecord;
-
-            var gameLogs = await _repository.GetGameLogs(id);
-            game.Logs = gameLogs.OrderBy(gl => gl.Order).Select(gl => (Data.GameLog)gl).ToList();
-
-            return game;
+            return (await _repository.GetCardDefinitions()).Select(cd => (Data.Card)cd).ToList();
         }
     }
 }

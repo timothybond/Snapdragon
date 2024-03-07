@@ -19,7 +19,7 @@ var builder = WebApplication.CreateBuilder(args);
 var repositoryBuilder = new PostgresqlSnapdragonRepositoryBuilder(connectionString);
 
 builder.Services.AddSingleton<ISnapdragonRepositoryBuilder>(repositoryBuilder);
-builder.Services.AddScoped<ISnapdragonRepository>(serviceProvider =>
+builder.Services.AddScoped(serviceProvider =>
 {
     var builder = serviceProvider.GetRequiredService<ISnapdragonRepositoryBuilder>();
     return builder.Build();
