@@ -61,6 +61,21 @@ namespace Snapdragon.Tests
             return game.WithPlayer(game[side] with { Hand = game[side].Hand.AddRange(cards) });
         }
 
+        public static Game WithCardsInDeck(this Game game, Side side, params string[] cardNames)
+        {
+            var cards = GetCards(side, cardNames);
+
+            return game.WithPlayer(
+                game[side] with
+                {
+                    Library = game[side].Library with
+                    {
+                        Cards = game[side].Library.Cards.AddRange(cards)
+                    }
+                }
+            );
+        }
+
         /// <summary>
         /// Helper function for testing what happens when certain cards are moved.
         ///

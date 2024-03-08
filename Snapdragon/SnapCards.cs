@@ -1,6 +1,7 @@
 ﻿using System.Collections.Immutable;
 using Snapdragon.Calculations;
 using Snapdragon.CardConditions;
+using Snapdragon.CardModifiers;
 using Snapdragon.CardTriggers;
 using Snapdragon.Events;
 using Snapdragon.LocationFilters;
@@ -93,7 +94,8 @@ namespace Snapdragon
                     new SensorBuilder<CardRevealedEvent>(
                         new SensorTriggeredAbilityBuilder<CardRevealedEvent>(
                             new CardRevealed(),
-                            new MoveNextRevealedCardLeft()
+                            new MoveNextRevealedCardLeft(),
+                            false // Hulkbuster merges don't work if we delete on first activation
                         )
                     )
                 )
@@ -226,6 +228,7 @@ namespace Snapdragon
             ),
             new("Cable", 3, 4, new DrawOpponentCard()),
             new("Cyclops", 3, 4),
+            new("Green Goblin", 3, -3, new SwitchSides()),
             new(
                 "Ironheart",
                 3,
@@ -240,6 +243,7 @@ namespace Snapdragon
                 null,
                 new OngoingAddLocationPower<Card>(new AdjacentToCard(), new Constant<Card>(2))
             ),
+            new("Nakia", 3, 3, new ModifyCardsInOwnerHand(new ModifyCardPower(1))),
             new("Sword Master", 3, 6, new DiscardCard()),
             new(
                 "Vulture",
@@ -273,7 +277,6 @@ namespace Snapdragon
                     new Constant<Card>(1)
                 )
             ),
-            new("The Thing", 4, 6),
             new(
                 "Jessica Jones",
                 4,
@@ -287,6 +290,7 @@ namespace Snapdragon
                     )
                 )
             ),
+            new("Mister Negative", 4, -1, new ModifyCardsInOwnerDeck(new SwapCostAndPower())),
             new(
                 "Sentry",
                 4,
@@ -302,6 +306,7 @@ namespace Snapdragon
                 null,
                 new CannotPlayInColumn(Column.Right)
             ),
+            new("The Thing", 4, 6),
             new(
                 "Blue Marvel",
                 5,
@@ -313,6 +318,7 @@ namespace Snapdragon
                 )
             ),
             new("Gamora", 5, 7, new OnRevealIf(new OpponentPlayedSameTurn(), new AddPowerSelf(5))),
+            new("Hobgoblin", 5, -8, new SwitchSides()),
             new(
                 "Klaw",
                 5,
