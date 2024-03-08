@@ -35,14 +35,24 @@ namespace Snapdragon.Tests
         //[TestCase(5, 10)]
         //[TestCase(10, 20)]
         //[TestCase(20, 50)]
+        //[TestCase(100, 200)]
         public void ComparePerformanceByControllers(int lowSimCount, int highSimCount)
         {
+            /* From a previous run, 500 games each:
+             *
+             *   5 sims vs  1 sim:  65.2% win
+             *  10 sims vs  5 sims: 61.2% win
+             *  20 sims vs 10 sims: 61.0% win
+             *  50 sims vs 20 sims: 61.6% win
+             * 100 sims vs 50 sims: 53.4% win
+             */
+
             if (lowSimCount >= highSimCount)
             {
                 Assert.Fail("First argument must be lower than second argument.");
             }
 
-            var totalGames = 100;
+            var totalGames = 500;
             var wins = 0;
 
             Parallel.For(
@@ -62,7 +72,7 @@ namespace Snapdragon.Tests
                 }
             );
 
-            Assert.Pass($"Top wins: {wins}/{totalGames}");
+            Assert.Pass($"Top wins: {wins}/{totalGames} ({wins * 100.0 / totalGames}%)");
         }
 
         // Most of these test cases are commented out because this test is pretty slow,
@@ -75,19 +85,21 @@ namespace Snapdragon.Tests
         //[TestCase(50)]
         //[TestCase(100)]
         //[TestCase(200)]
+        //[TestCase(400)]
         public void GetAverageScores(int monteCarloSimulationCount)
         {
             var scoreList = new List<CurrentScores>();
 
-            /* From a previous run of 100 games each:
+            /* From a previous run of 500 games each:
              *
-             *   1 sim:  29.545
-             *   5 sims: 32.995
-             *  10 sims: 35.440
-             *  20 sims: 35.665
-             *  50 sims: 37.255
-             * 100 sims: 38.165
-             * 200 sims: 37.185
+             *   1 sim:  29.172
+             *   5 sims: 33.474
+             *  10 sims: 35.164
+             *  20 sims: 36.516
+             *  50 sims: 37.200
+             * 100 sims: 37.845
+             * 200 sims: 37.961
+             * 400 sims: 38.022
              */
 
             Parallel.For(
