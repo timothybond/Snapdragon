@@ -183,6 +183,7 @@ namespace Snapdragon
                     new AddPowerToSource<CardMovedEvent>(2)
                 )
             ),
+            new("Hulkbuster", 2, 3, new MergeWithRandomCard()),
             new(
                 "Multiple Man",
                 2,
