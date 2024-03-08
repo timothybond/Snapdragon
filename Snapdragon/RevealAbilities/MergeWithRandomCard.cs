@@ -1,4 +1,6 @@
-﻿namespace Snapdragon.RevealAbilities
+﻿using Snapdragon.Events;
+
+namespace Snapdragon.RevealAbilities
 {
     public class MergeWithRandomCard : IRevealAbility<Card>
     {
@@ -25,9 +27,12 @@
             // TODO: Consider moving this to an IEffect, but because it's pretty complex I'm initially doing it here
             var location = game[column];
 
+            // TODO: Make sure this triggers effects appropriately
             location = location.WithRemovedCard(source);
             return game.WithLocation(location)
-                .WithModifiedCard(mergeTarget, c => c with { Power = c.Power + source.Power });
+                .WithModifiedCard(mergeTarget, c => c with { Power = c.Power + source.Power })
+                .WithEvent(new CardMergedEvent(game.Turn, source, mergeTarget))
+                .WithEvent(new CardRevealedEvent(game.Turn, mergeTarget));
         }
     }
 }
