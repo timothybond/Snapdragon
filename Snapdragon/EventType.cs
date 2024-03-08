@@ -13,6 +13,7 @@
         TurnStarted = 8,
         LocationRevealed = 9,
         TurnEnded = 10,
-        GameEnded = 11
+        GameEnded = 11,
+        CardMerged = 12
     }
 }

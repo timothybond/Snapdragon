@@ -8,9 +8,20 @@ namespace Snapdragon.Sensors
     {
         public IEffect Build(Game game, CardRevealedEvent e, Sensor<Card> source)
         {
-            var nextRevealedCard = this.GetNextRevealedCard(game, source.Source);
+            var nextRevealEvent = this.GetNextRevealEvent(game, source.Source);
 
-            var actualCard = game.AllCards.SingleOrDefault(c => c.Id == nextRevealedCard.Id);
+            if (nextRevealEvent != e)
+            {
+                return new NullEffect();
+            }
+
+            // Can't trigger on itself (this only matters for Hulkbuster merges, I believe)
+            if (nextRevealEvent.Card.Id == source.Source.Id)
+            {
+                return new NullEffect();
+            }
+
+            var actualCard = game.AllCards.SingleOrDefault(c => c.Id == nextRevealEvent.Card.Id);
 
             if (actualCard == null)
             {
@@ -26,18 +37,50 @@ namespace Snapdragon.Sensors
         /// </summary>
         /// <param name="previous">The <see cref="Card"/> after which to search.</param>
         /// <returns></returns>
-        private Card GetNextRevealedCard(Game game, Card previous)
+        private CardRevealedEvent GetNextRevealEvent(Game game, Card previous)
         {
-            var cardRevealedEvents = game
-                .PastEvents.Concat(game.NewEvents)
-                .OfType<CardRevealedEvent>()
-                .Where(e => e.Card.Side == previous.Side)
-                .ToList();
+            CardRevealedEvent? nextRevealEvent = null;
+            Card? mergedInto = null;
 
-            var nextRevealEvent = cardRevealedEvents
-                .SkipWhile(c => c.Card.Id != previous.Id)
-                .Skip(1)
-                .FirstOrDefault();
+            // Skip all events until the source for this effect is revealed, and then that event as well
+            var eventsAfterPreviousCardRevealed = game
+                .PastEvents.Concat(game.NewEvents)
+                .SkipWhile(e =>
+                    e.Type != EventType.CardRevealed
+                    || (e as CardRevealedEvent)?.Card.Id != previous.Id
+                )
+                .Skip(1);
+
+            foreach (var remainingEvent in eventsAfterPreviousCardRevealed)
+            {
+                if (
+                    remainingEvent is CardRevealedEvent cardRevealed
+                    && cardRevealed.Card.Side == previous.Side
+                    && nextRevealEvent == null
+                )
+                {
+                    nextRevealEvent = cardRevealed;
+                }
+
+                if (
+                    remainingEvent is CardMergedEvent cardMerged
+                    && nextRevealEvent != null
+                    && cardMerged.Merged.Id == nextRevealEvent.Card.Id
+                )
+                {
+                    mergedInto = cardMerged.Target;
+                }
+
+                // This handles a very specific scenario where the next card played is Hulkbuster,
+                // and the effect triggers on the card it merges onto.
+                if (
+                    remainingEvent is CardRevealedEvent mergedCardRevealed
+                    && mergedCardRevealed.Card.Id == mergedInto?.Id
+                )
+                {
+                    nextRevealEvent = mergedCardRevealed;
+                }
+            }
 
             if (nextRevealEvent == null)
             {
@@ -46,7 +89,7 @@ namespace Snapdragon.Sensors
                 );
             }
 
-            return nextRevealEvent.Card;
+            return nextRevealEvent;
         }
     }
 }

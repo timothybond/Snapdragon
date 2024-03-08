@@ -158,5 +158,35 @@ namespace Snapdragon.Tests.SnapCardsTest
             var cardMovedEvents = game.PastEvents.OfType<CardMovedEvent>().ToList();
             Assert.That(cardMovedEvents, Is.Empty);
         }
+
+        [Test]
+        [TestCase(Side.Top)]
+        [TestCase(Side.Bottom)]
+        public void DoesNotMoveSelfOnHulkbusterMerge(Side side)
+        {
+            var game = TestHelpers
+                .PlayCards(side, Column.Right, "Iron Fist")
+                .PlayCards(side, Column.Right, "Hulkbuster");
+
+            Assert.That(game[Column.Right][side], Has.Exactly(1).Items);
+            Assert.That(game[Column.Right][side][0].Name, Is.EqualTo("Iron Fist"));
+            Assert.That(game[Column.Right][side][0].Power, Is.EqualTo(5)); // 2 for Iron Fist, 3 for Hulkbuster
+        }
+
+        [Test]
+        [TestCase(Side.Top)]
+        [TestCase(Side.Bottom)]
+        public void MovesPreviouslyPlayedCardOnHulkbusterMerge(Side side)
+        {
+            var game = TestHelpers
+                .PlayCards(side, Column.Right, "Misty Knight")
+                .PlayCards(side, Column.Left, "Iron Fist")
+                .PlayCards(side, Column.Right, "Hulkbuster");
+
+            Assert.That(game[Column.Right][side], Has.Exactly(0).Items);
+            Assert.That(game[Column.Middle][side], Has.Exactly(1).Items);
+            Assert.That(game[Column.Middle][side][0].Name, Is.EqualTo("Misty Knight"));
+            Assert.That(game[Column.Middle][side][0].Power, Is.EqualTo(5)); // 2 for Misty Knight, 3 for Hulkbuster
+        }
     }
 }
