@@ -91,12 +91,11 @@ invoked *without* passing in the `source` object (which would theoretically be t
 
 ### Card.Column
 
-The `Card` type has a nullable `Column` property, which ends up being checked a lot. This has two issues.
+I fixed the previous problem that was here, where the nullable `Card.Column` property was getting checked a lot and I had to constantly look for nulls - now in-play cards are of type `Card` and not-in-play cards are of type `CardInstance` and I always know that `Card.Column` is non-null.
 
-First, it reflects which of the `Location` instances contains the `Card`, but there's no absolute guarantee that a `Location` could never contain a `Card` that claims 
-it's at another `Location`. This is probably *mostly* handled by the `Location.WithCard` method but I should come up with something that's more solid.
+However, this introduced a lot of places where I needed to specify types where I didn't before, so I think there's more cleanup to be done there.
 
-Second, it reflects the fact that there's no type distinction between a `Card` in a player's hand (which has no `Location`) and a `Card` in play (which always has a `Location`). Because of this, a bunch of these checks are being done unnecessarily on already-in-play `Card`s. The obvious solution here is to define a separate type for `Card`s in play.
+Also, I still have the issue that a `Card.Column` value could mismatch with the `Location.Column` value of its containing `Location`, and it would be nice to address that.
 
 ### ControllerUtilities
 
