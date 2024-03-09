@@ -35,8 +35,10 @@ namespace Snapdragon.Effects
                 case Column.Middle:
                     destination = Column.Left;
                     break;
-                default:
+                case Column.Left:
                     return game;
+                default:
+                    throw new NotImplementedException();
             }
 
             // TODO: handle restrictions on number of cards
@@ -46,7 +48,7 @@ namespace Snapdragon.Effects
             }
 
             // Note if Column is null, we would have returned in the switch case above
-            var oldLocation = game[from.Value];
+            var oldLocation = game[from];
             var newLocation = game[destination];
 
             if (
@@ -76,7 +78,7 @@ namespace Snapdragon.Effects
 
             return game.WithLocation(oldLocation)
                 .WithLocation(newLocation)
-                .WithEvent(new CardMovedEvent(game.Turn, actualCard, from.Value, destination));
+                .WithEvent(new CardMovedEvent(game.Turn, actualCard, from, destination));
         }
     }
 }

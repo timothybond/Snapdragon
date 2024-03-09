@@ -6,7 +6,7 @@
     /// </summary>
     public class OtherHighestPowerCards : ICardFilter<Card>
     {
-        public bool Applies(Card card, Card source, Game game)
+        public bool Applies(ICard card, Card source, Game game)
         {
             // These are sort of redundant but will speed it up (not that that likely matters).
             if (card.Side != source.Side)

@@ -11,13 +11,7 @@
                 return game;
             }
 
-            var column =
-                actualCard.Column
-                ?? throw new InvalidOperationException(
-                    $"{nameof(SwitchCardSide)} was triggered on a card that wasn't in play."
-                );
-
-            var location = game[column];
+            var location = game[actualCard.Column];
 
             // TODO: Handle other slot limits
             if (location[actualCard.Side.Other()].Count >= 4)

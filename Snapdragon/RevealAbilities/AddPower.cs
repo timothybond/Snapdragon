@@ -4,20 +4,20 @@ namespace Snapdragon.RevealAbilities
 {
     // TODO: Consider moving the CardState logic to the filter itself
     public record AddPower(
-        ICardFilter<Card> Filter,
-        IPowerCalculation<Card> Power,
+        ICardFilter<ICard> Filter,
+        IPowerCalculation<ICard> Power,
         CardState State = CardState.InPlay
     ) : IRevealAbility<Card>
     {
-        public AddPower(ICardFilter<Card> filter, int power)
-            : this(filter, new Constant<Card>(power)) { }
+        public AddPower(ICardFilter<ICard> filter, int power)
+            : this(filter, new Constant<ICard>(power)) { }
 
-        public AddPower(ICardFilter<Card> filter, int power, CardState state)
-            : this(filter, new Constant<Card>(power), state) { }
+        public AddPower(ICardFilter<ICard> filter, int power, CardState state)
+            : this(filter, new Constant<ICard>(power), state) { }
 
         public Game Activate(Game game, Card source)
         {
-            IEnumerable<Card> cards;
+            IEnumerable<ICard> cards;
 
             switch (State)
             {

@@ -1,10 +1,10 @@
 ﻿namespace Snapdragon.Calculations
 {
-    public record SpecificCardPower(Card card) : ICalculation
+    public record SpecificCardPower(ICard Card) : ICalculation
     {
         public int GetValue(Game game)
         {
-            var actualCard = game.AllCards.SingleOrDefault(c => c.Id == card.Id);
+            var actualCard = game.AllCards.SingleOrDefault(c => c.Id == Card.Id);
 
             if (actualCard == null)
             {

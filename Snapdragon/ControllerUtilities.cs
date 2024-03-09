@@ -288,7 +288,7 @@ namespace Snapdragon
                 var move = new MoveCardAction(
                     moveableCard.Side,
                     moveableCard,
-                    moveableCard.Column!.Value,
+                    moveableCard.Column,
                     column
                 );
                 var gameWithThisMove = move.Apply(game);
@@ -622,20 +622,20 @@ namespace Snapdragon
         ///
         /// Public for testing purposes.
         /// </summary>
-        public static IReadOnlyList<IReadOnlyList<Card>> GetPlayableCardSets(Player player)
+        public static IReadOnlyList<IReadOnlyList<CardInstance>> GetPlayableCardSets(Player player)
         {
             return GetPlayableCardSets(player.Energy, player.Hand);
         }
 
-        private static IReadOnlyList<IReadOnlyList<Card>> GetPlayableCardSets(
+        private static IReadOnlyList<IReadOnlyList<CardInstance>> GetPlayableCardSets(
             int energy,
-            IReadOnlyList<Card> hand
+            IReadOnlyList<CardInstance> hand
         )
         {
-            var results = new List<IReadOnlyList<Card>>();
+            var results = new List<IReadOnlyList<CardInstance>>();
 
             // Can always just play no cards.
-            results.Add(new List<Card>());
+            results.Add(new List<CardInstance>());
 
             var playableCards = hand.Where(c => c.Cost <= energy).ToList();
 

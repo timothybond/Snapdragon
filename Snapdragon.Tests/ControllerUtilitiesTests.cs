@@ -90,8 +90,8 @@ namespace Snapdragon.Tests
         [TestCase(Side.Bottom)]
         public void GetPossibleActionSets_GetsExpectedValues(Side side)
         {
-            var oneOne = new Card(Cards.OneOne, Side.Top, CardState.InHand);
-            var oneTwo = new Card(Cards.OneTwo, Side.Top, CardState.InHand);
+            var oneOne = new CardInstance(Cards.OneOne, Side.Top, CardState.InHand);
+            var oneTwo = new CardInstance(Cards.OneTwo, Side.Top, CardState.InHand);
 
             var game = TestHelpers.NewGame();
             var player = game[side];
@@ -218,10 +218,10 @@ namespace Snapdragon.Tests
         [Test]
         public void GetPlayableCards()
         {
-            var oneOne = new Card(Cards.OneOne, Side.Top, CardState.InHand);
-            var oneTwo = new Card(Cards.OneTwo, Side.Top, CardState.InHand);
-            var twoOne = new Card(Cards.TwoOne, Side.Top, CardState.InHand);
-            var twoTwo = new Card(Cards.TwoTwo, Side.Top, CardState.InHand);
+            var oneOne = new CardInstance(Cards.OneOne, Side.Top, CardState.InHand);
+            var oneTwo = new CardInstance(Cards.OneTwo, Side.Top, CardState.InHand);
+            var twoOne = new CardInstance(Cards.TwoOne, Side.Top, CardState.InHand);
+            var twoTwo = new CardInstance(Cards.TwoTwo, Side.Top, CardState.InHand);
 
             var controller = new RandomPlayerController();
             var player = new Player(

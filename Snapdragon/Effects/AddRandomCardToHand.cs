@@ -1,7 +1,7 @@
 ﻿namespace Snapdragon.Effects
 {
     /// <summary>
-    /// Effect where a given player adds a random <see cref="Card"/> to their hand.
+    /// Effect where a given player adds a random <see cref="CardInstance"/> to their hand.
     /// </summary>
     public record AddRandomCardToHand(Side Side, ICardDefinitionFilter Filter) : IEffect
     {
@@ -15,7 +15,7 @@
             }
 
             var randomCardDefinition = Random.Of(SnapCards.All.Where(Filter.Applies).ToList());
-            var randomCard = new Card(randomCardDefinition, Side, CardState.InHand);
+            var randomCard = new CardInstance(randomCardDefinition, Side, CardState.InHand);
 
             return game.WithPlayer(game[Side] with { Hand = game[Side].Hand.Add(randomCard) });
         }

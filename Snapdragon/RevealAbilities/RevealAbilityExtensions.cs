@@ -2,12 +2,12 @@
 {
     public static class RevealAbilityExtensions
     {
-        public static IRevealAbility<Card> And(
-            this IRevealAbility<Card> First,
-            IRevealAbility<Card> Second
+        public static IRevealAbility<T> And<T>(
+            this IRevealAbility<T> First,
+            IRevealAbility<T> Second
         )
         {
-            return new AndOnReveal(First, Second);
+            return new AndOnReveal<T>(First, Second);
         }
     }
 }

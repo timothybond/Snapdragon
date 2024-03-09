@@ -6,14 +6,14 @@ namespace Snapdragon
     /// A triggered ability that fires when the given card is discarded.
     /// </summary>
     public record WhenDiscarded(
-        ISourceTriggeredEffectBuilder<Card, CardDiscardedEvent> EffectBuilder
-    ) : BaseTriggeredAbility<Card, CardDiscardedEvent>
+        ISourceTriggeredEffectBuilder<ICard, CardDiscardedEvent> EffectBuilder
+    ) : BaseTriggeredAbility<ICard, CardDiscardedEvent>
     {
         public override bool InHand => false;
         public override bool InDeck => false;
         public override bool DiscardedOrDestroyed => true;
 
-        protected override Game ProcessEvent(Game game, CardDiscardedEvent e, Card source)
+        protected override Game ProcessEvent(Game game, CardDiscardedEvent e, ICard source)
         {
             if (e.Card.Id == source.Id)
             {

@@ -2,7 +2,7 @@
 {
     /// <summary>
     /// An <see cref="IEffect"/> that adds a calculated amount of power to
-    /// the <see cref="Card"/>s specified by the given <see cref="ICardFilter"/>.
+    /// the <see cref="CardInstance"/>s specified by the given <see cref="ICardFilter"/>.
     ///
     /// Note that this is permanent power, not as an ongoing effect.
     /// </summary>
@@ -33,7 +33,7 @@
                     };
                 });
 
-            return game.WithCards(cards);
+            return game.WithUpdatedCards(cards);
         }
     }
 }

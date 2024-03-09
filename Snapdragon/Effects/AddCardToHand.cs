@@ -14,7 +14,7 @@
                 return game;
             }
 
-            var card = new Card(Definition, Side, CardState.InHand);
+            var card = new CardInstance(Definition, Side, CardState.InHand);
 
             return game.WithPlayer(game[Side] with { Hand = game[Side].Hand.Add(card) });
         }

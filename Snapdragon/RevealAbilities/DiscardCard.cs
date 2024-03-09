@@ -11,7 +11,7 @@
     {
         public Game Activate(Game game, Card source)
         {
-            List<Card> applicableCards;
+            List<CardInstance> applicableCards;
 
             if (Filter == null)
             {

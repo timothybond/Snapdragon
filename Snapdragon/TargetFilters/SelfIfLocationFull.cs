@@ -2,7 +2,7 @@
 {
     public record SelfIfLocationFull : ICardFilter<Card>
     {
-        public bool Applies(Card card, Card source, Game game)
+        public bool Applies(ICard card, Card source, Game game)
         {
             // TODO: Handle locations that restrict the number of cards played
 

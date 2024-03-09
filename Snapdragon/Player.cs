@@ -7,9 +7,9 @@ namespace Snapdragon
         Side Side,
         int Energy,
         Library Library,
-        ImmutableList<Card> Hand,
-        ImmutableList<Card> Discards,
-        ImmutableList<Card> Destroyed
+        ImmutableList<CardInstance> Hand,
+        ImmutableList<CardInstance> Discards,
+        ImmutableList<CardInstance> Destroyed
     )
     {
         /// <summary>

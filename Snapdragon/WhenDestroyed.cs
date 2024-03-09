@@ -6,14 +6,14 @@ namespace Snapdragon
     /// A triggered ability that fires when the given card is destroyed.
     /// </summary>
     public record WhenDestroyed(
-        ISourceTriggeredEffectBuilder<Card, CardDestroyedFromPlayEvent> EffectBuilder
-    ) : BaseTriggeredAbility<Card, CardDestroyedFromPlayEvent>
+        ISourceTriggeredEffectBuilder<CardInstance, CardDestroyedFromPlayEvent> EffectBuilder
+    ) : BaseTriggeredAbility<CardInstance, CardDestroyedFromPlayEvent>
     {
         public override bool InHand => false;
         public override bool InDeck => false;
         public override bool DiscardedOrDestroyed => true;
 
-        protected override Game ProcessEvent(Game game, CardDestroyedFromPlayEvent e, Card source)
+        protected override Game ProcessEvent(Game game, CardDestroyedFromPlayEvent e, CardInstance source)
         {
             if (e.Card.Id == source.Id)
             {

@@ -1,6 +1,6 @@
 ﻿namespace Snapdragon.Effects
 {
-    public record AddCopyToLocation(Card Card, Column Location) : IEffect
+    public record AddCopyToLocation(ICard Card, Column Location) : IEffect
     {
         public Game Apply(Game game)
         {
@@ -10,11 +10,10 @@
                 return game;
             }
 
-            var card = Card with
+            var card = Card.InPlayAt(Location) with
             {
                 State = CardState.InPlay,
-                Id = Ids.GetNext<Card>(),
-                Column = Location
+                Id = Ids.GetNext<CardInstance>()
             };
 
             var location = game[Location].WithCard(card);

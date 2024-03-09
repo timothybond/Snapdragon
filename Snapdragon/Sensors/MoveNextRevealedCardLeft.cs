@@ -33,14 +33,14 @@ namespace Snapdragon.Sensors
         }
 
         /// <summary>
-        /// Gets the <see cref="Card"/> that was revealed next after the given one.
+        /// Gets the <see cref="CardInstance"/> that was revealed next after the given one.
         /// </summary>
-        /// <param name="previous">The <see cref="Card"/> after which to search.</param>
+        /// <param name="previous">The <see cref="CardInstance"/> after which to search.</param>
         /// <returns></returns>
         private CardRevealedEvent GetNextRevealEvent(Game game, Card previous)
         {
             CardRevealedEvent? nextRevealEvent = null;
-            Card? mergedInto = null;
+            ICard? mergedInto = null;
 
             // Skip all events until the source for this effect is revealed, and then that event as well
             var eventsAfterPreviousCardRevealed = game

@@ -6,15 +6,12 @@ namespace Snapdragon.RevealAbilities
     {
         public Game Activate(Game game, Card source)
         {
-            Column column =
-                source.Column
-                ?? throw new InvalidOperationException(
-                    "Activated MergeWithRandomCard ability on a card not in play."
-                );
+            source = game[source.Column][source.Side].Single(c => c.Id == source.Id);
 
-            source = game[column][source.Side].Single(c => c.Id == source.Id);
-
-            var otherCardsHere = game[column][source.Side].Where(c => c.Id != source.Id).ToList();
+            var otherCardsHere = game[source.Column]
+                [source.Side]
+                .Where(c => c.Id != source.Id)
+                .ToList();
 
             if (otherCardsHere.Count == 0)
             {
@@ -25,7 +22,7 @@ namespace Snapdragon.RevealAbilities
             var mergeTarget = Random.Of(otherCardsHere);
 
             // TODO: Consider moving this to an IEffect, but because it's pretty complex I'm initially doing it here
-            var location = game[column];
+            var location = game[source.Column];
 
             // TODO: Make sure this triggers effects appropriately
             location = location.WithRemovedCard(source);

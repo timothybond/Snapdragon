@@ -2,7 +2,7 @@
 
 namespace Snapdragon.Effects
 {
-    public abstract record ModifyCard(Card Card) : IEffect
+    public abstract record ModifyCard(CardInstance Card) : IEffect
     {
         public Game Apply(Game game)
         {
@@ -12,7 +12,9 @@ namespace Snapdragon.Effects
                 case CardState.InLibrary:
                     var library = game[Card.Side].Library;
                     library = new Library(
-                        library.Cards.Select(c => this.ApplyToCard(c, game)).ToImmutableList()
+                        library
+                            .Cards.Select(c => this.ApplyToCard(c, game).ToCardInstance())
+                            .ToImmutableList()
                     );
 
                     var playerWithLibrary = game[Card.Side] with { Library = library };
@@ -20,7 +22,7 @@ namespace Snapdragon.Effects
 
                 case CardState.InHand:
                     var hand = game[Card.Side].Hand;
-                    hand = hand.Select(c => this.ApplyToCard(c, game)).ToImmutableList();
+                    hand = hand.Select(c => this.ApplyToCard(c, game).ToCardInstance()).ToImmutableList();
 
                     var playerWithHand = game[Card.Side] with { Hand = hand };
                     return game.WithPlayer(playerWithHand);
@@ -42,11 +44,14 @@ namespace Snapdragon.Effects
                         return game;
                     }
 
-                    return game.WithModifiedCard(actualCard, c => this.ApplyToCard(c, game));
+                    return game.WithModifiedCard(
+                        actualCard,
+                        c => this.ApplyToCard(c, game).InPlayAt(c.Column)
+                    );
                 case CardState.Destroyed:
                     var playerWithDestroyed = game[Card.Side];
                     var destroyed = playerWithDestroyed
-                        .Destroyed.Select(c => this.ApplyToCard(c, game))
+                        .Destroyed.Select(c => this.ApplyToCard(c, game).ToCardInstance())
                         .ToImmutableList();
 
                     playerWithDestroyed = playerWithDestroyed with { Destroyed = destroyed };
@@ -54,7 +59,7 @@ namespace Snapdragon.Effects
                 case CardState.Discarded:
                     var playerWithDiscards = game[Card.Side];
                     var discards = playerWithDiscards
-                        .Discards.Select(c => this.ApplyToCard(c, game))
+                        .Discards.Select(c => this.ApplyToCard(c, game).ToCardInstance())
                         .ToImmutableList();
 
                     playerWithDiscards = playerWithDiscards with { Discards = discards };
@@ -70,14 +75,16 @@ namespace Snapdragon.Effects
         /// <param name="possibleCard">A card to which the effect might (but does not necessarily) apply.</param>
         /// <param name="game">The overall game state.</param>
         /// <returns>The modified card (or, for a non-match or blocked effect, the original card).</returns>
-        private Card ApplyToCard(Card possibleCard, Game game)
+        private ICard ApplyToCard(ICard possibleCard, Game game)
         {
             if (possibleCard.Id != Card.Id)
             {
                 return possibleCard;
             }
 
-            var blockedEffects = game.GetBlockedEffects(possibleCard);
+            var blockedEffects = possibleCard is Card possibleCardInPlay
+                ? game.GetBlockedEffects(possibleCardInPlay)
+                : new HashSet<EffectType>();
 
             if (possibleCard.Column != null)
             {
@@ -110,6 +117,6 @@ namespace Snapdragon.Effects
         /// </summary>
         /// <param name="card"></param>
         /// <returns></returns>
-        protected abstract Card WithModification(Card card);
+        protected abstract ICard WithModification(ICard card);
     }
 }

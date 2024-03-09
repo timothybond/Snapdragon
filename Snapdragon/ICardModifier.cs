@@ -2,6 +2,6 @@
 {
     public interface ICardModifier
     {
-        public Card Apply(Card card);
+        public CardInstance Apply(CardInstance card);
     }
 }

@@ -1,8 +1,8 @@
 ﻿namespace Snapdragon.TargetFilters
 {
-    public class ParentCard(Sensor<Card> Sensor) : ICardFilter
+    public class ParentCard(Sensor<CardInstance> Sensor) : ICardFilter
     {
-        public bool Applies(Card card, Game game)
+        public bool Applies(ICard card, Game game)
         {
             return (card.Id == Sensor.Source.Id);
         }

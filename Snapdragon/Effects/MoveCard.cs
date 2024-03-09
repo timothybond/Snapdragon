@@ -44,12 +44,18 @@ namespace Snapdragon.Effects
             var oldLocation = game[From];
             var newLocation = game[To];
 
-            if (game.GetBlockedEffects(oldLocation.Column, actualCard.Side).Contains(EffectType.MoveFromLocation))
+            if (
+                game.GetBlockedEffects(oldLocation.Column, actualCard.Side)
+                    .Contains(EffectType.MoveFromLocation)
+            )
             {
                 return game;
             }
 
-            if (game.GetBlockedEffects(newLocation.Column, actualCard.Side).Contains(EffectType.MoveToLocation))
+            if (
+                game.GetBlockedEffects(newLocation.Column, actualCard.Side)
+                    .Contains(EffectType.MoveToLocation)
+            )
             {
                 return game;
             }

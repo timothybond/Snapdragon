@@ -6,12 +6,7 @@ namespace Snapdragon.Effects
     {
         public Game Apply(Game game)
         {
-            if (!Card.Column.HasValue)
-            {
-                throw new InvalidOperationException("Tried to destroy card with no Column value.");
-            }
-
-            var location = game[Card.Column.Value];
+            var location = game[Card.Column];
             var card = location[Card.Side].SingleOrDefault(c => c.Id == Card.Id);
 
             if (card == null)
@@ -24,7 +19,7 @@ namespace Snapdragon.Effects
             var player = game[card.Side];
             player = player with
             {
-                Destroyed = player.Destroyed.Add(card with { State = CardState.Destroyed })
+                Destroyed = player.Destroyed.Add(card.ToCardInstance() with { State = CardState.Destroyed })
             };
 
             return game.WithLocation(location)

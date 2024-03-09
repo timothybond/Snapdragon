@@ -2,7 +2,7 @@
 
 namespace Snapdragon.Effects
 {
-    public record DiscardCard(Card card) : IEffect
+    public record DiscardCard(CardInstance card) : IEffect
     {
         public Game Apply(Game game)
         {

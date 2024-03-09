@@ -14,8 +14,6 @@ namespace Snapdragon
         public Location(string Name, Column Column)
             : this(Name, Column, [], [], []) { }
 
-        Column? IObjectWithColumn.Column => this.Column;
-
         public ImmutableList<Card> this[Side side]
         {
             get
@@ -32,32 +30,33 @@ namespace Snapdragon
             }
         }
 
-        public IEnumerable<Card> AllCards => this.TopPlayerCards.Concat(this.BottomPlayerCards);
+        public IEnumerable<Card> AllCards =>
+            this.TopPlayerCards.Concat(this.BottomPlayerCards);
 
         /// <summary>
-        /// Adds a <see cref="Card"/> to the given location.
+        /// Adds a <see cref="CardInstance"/> to the given location.
         ///
         /// Note that this does not apply any other game logic - it should be called
-        /// by something that's orchestrating whatever is supposed to happen with the <see cref="Card"/>.
+        /// by something that's orchestrating whatever is supposed to happen with the <see cref="CardInstance"/>.
         /// </summary>
-        public Location WithCard(Card card)
+        public Location WithCard(ICard card)
         {
-            card = card with { Column = this.Column };
+            var cardInPlay = card.InPlayAt(this.Column);
 
             // TODO: Consider checking that the Card.State is correct
-            switch (card.Side)
+            switch (cardInPlay.Side)
             {
                 case Side.Top:
-                    return this with { TopPlayerCards = this.TopPlayerCards.Add(card) };
+                    return this with { TopPlayerCards = this.TopPlayerCards.Add(cardInPlay) };
                 case Side.Bottom:
-                    return this with { BottomPlayerCards = this.BottomPlayerCards.Add(card) };
+                    return this with { BottomPlayerCards = this.BottomPlayerCards.Add(cardInPlay) };
                 default:
                     throw new NotImplementedException();
             }
         }
 
         /// <summary>
-        /// Removes a <see cref="Card"/> to the given location.
+        /// Removes a <see cref="Card"/> from the given location.
         ///
         /// Note that this does not apply any other game logic - it should be called
         /// by something that's orchestrating whatever is supposed to happen with the <see cref="Card"/>.

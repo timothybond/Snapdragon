@@ -71,7 +71,7 @@ namespace Snapdragon
         }
 
         /// <summary>
-        /// Gets all <see cref="Card"/>s that have been played and revealed.
+        /// Gets all <see cref="CardInstance"/>s that have been played and revealed.
         /// </summary>
         public IEnumerable<Card> AllCards =>
             this
@@ -80,7 +80,7 @@ namespace Snapdragon
                 .Where(c => c.State == CardState.InPlay);
 
         /// <summary>
-        /// Gets all <see cref="Card"/>s that have been played, whether or not they are revealed.
+        /// Gets all <see cref="CardInstance"/>s that have been played, whether or not they are revealed.
         /// </summary>
         public IEnumerable<Card> AllCardsIncludingUnrevealed =>
             this.Left.AllCards.Concat(this.Middle.AllCards).Concat(this.Right.AllCards);
@@ -88,7 +88,10 @@ namespace Snapdragon
         public IEnumerable<Sensor<Card>> AllSensors =>
             this.Left.Sensors.Concat(this.Middle.Sensors).Concat(this.Right.Sensors);
 
-        public IEnumerable<(IOngoingAbility<Card> Ability, Card Source)> GetCardOngoingAbilities()
+        public IEnumerable<(
+            IOngoingAbility<Card> Ability,
+            Card Source
+        )> GetCardOngoingAbilities()
         {
             foreach (var column in All.Columns)
             {
@@ -142,25 +145,22 @@ namespace Snapdragon
         {
             var set = new HashSet<EffectType>();
 
-            if (card.Column.HasValue)
+            if (blockedEffectsByColumn != null)
             {
-                if (blockedEffectsByColumn != null)
+                foreach (var blockedEffect in blockedEffectsByColumn[card.Column])
                 {
-                    foreach (var blockedEffect in blockedEffectsByColumn[card.Column.Value])
-                    {
-                        set.Add(blockedEffect);
-                    }
+                    set.Add(blockedEffect);
                 }
-                else
-                {
-                    // This is a little gross but it's co-located with the method we're abusing
-                    set = (HashSet<EffectType>)GetBlockedEffects(card.Column.Value, card.Side);
-                }
+            }
+            else
+            {
+                // This is a little gross but it's co-located with the method we're abusing
+                set = (HashSet<EffectType>)GetBlockedEffects(card.Column, card.Side);
             }
 
             foreach (var source in cardsWithCardEffectBlocks ?? AllCards)
             {
-                if (source.Ongoing is OngoingBlockCardEffect<Card> blockCardEffect)
+                if (source.Ongoing is OngoingBlockCardEffect<ICard> blockCardEffect)
                 {
                     if (blockCardEffect.Applies(card, source, this))
                     {
@@ -200,28 +200,14 @@ namespace Snapdragon
             IReadOnlyList<Card>? cardsWithCardEffectBlocks = null
         )
         {
-            if (card.Column == null)
-            {
-                throw new InvalidOperationException("Somehow a card in play has no Column set.");
-            }
-
             // Note: This weird scope exists because I didn't feel like keeping around two references to the same thing,
             // but I couldn't directly replace "card" until I verified that it wasn't null.
             {
-                var actualCard = this[card.Column.Value]
-                    [card.Side]
-                    .SingleOrDefault(c => c.Id == card.Id);
+                var actualCard = this[card.Column][card.Side].SingleOrDefault(c => c.Id == card.Id);
 
                 if (actualCard == null)
                 {
                     return false;
-                }
-
-                if (actualCard.Column == null)
-                {
-                    throw new InvalidOperationException(
-                        "Somehow a card in play has no Column set."
-                    );
                 }
 
                 card = actualCard;
@@ -238,16 +224,14 @@ namespace Snapdragon
             }
 
             var blockedAtFrom =
-                blockedEffectsByColumn?[card.Column.Value]
-                ?? GetBlockedEffects(card.Column.Value, card.Side);
+                blockedEffectsByColumn?[card.Column] ?? GetBlockedEffects(card.Column, card.Side);
             if (blockedAtFrom.Contains(EffectType.MoveFromLocation))
             {
                 return false;
             }
 
             var blockedAtTo =
-                blockedEffectsByColumn?[card.Column.Value]
-                ?? GetBlockedEffects(destination, card.Side);
+                blockedEffectsByColumn?[card.Column] ?? GetBlockedEffects(destination, card.Side);
             if (blockedAtTo.Contains(EffectType.MoveToLocation))
             {
                 return false;
@@ -328,7 +312,7 @@ namespace Snapdragon
 
         /// <summary>
         /// Gets a modified state with the given <see cref="Sensor{Card}"/>.  Note that unlike <see
-        /// cref="WithCard(Card)"/>, this adds a new effect rather than modifying an existing one.
+        /// cref="WithCard(CardInstance)"/>, this adds a new effect rather than modifying an existing one.
         /// </summary>
         public Game WithTemporaryCardEffect(Sensor<Card> temporaryCardEffect)
         {
@@ -339,7 +323,7 @@ namespace Snapdragon
 
         /// <summary>
         /// Gets a modified state with the given <see cref="Sensor{Card}"/>.  Note that unlike <see
-        /// cref="WithCard(Card)"/>, this adds a new effect rather than modifying an existing one.
+        /// cref="WithCard(CardInstance)"/>, this adds a new effect rather than modifying an existing one.
         /// </summary>
         public Game WithTemporaryCardEffectDeleted(int temporaryCardEffectId)
         {
@@ -352,39 +336,33 @@ namespace Snapdragon
         }
 
         /// <summary>
-        /// Gets a modified state with the given <see cref="Card"/>s updated.  Currently only suitable for cards in
+        /// Gets a modified state with the given <see cref="CardInstance"/>s updated.  Currently only suitable for cards in
         /// play, with attributes (typically PowerAdjustment) changed. Cannot handle moved cards, destroyed cards, etc.
         /// </summary>
         /// <param name="card"></param>
         /// <returns></returns>
-        public Game WithCards(IEnumerable<Card> cards)
+        public Game WithUpdatedCards(IEnumerable<Card> cards)
         {
             // TODO: Determine if this needs to be optimized
             var game = this;
 
             foreach (var card in cards)
             {
-                game = game.WithCard(card);
+                game = game.WithUpdatedCard(card);
             }
 
             return game;
         }
 
         /// <summary>
-        /// Gets a modified state with the given <see cref="Card"/> updated.  Currently only suitable for cards in play,
+        /// Gets a modified state with the given <see cref="CardInstance"/> updated.  Currently only suitable for cards in play,
         /// with attributes (typically PowerAdjustment) changed. Cannot handle moved cards, destroyed cards, etc.
         /// </summary>
         /// <param name="card"></param>
         /// <returns></returns>
-        public Game WithCard(Card card)
+        public Game WithUpdatedCard(Card card)
         {
-            var column =
-                card.Column
-                ?? throw new InvalidOperationException(
-                    "Tried to modify a card that isn't in play."
-                );
-
-            var location = this[column];
+            var location = this[card.Column];
             var newCards = location[card.Side]
                 .Select(c => c.Id == card.Id ? card : c)
                 .ToImmutableList();
@@ -400,7 +378,7 @@ namespace Snapdragon
         }
 
         /// <summary>
-        /// Gets a modified state that applies some change to a <see cref="Card"/> (in place).  Moves or side changes
+        /// Gets a modified state that applies some change to a <see cref="CardInstance"/> (in place).  Moves or side changes
         /// need to be handled elsewhere.
         /// </summary>
         /// <param name="currentCard">The existing card to be modified.</param>
@@ -415,16 +393,10 @@ namespace Snapdragon
             Func<Game, Card, Game>? postModifyTransform = null
         )
         {
-            Column column =
-                currentCard.Column
-                ?? throw new InvalidOperationException(
-                    "Tried to modify a card that isn't in play."
-                );
-
-            var location = this[column];
+            var location = this[currentCard.Column];
             var side = currentCard.Side;
 
-            var currentCardsForSide = this[column][side];
+            var currentCardsForSide = this[currentCard.Column][side];
 
             // Cards still need to be placed in the same order (I think)
             var newCardsForSide = new List<Card>();
@@ -946,16 +918,19 @@ namespace Snapdragon
                 }
             );
 
-            return this.WithCards(recalculatedCards);
+            return this.WithUpdatedCards(recalculatedCards);
         }
 
         /// <summary>
-        /// Calculates the total power adjustment to the given <see cref="Card"/>
+        /// Calculates the total power adjustment to the given <see cref="CardInstance"/>
         /// based on the pased-in list of all active ongoing abilities
         /// </summary>
         private int? GetPowerAdjustment(
             Card card,
-            IReadOnlyList<(IOngoingAbility<Card> Ability, Card Source)> ongoingCardAbilities,
+            IReadOnlyList<(
+                IOngoingAbility<Card> Ability,
+                Card Source
+            )> ongoingCardAbilities,
             Game game
         )
         {

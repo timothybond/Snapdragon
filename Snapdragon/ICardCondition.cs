@@ -7,7 +7,7 @@
         /// </summary>
         /// <param name="game">Current game state.</param>
         /// <param name="source">
-        /// The <see cref="Card"/> on which the condition was defined.  Conditions are often in reference to this card (e.g.,
+        /// The <see cref="CardInstance"/> on which the condition was defined.  Conditions are often in reference to this card (e.g.,
         /// things happening in the same location).
         /// </param>
         bool IsMet(Game game, Card source);

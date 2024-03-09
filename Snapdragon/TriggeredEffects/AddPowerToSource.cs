@@ -1,8 +1,9 @@
 ﻿namespace Snapdragon.TriggeredEffects
 {
-    public record AddPowerToSource<TEvent>(int Amount) : ISourceTriggeredEffectBuilder<Card, TEvent>
+    public record AddPowerToSource<TEvent>(int Amount)
+        : ISourceTriggeredEffectBuilder<ICard, TEvent>
     {
-        public IEffect Build(Game game, TEvent e, Card source)
+        public IEffect Build(Game game, TEvent e, ICard source)
         {
             return new Effects.AddPowerToCard(source, Amount);
         }

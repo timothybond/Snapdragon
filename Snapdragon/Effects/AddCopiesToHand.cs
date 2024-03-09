@@ -1,6 +1,6 @@
 ﻿namespace Snapdragon.Effects
 {
-    public record AddCopiesToHand(Card Card, int Count, Func<Card, Card>? Transform = null)
+    public record AddCopiesToHand(ICard Card, int Count, Func<CardInstance, CardInstance>? Transform = null)
         : IEffect
     {
         public Game Apply(Game game)
@@ -15,7 +15,11 @@
                     break;
                 }
 
-                var card = Card with { State = CardState.InHand, Id = Ids.GetNext<Card>() };
+                var card = Card.ToCardInstance() with
+                {
+                    State = CardState.InHand,
+                    Id = Ids.GetNext<CardInstance>()
+                };
                 if (this.Transform != null)
                 {
                     card = this.Transform(card);

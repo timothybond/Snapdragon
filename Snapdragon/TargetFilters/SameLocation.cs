@@ -1,13 +1,14 @@
 ﻿namespace Snapdragon.TargetFilters
 {
-    public record SameLocation : ICardFilter<Card>, ILocationFilter<Card>
+    public record SameLocation<T> : ICardFilter<T>, ILocationFilter<T>
+        where T : ICard
     {
-        public bool Applies(Card card, Card source, Game game)
+        public bool Applies(ICard card, T source, Game game)
         {
             return (card.Column == source.Column);
         }
 
-        public bool Applies(Location location, Card source, Game game)
+        public bool Applies(Location location, T source, Game game)
         {
             return (source.Column == location.Column);
         }

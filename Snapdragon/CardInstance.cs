@@ -2,17 +2,12 @@
 
 namespace Snapdragon
 {
+    // TODO: See if I can come up with a better name for this type
     /// <summary>
-    /// A card that has actually been played into a particular <see cref="Column"/>.
-    ///
-    /// This is the "main" class for items that have meaningful effects in a <see cref="Game"/>.
-    ///
-    /// In comparison, the <see cref="CardInstance"/> class exists to track cards that are out of play
-    /// (in hands, in decks, discarded, or destroyed), but mostly just for scenarios where they might
-    /// return to play, which is why even on that type, abilities are mostly referred to using the
-    /// type <see cref="Card"/>.
+    /// Represents a specific card in the context of a <see cref="Game"/>, but potentially still in a
+    /// <see cref="Player"/>'s <see cref="Player.Hand"/> or <see cref="Player.Library"/>.
     /// </summary>
-    public record Card(
+    public record CardInstance(
         int Id,
         CardDefinition Definition,
         string Name,
@@ -20,7 +15,7 @@ namespace Snapdragon
         int Power,
         CardState State,
         Side Side,
-        Column Column,
+        Column? Column,
         int? PowerAdjustment,
         IRevealAbility<Card>? OnReveal = null,
         IOngoingAbility<Card>? Ongoing = null,
@@ -28,18 +23,22 @@ namespace Snapdragon
         IMoveAbility<Card>? MoveAbility = null,
         ImmutableList<EffectType>? Disallowed = null,
         IPlayRestriction? PlayRestriction = null
-    ) : ICardInPlay, IObjectWithColumn
+    ) : ICard
     {
-        public Card(CardDefinition definition, Side side, Column column)
+        public CardInstance(
+            CardDefinition definition,
+            Side side,
+            CardState state = CardState.InLibrary
+        )
             : this(
                 Ids.GetNext<ICard>(),
                 definition,
                 definition.Name,
                 definition.Cost,
                 definition.Power,
-                CardState.InPlay,
+                state,
                 side,
-                column,
+                null,
                 null,
                 definition.OnReveal,
                 definition.Ongoing,
@@ -52,16 +51,14 @@ namespace Snapdragon
 
         public int AdjustedPower => this.Power + (this.PowerAdjustment ?? 0);
 
-        Column? ICard.Column => this.Column;
-
         public override string ToString()
         {
             return $"{Name} ({Id}) {Cost}E {AdjustedPower}P";
         }
 
-        public CardInstance ToCardInstance()
+        public Card InPlayAt(Column column)
         {
-            return new CardInstance(
+            return new Card(
                 Id,
                 Definition,
                 Name,
@@ -69,7 +66,7 @@ namespace Snapdragon
                 Power,
                 State,
                 Side,
-                Column,
+                column,
                 PowerAdjustment,
                 OnReveal,
                 Ongoing,
@@ -80,9 +77,6 @@ namespace Snapdragon
             );
         }
 
-        public Card InPlayAt(Column column)
-        {
-            return this with { Column = column };
-        }
+        public CardInstance ToCardInstance() => this;
     }
 }

@@ -2,6 +2,6 @@
 {
     public interface IPlayRestriction
     {
-        bool IsBlocked(Game game, Column column, Card source);
+        bool IsBlocked(Game game, Column column, CardInstance source);
     }
 }

@@ -12,7 +12,7 @@ namespace Snapdragon
 
         public Library ToLibrary(Side side, bool shuffle = true)
         {
-            var cards = Cards.Select(c => new Card(c, side));
+            var cards = Cards.Select(c => new CardInstance(c, side));
             if (shuffle)
             {
                 cards = cards.OrderBy(card => Random.Next());

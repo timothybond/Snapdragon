@@ -13,7 +13,7 @@ namespace Snapdragon.Tests.SnapCardsTest
 
             // Need to populate some existing cards in the hand
             var hand = new[] { Cards.OneOne, Cards.ThreeThree, Cards.TwoTwo }
-                .Select(cd => new Card(cd, side, CardState.InHand))
+                .Select(cd => new CardInstance(cd, side, CardState.InHand))
                 .ToImmutableList();
             game = game.WithPlayer(game[side] with { Hand = hand });
 
@@ -39,7 +39,7 @@ namespace Snapdragon.Tests.SnapCardsTest
 
             // Need to populate some existing cards in the hand
             var hand = new[] { Cards.OneOne, Cards.ThreeThree, Cards.ThreeThree, Cards.TwoTwo }
-                .Select(cd => new Card(cd, side, CardState.InHand))
+                .Select(cd => new CardInstance(cd, side, CardState.InHand))
                 .ToImmutableList();
             game = game.WithPlayer(game[side] with { Hand = hand });
 
@@ -66,7 +66,7 @@ namespace Snapdragon.Tests.SnapCardsTest
 
             // Need to populate some existing cards in the hand
             var hand = new[] { Cards.OneOne, Cards.ThreeThree, Cards.TwoTwo }
-                .Select(cd => new Card(cd, side.Other(), CardState.InHand))
+                .Select(cd => new CardInstance(cd, side.Other(), CardState.InHand))
                 .ToImmutableList();
             game = game.WithPlayer(game[side.Other()] with { Hand = hand });
 

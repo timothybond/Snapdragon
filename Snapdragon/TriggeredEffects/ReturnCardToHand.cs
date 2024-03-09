@@ -4,10 +4,10 @@
     /// Returns the card that triggered the effect to its owner's hand,
     /// optionally performing a transformation on it.
     /// </summary>
-    public record ReturnCardToHand<TEvent>(Func<Card, Card>? Transform)
-        : ISourceTriggeredEffectBuilder<Card, TEvent>
+    public record ReturnCardToHand<TEvent>(Func<CardInstance, CardInstance>? Transform)
+        : ISourceTriggeredEffectBuilder<ICard, TEvent>
     {
-        public IEffect Build(Game game, TEvent e, Card source)
+        public IEffect Build(Game game, TEvent e, ICard source)
         {
             return new Effects.ReturnCardToHand(source, this.Transform);
         }

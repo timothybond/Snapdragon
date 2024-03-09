@@ -6,7 +6,8 @@
     /// Optionally also performs a transformation on the card.
     /// </summary>
     /// <param name="Card"></param>
-    public record ReturnCardToHand(Card Card, Func<Card, Card>? Transform = null) : IEffect
+    public record ReturnCardToHand(ICard Card, Func<CardInstance, CardInstance>? Transform = null)
+        : IEffect
     {
         public Game Apply(Game game)
         {
@@ -31,7 +32,7 @@
                 };
             }
 
-            var card = Card with { State = CardState.InHand };
+            var card = Card.ToCardInstance() with { State = CardState.InHand };
 
             if (this.Transform != null)
             {
@@ -42,12 +43,15 @@
 
             game = game.WithPlayer(player);
 
-            foreach (var column in All.Columns)
+            if (Card is Card cardInPlay)
             {
-                if (game[column][Card.Side].Any(c => c.Id == Card.Id))
+                foreach (var column in All.Columns)
                 {
-                    var location = game[column].WithRemovedCard(Card);
-                    game = game.WithLocation(location);
+                    if (game[column][Card.Side].Any(c => c.Id == Card.Id))
+                    {
+                        var location = game[column].WithRemovedCard(cardInPlay);
+                        game = game.WithLocation(location);
+                    }
                 }
             }
 

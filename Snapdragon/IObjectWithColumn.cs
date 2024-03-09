@@ -2,6 +2,6 @@
 {
     public interface IObjectWithColumn
     {
-        Column? Column { get; }
+        Column Column { get; }
     }
 }

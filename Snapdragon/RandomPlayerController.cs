@@ -70,16 +70,6 @@ namespace Snapdragon
                 cardsWithCardEffectBlocks
             );
 
-            //var moves = Random.Of(
-            //    GetPossibleMoveActionSets(
-            //        game,
-            //        side,
-            //        cardsWithMoveAbilities,
-            //        cardsWithLocationEffectBlocks,
-            //        cardsWithCardEffectBlocks
-            //    )
-            //);
-
             // Once we pick the moves, we have to perform the rest of the search
             // as though they have already taken place.
             game = moves.Aggregate(game, (g, m) => m.Apply(g));
@@ -207,7 +197,7 @@ namespace Snapdragon
                 var newMove = new MoveCardAction(
                     next.Side,
                     next,
-                    next.Column!.Value,
+                    next.Column,
                     potentialColumns[newColumn]
                 );
 
@@ -229,7 +219,8 @@ namespace Snapdragon
             IReadOnlyList<Card> cardsWithCardEffectBlocks
         )
         {
-            return card.Column!.Value.Others()
+            return card
+                .Column.Others()
                 .Where(col =>
                     game.CanMove(
                         card,
@@ -259,12 +250,7 @@ namespace Snapdragon
 
             foreach (var card in allCards)
             {
-                if (card.Column == null)
-                {
-                    throw new InvalidOperationException("Card in play had no Column value.");
-                }
-
-                foreach (var column in card.Column.Value.Others())
+                foreach (var column in card.Column.Others())
                 {
                     if (
                         game.CanMove(
@@ -286,7 +272,7 @@ namespace Snapdragon
         }
 
         private static IReadOnlyList<PlayCardAction> GetPlayCardActions(
-            IReadOnlyList<Card> cards,
+            IReadOnlyList<CardInstance> cards,
             IReadOnlyList<Column> columns,
             Side side
         )

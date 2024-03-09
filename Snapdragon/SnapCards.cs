@@ -1,5 +1,4 @@
-﻿using System.Collections.Immutable;
-using Snapdragon.Calculations;
+﻿using Snapdragon.Calculations;
 using Snapdragon.CardConditions;
 using Snapdragon.CardModifiers;
 using Snapdragon.CardTriggers;
@@ -13,6 +12,7 @@ using Snapdragon.Sensors;
 using Snapdragon.TargetFilters;
 using Snapdragon.TriggeredEffects;
 using Snapdragon.Triggers;
+using System.Collections.Immutable;
 
 namespace Snapdragon
 {
@@ -34,7 +34,10 @@ namespace Snapdragon
                 1,
                 1,
                 null,
-                new OngoingAdjustPower<Card>(new SelfIfLocationFull(), new Constant<Card>(3))
+                new OngoingAdjustPower<Card>(
+                    new SelfIfLocationFull(),
+                    new Constant<Card>(3)
+                )
             ),
             new("Agent 13", 1, 2, new AddRandomCardToHand()),
             new("Blade", 1, 3, new DiscardCard(new RightmostCardInHand<Card>())),
@@ -45,8 +48,8 @@ namespace Snapdragon
                 null,
                 new OngoingBlockLocationEffect<Card>(
                     EffectType.PlayCard,
-                    new SameLocation(),
-                    new SameSide()
+                    new SameLocation<Card>(),
+                    new SameSide<Card>()
                 ),
                 null,
                 null,
@@ -58,7 +61,9 @@ namespace Snapdragon
                 1,
                 2,
                 new DestroyRandomCardsInPlay<Card>(
-                    new OtherSide().And(new CardsWithCost(1)).And(new SameLocation()),
+                    new OtherSide()
+                        .And(new CardsWithCost<Card>(1))
+                        .And(new SameLocation<Card>()),
                     1
                 )
             ),
@@ -81,7 +86,7 @@ namespace Snapdragon
                 2,
                 null,
                 null,
-                new TriggeredAbility<Card, CardMovedEvent>(
+                new TriggeredAbility<ICard, CardMovedEvent>(
                     new OnMoved(),
                     new DoubleSourcePower<CardMovedEvent>()
                 )
@@ -115,7 +120,7 @@ namespace Snapdragon
                 new AddCardsToLocations<Card>(
                     new CardDefinition("Squirrel", 1, 1),
                     new OtherLocations(),
-                    new SameSide(),
+                    new SameSide<Card>(),
                     1
                 )
             ),
@@ -124,7 +129,7 @@ namespace Snapdragon
                 2,
                 3,
                 new AddPower(
-                    new TopCardInLibrary<Card>().And(new SameSide()),
+                    new TopCardInLibrary<ICard>().And(new SameSide<ICard>()),
                     2,
                     CardState.InLibrary
                 )
@@ -136,7 +141,7 @@ namespace Snapdragon
                 new OnRevealIf(new OpponentPlayedSameTurn(), new DrawOpponentCard())
             ),
             new("Medusa", 2, 2, new OnRevealIf(new InLocation(Column.Middle), new AddPowerSelf(3))),
-            new("Okoye", 2, 2, new AddPower(new SameSide(), 1, CardState.InLibrary)),
+            new("Okoye", 2, 2, new AddPower(new SameSide<ICard>(), 1, CardState.InLibrary)),
             new("Shocker", 2, 3),
             new(
                 "Star-Lord",
@@ -150,7 +155,7 @@ namespace Snapdragon
                 2,
                 null,
                 null,
-                new TriggeredAbility<Card, CardRevealedEvent>(
+                new TriggeredAbility<ICard, CardRevealedEvent>(
                     new OnRevealCardHereSameSide(),
                     new AddPowerToSource<CardRevealedEvent>(1)
                 )
@@ -160,7 +165,10 @@ namespace Snapdragon
                 2,
                 3,
                 null,
-                new OngoingBlockLocationEffect<Card>(EffectType.DestroyCard, new SameLocation())
+                new OngoingBlockLocationEffect<Card>(
+                    EffectType.DestroyCard,
+                    new SameLocation<Card>()
+                )
             ),
             new(
                 "Cloak",
@@ -180,7 +188,7 @@ namespace Snapdragon
                 2,
                 null,
                 null,
-                new TriggeredAbility<Card, CardMovedEvent>(
+                new TriggeredAbility<ICard, CardMovedEvent>(
                     new OnCardMovedHere(),
                     new AddPowerToSource<CardMovedEvent>(2)
                 )
@@ -192,7 +200,7 @@ namespace Snapdragon
                 3,
                 null,
                 null,
-                new TriggeredAbility<Card, CardMovedEvent>(
+                new TriggeredAbility<ICard, CardMovedEvent>(
                     new OnMoved(),
                     new AddCopyToOldLocation()
                 )
@@ -221,7 +229,7 @@ namespace Snapdragon
                 1,
                 null,
                 null,
-                new TriggeredAbility<Card, CardRevealedEvent>(
+                new TriggeredAbility<ICard, CardRevealedEvent>(
                     new OnRevealCardSameSide(),
                     new AddPowerToSource<CardRevealedEvent>(1)
                 )
@@ -233,7 +241,11 @@ namespace Snapdragon
                 "Ironheart",
                 3,
                 0,
-                new AddPowerRandomly<Card>(new SameSide().And(new OtherCards()), 2, 3)
+                new AddPowerRandomly<Card>(
+                    new SameSide<Card>().And(new OtherCards<Card>()),
+                    2,
+                    3
+                )
             ),
             new("Lady Sif", 3, 5, new DiscardCard(new TopCostInHand<Card>())),
             new(
@@ -241,7 +253,10 @@ namespace Snapdragon
                 3,
                 2,
                 null,
-                new OngoingAddLocationPower<Card>(new AdjacentToCard(), new Constant<Card>(2))
+                new OngoingAddLocationPower<Card>(
+                    new AdjacentToCard(),
+                    new Constant<Card>(2)
+                )
             ),
             new("Nakia", 3, 3, new ModifyCardsInOwnerHand(new ModifyCardPower(1))),
             new("Sword Master", 3, 6, new DiscardCard()),
@@ -251,7 +266,7 @@ namespace Snapdragon
                 3,
                 null,
                 null,
-                new TriggeredAbility<Card, CardMovedEvent>(
+                new TriggeredAbility<ICard, CardMovedEvent>(
                     new OnMoved(),
                     new AddPowerToSource<CardMovedEvent>(5)
                 )
@@ -262,7 +277,9 @@ namespace Snapdragon
                 1,
                 new AddPowerSelf(
                     new PowerPerCard(
-                        new OtherCards().And(new SameSide()).And(new SameLocation()),
+                        new OtherCards<ICard>()
+                            .And(new SameSide<ICard>())
+                            .And(new SameLocation<ICard>()),
                         2
                     )
                 )
@@ -273,7 +290,7 @@ namespace Snapdragon
                 4,
                 null,
                 new OngoingAdjustPower<Card>(
-                    new CardsWithCost(1).And(new SameSide()),
+                    new CardsWithCost<Card>(1).And(new SameSide<Card>()),
                     new Constant<Card>(1)
                 )
             ),
@@ -298,7 +315,7 @@ namespace Snapdragon
                 new AddCardsToLocations<Card>(
                     new CardDefinition("Void", 4, -10),
                     new SpecificLocation<Card>(Column.Right),
-                    new SameSide()
+                    new SameSide<Card>()
                 ),
                 null,
                 null,
@@ -313,7 +330,7 @@ namespace Snapdragon
                 3,
                 null,
                 new OngoingAdjustPower<Card>(
-                    new OtherCards().And(new SameSide()),
+                    new OtherCards<Card>().And(new SameSide<Card>()),
                     new Constant<Card>(1)
                 )
             ),
@@ -324,7 +341,10 @@ namespace Snapdragon
                 5,
                 4,
                 null,
-                new OngoingAddLocationPower<Card>(new ToTheRight(), new Constant<Card>(6))
+                new OngoingAddLocationPower<Card>(
+                    new ToTheRight(),
+                    new Constant<Card>(6)
+                )
             ),
             new(
                 "White Tiger",
@@ -346,8 +366,18 @@ namespace Snapdragon
                     new ReturnCardToHand<CardDiscardedEvent>(c => c with { Power = c.Power + 4 })
                 )
             ),
-            new("Spectrum", 6, 7, new AddPower(new SameSide().And(new WithOngoingAbility()), 2)),
-            new("Heimdall", 6, 9, new MoveCardsLeft(new OtherCards().And(new SameSide()))),
+            new(
+                "Spectrum",
+                6,
+                7,
+                new AddPower(new SameSide<ICard>().And(new WithOngoingAbility()), 2)
+            ),
+            new(
+                "Heimdall",
+                6,
+                9,
+                new MoveCardsLeft(new OtherCards<ICard>().And(new SameSide<ICard>()))
+            ),
             new("Hulk", 6, 12)
         }
             .OrderBy(c => c.Cost)

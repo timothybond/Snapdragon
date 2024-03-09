@@ -2,7 +2,7 @@
 
 namespace Snapdragon.Effects
 {
-    public record AddPowerToCard(Card Card, int Amount) : IEffect
+    public record AddPowerToCard(ICard Card, int Amount) : IEffect
     {
         public Game Apply(Game game)
         {
@@ -12,7 +12,9 @@ namespace Snapdragon.Effects
                 case CardState.InLibrary:
                     var library = game[Card.Side].Library;
                     library = new Library(
-                        library.Cards.Select(c => this.ApplyToCard(c, game)).ToImmutableList()
+                        library
+                            .Cards.Select(c => this.ApplyToCard(c, game).ToCardInstance())
+                            .ToImmutableList()
                     );
 
                     var playerWithLibrary = game[Card.Side] with { Library = library };
@@ -20,7 +22,7 @@ namespace Snapdragon.Effects
 
                 case CardState.InHand:
                     var hand = game[Card.Side].Hand;
-                    hand = hand.Select(c => this.ApplyToCard(c, game)).ToImmutableList();
+                    hand = hand.Select(c => this.ApplyToCard(c, game).ToCardInstance()).ToImmutableList();
 
                     var playerWithHand = game[Card.Side] with { Hand = hand };
                     return game.WithPlayer(playerWithHand);
@@ -42,11 +44,15 @@ namespace Snapdragon.Effects
                         return game;
                     }
 
-                    return game.WithModifiedCard(actualCard, c => this.ApplyToCard(c, game));
+                    // TODO: See if we can clear up the weird round-trip here
+                    return game.WithModifiedCard(
+                        actualCard,
+                        c => this.ApplyToCard(c, game).InPlayAt(c.Column)
+                    );
                 case CardState.Destroyed:
                     var playerWithDestroyed = game[Card.Side];
                     var destroyed = playerWithDestroyed
-                        .Destroyed.Select(c => this.ApplyToCard(c, game))
+                        .Destroyed.Select(c => this.ApplyToCard(c, game).ToCardInstance())
                         .ToImmutableList();
 
                     playerWithDestroyed = playerWithDestroyed with { Destroyed = destroyed };
@@ -54,7 +60,7 @@ namespace Snapdragon.Effects
                 case CardState.Discarded:
                     var playerWithDiscards = game[Card.Side];
                     var discards = playerWithDiscards
-                        .Discards.Select(c => this.ApplyToCard(c, game))
+                        .Discards.Select(c => this.ApplyToCard(c, game).ToCardInstance())
                         .ToImmutableList();
 
                     playerWithDiscards = playerWithDiscards with { Discards = discards };
@@ -70,14 +76,16 @@ namespace Snapdragon.Effects
         /// <param name="possibleCard">A card to which the effect might (but does not necessarily) apply.</param>
         /// <param name="game">The overall game state.</param>
         /// <returns>The modified card (or, for a non-match or blocked effect, the original card).</returns>
-        private Card ApplyToCard(Card possibleCard, Game game)
+        private ICard ApplyToCard(ICard possibleCard, Game game)
         {
             if (possibleCard.Id != Card.Id)
             {
                 return possibleCard;
             }
 
-            var blockedEffects = game.GetBlockedEffects(possibleCard);
+            var blockedEffects = possibleCard is Card possibleCardInPlay
+                ? game.GetBlockedEffects(possibleCardInPlay)
+                : new HashSet<EffectType>();
 
             if (possibleCard.Column != null)
             {
@@ -96,7 +104,10 @@ namespace Snapdragon.Effects
                 return possibleCard;
             }
 
-            return possibleCard with
+            // Note: this could be a bit of a weird roundtrip in many cases,
+            // but is necessary due to the current state of the types that
+            // differentiate in-play cards from those in hands/libraries.
+            return possibleCard.ToCardInstance() with
             {
                 Power = possibleCard.Power + Amount
             };

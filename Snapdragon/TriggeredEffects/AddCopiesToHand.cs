@@ -1,9 +1,9 @@
 ﻿namespace Snapdragon.TriggeredEffects
 {
-    public record AddCopiesToHand<TEvent>(int Count, Func<Card, Card>? Transform = null)
-        : ISourceTriggeredEffectBuilder<Card, TEvent>
+    public record AddCopiesToHand<TEvent>(int Count, Func<CardInstance, CardInstance>? Transform = null)
+        : ISourceTriggeredEffectBuilder<ICard, TEvent>
     {
-        public IEffect Build(Game game, TEvent e, Card source)
+        public IEffect Build(Game game, TEvent e, ICard source)
         {
             return new Effects.AddCopiesToHand(source, Count, Transform);
         }

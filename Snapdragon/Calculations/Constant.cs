@@ -15,7 +15,7 @@
             return Value;
         }
 
-        public int GetValue(Game game, T source, Card target)
+        public int GetValue(Game game, T source, ICard target)
         {
             return Value;
         }

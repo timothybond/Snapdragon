@@ -1,5 +1,5 @@
-﻿using System.Collections.Immutable;
-using Snapdragon.PlayerActions;
+﻿using Snapdragon.PlayerActions;
+using System.Collections.Immutable;
 
 namespace Snapdragon.Tests
 {
@@ -378,27 +378,27 @@ namespace Snapdragon.Tests
         }
 
         /// <summary>
-        /// Gets cards to be played (so, <see cref="Card.State"/> is set to <see cref="CardState.InHand"/>).
+        /// Gets cards to be played (so, <see cref="CardInstance.State"/> is set to <see cref="CardState.InHand"/>).
         /// </summary>
         /// <param name="side">Player side that will play the cards.</param>
         /// <param name="cardNames">Names of the cards.</param>
         /// <returns></returns>
-        private static IReadOnlyList<Card> GetCards(Side side, params string[] cardNames)
+        private static IReadOnlyList<CardInstance> GetCards(Side side, params string[] cardNames)
         {
             // Somewhat pointless cast, but I didn't want to independently implement both methods.
             return GetCards(side, cardNames.ToList());
         }
 
         /// <summary>
-        /// Gets cards to be played (so, <see cref="Card.State"/> is set to <see cref="CardState.InHand"/>).
+        /// Gets cards to be played (so, <see cref="CardInstance.State"/> is set to <see cref="CardState.InHand"/>).
         /// </summary>
         /// <param name="side">Player side that will play the cards.</param>
         /// <param name="cardNames">Names of the cards.</param>
         /// <returns></returns>
-        private static IReadOnlyList<Card> GetCards(Side side, IEnumerable<string> cardNames)
+        private static IReadOnlyList<CardInstance> GetCards(Side side, IEnumerable<string> cardNames)
         {
             return cardNames
-                .Select(name => new Card(SnapCards.ByName[name], side, CardState.InHand))
+                .Select(name => new CardInstance(SnapCards.ByName[name], side, CardState.InHand))
                 .ToList();
         }
 
@@ -427,7 +427,7 @@ namespace Snapdragon.Tests
 
             foreach (var absentCard in cardsNeeded)
             {
-                var card = new Card(SnapCards.ByName[absentCard.CardName], side, CardState.InHand);
+                var card = new CardInstance(SnapCards.ByName[absentCard.CardName], side, CardState.InHand);
                 playerHand.Add(card);
             }
 

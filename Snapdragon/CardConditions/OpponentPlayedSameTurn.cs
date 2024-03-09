@@ -3,7 +3,7 @@
 namespace Snapdragon.CardConditions
 {
     /// <summary>
-    /// An instance of <see cref="ICardCondition"/> that is met if the opponent played a <see cref="Card"/> in the same
+    /// An instance of <see cref="ICardCondition"/> that is met if the opponent played a <see cref="CardInstance"/> in the same
     /// <see cref="Location"/> on the same turn.
     /// </summary>
     public class OpponentPlayedSameTurn : ICardCondition

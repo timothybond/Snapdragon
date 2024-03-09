@@ -14,7 +14,7 @@ namespace Snapdragon.Tests.SnapCardsTest
             // (note we skipped the initial draw of 3)
             var cardsInLibrary = Enumerable.Repeat(Cards.OneOne, 4);
             var library = new Library(
-                cardsInLibrary.Select(c => new Card(c, side)).ToImmutableList()
+                cardsInLibrary.Select(c => new CardInstance(c, side)).ToImmutableList()
             );
 
             game = game.WithPlayer(game[side] with { Library = library });
@@ -40,7 +40,7 @@ namespace Snapdragon.Tests.SnapCardsTest
             // (note we skipped the initial draw of 3)
             var cardsInLibrary = Enumerable.Repeat(Cards.OneOne, 4);
             var library = new Library(
-                cardsInLibrary.Select(c => new Card(c, side)).ToImmutableList()
+                cardsInLibrary.Select(c => new CardInstance(c, side)).ToImmutableList()
             );
 
             game = game.WithPlayer(game[side.Other()] with { Library = library });

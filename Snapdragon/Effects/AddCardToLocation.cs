@@ -4,7 +4,7 @@
     {
         public Game Apply(Game game)
         {
-            var card = new Card(Definition, Side, CardState.InPlay) with { Column = Column };
+            var card = new CardInstance(Definition, Side, CardState.InPlay) with { Column = Column };
 
             // TODO: Handle restrictions on slots
             if (game[Column][Side].Count < 4)

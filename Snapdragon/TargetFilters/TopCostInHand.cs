@@ -2,7 +2,7 @@
 {
     public record TopCostInHand<T> : ICardFilter<T>
     {
-        public bool Applies(Card card, T source, Game game)
+        public bool Applies(ICard card, T source, Game game)
         {
             if (card.State != CardState.InHand)
             {

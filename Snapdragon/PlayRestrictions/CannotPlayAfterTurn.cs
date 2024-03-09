@@ -2,7 +2,7 @@
 {
     public record CannotPlayAfterTurn(int Turn) : IPlayRestriction
     {
-        public bool IsBlocked(Game game, Column column, Card source)
+        public bool IsBlocked(Game game, Column column, CardInstance source)
         {
             return game.Turn > Turn;
         }
