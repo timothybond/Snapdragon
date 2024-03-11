@@ -1,6 +1,6 @@
-﻿using Snapdragon.Events;
+﻿using System.Collections.Immutable;
+using Snapdragon.Events;
 using Snapdragon.OngoingAbilities;
-using System.Collections.Immutable;
 
 namespace Snapdragon
 {
@@ -88,10 +88,7 @@ namespace Snapdragon
         public IEnumerable<Sensor<Card>> AllSensors =>
             this.Left.Sensors.Concat(this.Middle.Sensors).Concat(this.Right.Sensors);
 
-        public IEnumerable<(
-            IOngoingAbility<Card> Ability,
-            Card Source
-        )> GetCardOngoingAbilities()
+        public IEnumerable<(IOngoingAbility<Card> Ability, Card Source)> GetCardOngoingAbilities()
         {
             foreach (var column in All.Columns)
             {
@@ -449,14 +446,24 @@ namespace Snapdragon
         /// </summary>
         public Game PlayGame()
         {
-            var game = this;
-
-            while (!game.GameOver)
+            try
             {
-                game = game.PlaySingleTurn();
-            }
+                var game = this;
 
-            return game;
+                while (!game.GameOver)
+                {
+                    game = game.PlaySingleTurn();
+                }
+
+                return game;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(
+                    $"Aborting game due to error:\n\n{ex}\n\nEnding game state:\n\n{LoggerUtilities.GameStateLog(this)}"
+                );
+                throw;
+            }
         }
 
         /// <summary>
@@ -927,10 +934,7 @@ namespace Snapdragon
         /// </summary>
         private int? GetPowerAdjustment(
             Card card,
-            IReadOnlyList<(
-                IOngoingAbility<Card> Ability,
-                Card Source
-            )> ongoingCardAbilities,
+            IReadOnlyList<(IOngoingAbility<Card> Ability, Card Source)> ongoingCardAbilities,
             Game game
         )
         {
