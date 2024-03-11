@@ -10,14 +10,15 @@ namespace Snapdragon.Runner.Experiments
             const int Simulations = 10;
             const int MutationsPer = 100;
 
-            var general = new CardGenetics(
+            var general = new Genetics(
+                [],
                 SnapCards.All,
                 new MonteCarloSearchController(Simulations),
                 MutationsPer,
                 new RandomCardOrder()
             );
 
-            var vulturePinned = new PartiallyFixedGenetics(
+            var vulturePinned = new Genetics(
                 [SnapCards.ByName["Vulture"]],
                 SnapCards.All,
                 new MonteCarloSearchController(Simulations),

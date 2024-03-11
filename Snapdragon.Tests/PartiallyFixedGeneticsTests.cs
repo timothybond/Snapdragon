@@ -17,7 +17,7 @@ namespace Snapdragon.Tests
                 .Select(name => SnapCards.ByName[name])
                 .ToImmutableList();
 
-            var genetics = new PartiallyFixedGenetics(
+            var genetics = new Genetics(
                 fixedCards,
                 allCards,
                 new RandomPlayerController(),
@@ -29,7 +29,7 @@ namespace Snapdragon.Tests
             {
                 var item = genetics.GetRandomItem();
 
-                Assert.That(item.FixedCards.Cards.SequenceEqual(fixedCards));
+                Assert.That(item.FixedCards.SequenceEqual(fixedCards));
             }
         }
 
@@ -46,7 +46,7 @@ namespace Snapdragon.Tests
                 .Select(name => SnapCards.ByName[name])
                 .ToImmutableList();
 
-            var g = new PartiallyFixedGenetics(
+            var g = new Genetics(
                 fixedCards,
                 allCards,
                 new RandomPlayerController(),
@@ -68,7 +68,7 @@ namespace Snapdragon.Tests
 
             foreach (var item in population)
             {
-                Assert.That(item.FixedCards.Cards.SequenceEqual(fixedCards));
+                Assert.That(item.FixedCards.SequenceEqual(fixedCards));
             }
         }
 
@@ -83,7 +83,7 @@ namespace Snapdragon.Tests
                 .Select(name => SnapCards.ByName[name])
                 .ToImmutableList();
 
-            var genetics = new PartiallyFixedGenetics(
+            var genetics = new Genetics(
                 fixedCards,
                 allCards,
                 new RandomPlayerController(),
@@ -96,7 +96,7 @@ namespace Snapdragon.Tests
                 var item = genetics.GetRandomItem();
 
                 Assert.That(
-                    item.FixedCards.Cards.Count + item.EvolvingCards.Cards.Count,
+                    item.FixedCards.Count + item.EvolvingCards.Count,
                     Is.EqualTo(12)
                 );
             }

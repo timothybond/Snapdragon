@@ -1,6 +1,6 @@
-﻿using CsvHelper;
+﻿using System.Globalization;
+using CsvHelper;
 using Snapdragon.GeneticAlgorithm;
-using System.Globalization;
 
 namespace Snapdragon.Runner.Experiments
 {
@@ -18,16 +18,15 @@ namespace Snapdragon.Runner.Experiments
         )
             : base(Id, Name, Started, RepositoryBuilder) { }
 
-        public async Task Run<T>(
-            Genetics<T> schema,
+        public async Task Run(
+            Genetics schema,
             string name,
             int deckCount = 64,
             int generations = 100,
             int gamesPerDeck = 5
         )
-            where T : IGeneSequence<T>
         {
-            var population = new Population<T>(schema, deckCount, name, this.Id);
+            var population = new Population(schema, deckCount, name, this.Id);
 
             if (RepositoryBuilder != null)
             {
@@ -55,8 +54,7 @@ namespace Snapdragon.Runner.Experiments
             Console.WriteLine("Finished.");
         }
 
-        private void WriteCardCounts<T>(Population<T> population)
-            where T : IGeneSequence<T>
+        private void WriteCardCounts(Population population)
         {
             using (var writer = new StreamWriter($"{population.Name}.csv", true))
             {
@@ -74,8 +72,7 @@ namespace Snapdragon.Runner.Experiments
             }
         }
 
-        private void WriteHeaders<T>(Population<T> population)
-            where T : IGeneSequence<T>
+        private void WriteHeaders(Population population)
         {
             using (var writer = new StreamWriter($"{population.Name}.csv"))
             {
@@ -91,11 +88,10 @@ namespace Snapdragon.Runner.Experiments
             }
         }
 
-        private async Task<Population<T>> RunGames<T>(Population<T> population, int gamesPerDeck)
-            where T : IGeneSequence<T>
+        private async Task<Population> RunGames(Population population, int gamesPerDeck)
         {
             var wins = await population.Genetics.RunPopulationGames(
-                population.Items.Cast<IGeneSequence>().ToList(),
+                population.Items,
                 gamesPerDeck,
                 RepositoryBuilder,
                 Id,
@@ -106,8 +102,7 @@ namespace Snapdragon.Runner.Experiments
             return population;
         }
 
-        private async Task LogDecks<T>(Population<T> population)
-            where T : IGeneSequence<T>
+        private async Task LogDecks(Population population)
         {
             if (RepositoryBuilder == null)
             {

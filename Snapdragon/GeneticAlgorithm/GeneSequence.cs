@@ -2,65 +2,39 @@
 
 namespace Snapdragon.GeneticAlgorithm
 {
-    /// <summary>
-    /// A crossable "gene sequence" that just consists of some cards.
-    /// </summary>
-    /// <param name="Cards">The cards in this "sequence".</param>
-    /// <param name="AllPossibleCards">All possible cards. Used for mutations when crossing.</param>
-    /// <param name="MutationPer">Mutation rate (given as the denominator of a fraction, 1 / [this value]).</param>
-    /// <param name="OrderBy">If specified, genes are ordered this way before crossing.</param>
-    /// <param name="Controller">The <see cref="IPlayerController"/> to use.
-    /// Can be skipped if this is being used as part of a larger object for constructing decks/players.</param>
-    public record CardGeneSequence(
-        IReadOnlyList<CardDefinition> Cards,
-        IReadOnlyList<CardDefinition> AllPossibleCards,
+    public record GeneSequence(
+        ImmutableList<CardDefinition> FixedCards,
+        ImmutableList<CardDefinition> EvolvingCards,
+        Genetics? Genetics,
+        IPlayerController Controller,
         Guid Id,
-        int MutationPer,
-        ICardOrder OrderBy,
         Guid? FirstParentId,
-        Guid? SecondParentId,
-        IPlayerController? Controller = null
-    ) : IGeneSequence<CardGeneSequence>
+        Guid? SecondParentId
+    )
     {
-        public PlayerConfiguration GetPlayerConfiguration()
+        public GeneSequence Cross(GeneSequence other)
         {
-            if (Controller == null)
+            if (other.EvolvingCards.Count != this.EvolvingCards.Count)
             {
                 throw new InvalidOperationException(
-                    "Controller was not specified for this CardGeneSequence."
+                    "Cannot cross two GeneSequences of different lengths."
                 );
             }
-
-            return new PlayerConfiguration(
-                Id.ToString(),
-                new Deck(Cards.ToImmutableList(), Id),
-                Controller
-            );
-        }
-
-        public CardGeneSequence Cross(CardGeneSequence other)
-        {
-            if (other.Cards.Count != this.Cards.Count)
-            {
-                throw new InvalidOperationException(
-                    "Cannot cross two CardGeneSequences of different lengths."
-                );
-            }
-            var allPresentCards = this.Cards.Concat(other.Cards).ToList();
+            var allPresentCards = this.EvolvingCards.Concat(other.EvolvingCards).ToList();
             var allPresentCardNames = allPresentCards.Select(c => c.Name).Distinct().ToList();
 
             // Don't allow duplicates (by name)
             var usedCards = new HashSet<string>();
 
-            var first = this.Cards;
-            var second = other.Cards;
+            var first = this.EvolvingCards.ToList();
+            var second = other.EvolvingCards.ToList();
 
             var newDeckCards = new List<CardDefinition>();
 
-            if (OrderBy != null)
+            if (Genetics.OrderBy != null)
             {
-                first = first.OrderBy(OrderBy.GetOrder).ToList();
-                second = second.OrderBy(OrderBy.GetOrder).ToList();
+                first = first.OrderBy(Genetics.OrderBy.GetOrder).ToList();
+                second = second.OrderBy(Genetics.OrderBy.GetOrder).ToList();
             }
 
             for (var i = 0; i < first.Count; i++)
@@ -68,11 +42,11 @@ namespace Snapdragon.GeneticAlgorithm
                 var f = first[i];
                 var s = second[i];
 
-                if (Random.Next(MutationPer) == 0)
+                if (Random.Next(Genetics.MutationPer) == 0)
                 {
                     // "Mutate" - get a random CardDefinition from all cards, instead of the normal logic
                     var mutantGene = Random.Of(
-                        AllPossibleCards.Where(c => !usedCards.Contains(c.Name)).ToList()
+                        Genetics.AllPossibleCards.Where(c => !usedCards.Contains(c.Name)).ToList()
                     );
                     newDeckCards.Add(mutantGene);
                     usedCards.Add(mutantGene.Name);
@@ -101,13 +75,13 @@ namespace Snapdragon.GeneticAlgorithm
                 }
             }
 
-            if (newDeckCards.Count < this.Cards.Count)
+            if (newDeckCards.Count < this.EvolvingCards.Count)
             {
                 var randomCards = allPresentCardNames
                     .Where(n => !usedCards.Contains(n))
                     .ToList()
                     .OrderBy(n => Random.Next())
-                    .Take(this.Cards.Count - newDeckCards.Count)
+                    .Take(this.EvolvingCards.Count - newDeckCards.Count)
                     .Select(n => allPresentCards.First(c => string.Equals(c.Name, n)));
 
                 newDeckCards.AddRange(randomCards);
@@ -118,18 +92,27 @@ namespace Snapdragon.GeneticAlgorithm
                 Id = Guid.NewGuid(),
                 FirstParentId = this.Id,
                 SecondParentId = other.Id,
-                Cards = newDeckCards
+                EvolvingCards = newDeckCards.ToImmutableList()
             };
         }
 
         public IReadOnlyList<CardDefinition> GetCards()
         {
-            return this.Cards;
+            return this.FixedCards.Concat(this.EvolvingCards).ToList();
         }
 
         public string? GetControllerString()
         {
-            return Controller?.ToString();
+            return Controller.ToString();
+        }
+
+        public PlayerConfiguration GetPlayerConfiguration()
+        {
+            return new PlayerConfiguration(
+                Id.ToString(),
+                new Deck(FixedCards.AddRange(EvolvingCards), Id),
+                Controller
+            );
         }
     }
 }

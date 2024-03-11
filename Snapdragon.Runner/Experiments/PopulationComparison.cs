@@ -1,6 +1,6 @@
-﻿using System.Globalization;
-using CsvHelper;
+﻿using CsvHelper;
 using Snapdragon.GeneticAlgorithm;
+using System.Globalization;
 
 namespace Snapdragon.Runner.Experiments
 {
@@ -16,19 +16,17 @@ namespace Snapdragon.Runner.Experiments
         int GamesPerDeck = 5
     ) : Experiment(Id, Name, Started, RepositoryBuilder)
     {
-        public async Task Run<TFirst, TSecond>(
-            Genetics<TFirst> firstSchema,
-            Genetics<TSecond> secondSchema,
+        public async Task Run(
+            Genetics firstSchema,
+            Genetics secondSchema,
             string firstName,
             string secondName,
             int deckCount = 64,
             int generations = 100
         )
-            where TFirst : IGeneSequence<TFirst>
-            where TSecond : IGeneSequence<TSecond>
         {
-            var first = new Population<TFirst>(firstSchema, deckCount, firstName, this.Id);
-            var second = new Population<TSecond>(secondSchema, deckCount, secondName, this.Id);
+            var first = new Population(firstSchema, deckCount, firstName, this.Id);
+            var second = new Population(secondSchema, deckCount, secondName, this.Id);
 
             if (RepositoryBuilder != null)
             {
@@ -62,12 +60,7 @@ namespace Snapdragon.Runner.Experiments
             Console.WriteLine("Finished.");
         }
 
-        private async Task LogDecks<TFirst, TSecond>(
-            Population<TFirst> first,
-            Population<TSecond> second
-        )
-            where TFirst : IGeneSequence<TFirst>
-            where TSecond : IGeneSequence<TSecond>
+        private async Task LogDecks(Population first, Population second)
         {
             if (RepositoryBuilder == null)
             {
@@ -89,8 +82,7 @@ namespace Snapdragon.Runner.Experiments
             }
         }
 
-        private void WriteCardCounts<T>(Population<T> population)
-            where T : IGeneSequence<T>
+        private void WriteCardCounts(Population population)
         {
             using (var writer = new StreamWriter($"{population.Name}.csv", true))
             {
@@ -108,8 +100,7 @@ namespace Snapdragon.Runner.Experiments
             }
         }
 
-        private void WriteHeaders<T>(Population<T> population)
-            where T : IGeneSequence<T>
+        private void WriteHeaders(Population population)
         {
             using (var writer = new StreamWriter($"{population.Name}.csv"))
             {
@@ -125,17 +116,16 @@ namespace Snapdragon.Runner.Experiments
             }
         }
 
-        private async Task<(Population<TFirst> First, Population<TSecond> Second)> RunGames<
-            TFirst,
-            TSecond
-        >(Population<TFirst> first, Population<TSecond> second, int gamesPerDeck = 5)
-            where TFirst : IGeneSequence<TFirst>
-            where TSecond : IGeneSequence<TSecond>
+        private async Task<(Population First, Population Second)> RunGames(
+            Population first,
+            Population second,
+            int gamesPerDeck = 5
+        )
         {
-            var combinedPopulations = new List<IReadOnlyList<IGeneSequence>>
+            var combinedPopulations = new List<IReadOnlyList<GeneSequence>>
             {
-                first.Items.Cast<IGeneSequence>().ToList(),
-                second.Items.Cast<IGeneSequence>().ToList()
+                first.Items,
+                second.Items
             };
 
             var allWins = await first.Genetics.RunMixedPopulationGames(

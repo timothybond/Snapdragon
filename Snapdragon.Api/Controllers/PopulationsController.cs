@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Snapdragon.GeneticAlgorithm;
 
 namespace Snapdragon.Api.Controllers
 {
@@ -22,7 +21,7 @@ namespace Snapdragon.Api.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Data.Population>> GetAsync(Guid id)
         {
-            var pop = await _repository.GetPopulation<PartiallyFixedCardGeneSequence>(id);
+            var pop = await _repository.GetPopulation(id);
 
             if (pop == null)
             {
@@ -38,7 +37,7 @@ namespace Snapdragon.Api.Controllers
             int generation
         )
         {
-            var items = await _repository.GetItems<PartiallyFixedCardGeneSequence>(id, generation);
+            var items = await _repository.GetItems(id, generation);
 
             return items.Select(i => Data.Item.From(i)).ToList();
         }
@@ -46,14 +45,14 @@ namespace Snapdragon.Api.Controllers
         [HttpGet("{id}/statistics")]
         public async Task<ActionResult<IReadOnlyList<Data.CardCount>>> GetStatisticsAsync(Guid id)
         {
-            var pop = await _repository.GetPopulation<PartiallyFixedCardGeneSequence>(id);
+            var pop = await _repository.GetPopulation(id);
 
             if (pop == null)
             {
                 return NotFound();
             }
 
-            var cardCounts = await _repository.GetCardCounts<PartiallyFixedCardGeneSequence>(id);
+            var cardCounts = await _repository.GetCardCounts(id);
 
             if (cardCounts == null)
             {

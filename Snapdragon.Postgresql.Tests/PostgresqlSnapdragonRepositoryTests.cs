@@ -1,8 +1,8 @@
-using System.Collections.Immutable;
 using Dapper;
 using Npgsql;
 using Snapdragon.CardOrders;
 using Snapdragon.GeneticAlgorithm;
+using System.Collections.Immutable;
 using Testcontainers.PostgreSql;
 
 namespace Snapdragon.Postgresql.Tests
@@ -258,8 +258,9 @@ namespace Snapdragon.Postgresql.Tests
         {
             var experimentId = await SaveExperiment("Test Id Experiment");
 
-            var population = new Population<CardGeneSequence>(
-                new CardGenetics(
+            var population = new Population(
+                new Genetics(
+                    [],
                     SnapCards.All,
                     new RandomPlayerController(),
                     100,
@@ -272,7 +273,7 @@ namespace Snapdragon.Postgresql.Tests
 
             await _repository.SavePopulation(population);
 
-            var savedPopulation = await _repository.GetPopulation<CardGeneSequence>(population.Id);
+            var savedPopulation = await _repository.GetPopulation(population.Id);
 
             Assert.That(savedPopulation, Is.Not.Null);
             Assert.That(savedPopulation.Id, Is.EqualTo(population.Id));
@@ -286,8 +287,9 @@ namespace Snapdragon.Postgresql.Tests
         {
             var experimentId = await SaveExperiment("Test Mutation Rate Experiment");
 
-            var population = new Population<CardGeneSequence>(
-                new CardGenetics(
+            var population = new Population(
+                new Genetics(
+                    [],
                     SnapCards.All,
                     new RandomPlayerController(),
                     mutationPer,
@@ -300,7 +302,7 @@ namespace Snapdragon.Postgresql.Tests
 
             await _repository.SavePopulation(population);
 
-            var savedPopulation = await _repository.GetPopulation<CardGeneSequence>(population.Id);
+            var savedPopulation = await _repository.GetPopulation(population.Id);
 
             Assert.That(savedPopulation, Is.Not.Null);
             Assert.That(savedPopulation.Genetics.MutationPer, Is.EqualTo(mutationPer));
@@ -311,8 +313,9 @@ namespace Snapdragon.Postgresql.Tests
         {
             var experimentId = await SaveExperiment("Test Random Controller Experiment");
 
-            var population = new Population<CardGeneSequence>(
-                new CardGenetics(
+            var population = new Population(
+                new Genetics(
+                    [],
                     SnapCards.All,
                     new RandomPlayerController(),
                     25,
@@ -325,7 +328,7 @@ namespace Snapdragon.Postgresql.Tests
 
             await _repository.SavePopulation(population);
 
-            var savedPopulation = await _repository.GetPopulation<CardGeneSequence>(population.Id);
+            var savedPopulation = await _repository.GetPopulation(population.Id);
 
             Assert.That(savedPopulation, Is.Not.Null);
             Assert.That(
@@ -344,8 +347,9 @@ namespace Snapdragon.Postgresql.Tests
         {
             var experimentId = await SaveExperiment("Test Monte Carlo Experiment");
 
-            var population = new Population<CardGeneSequence>(
-                new CardGenetics(
+            var population = new Population(
+                new Genetics(
+                    [],
                     SnapCards.All,
                     new MonteCarloSearchController(simulationCount),
                     25,
@@ -358,7 +362,7 @@ namespace Snapdragon.Postgresql.Tests
 
             await _repository.SavePopulation(population);
 
-            var savedPopulation = await _repository.GetPopulation<CardGeneSequence>(population.Id);
+            var savedPopulation = await _repository.GetPopulation(population.Id);
 
             Assert.That(savedPopulation, Is.Not.Null);
             Assert.That(
@@ -372,8 +376,9 @@ namespace Snapdragon.Postgresql.Tests
         {
             var experimentId = await SaveExperiment("Test Random Order Experiment");
 
-            var population = new Population<CardGeneSequence>(
-                new CardGenetics(
+            var population = new Population(
+                new Genetics(
+                    [],
                     SnapCards.All,
                     new RandomPlayerController(),
                     25,
@@ -386,7 +391,7 @@ namespace Snapdragon.Postgresql.Tests
 
             await _repository.SavePopulation(population);
 
-            var savedPopulation = await _repository.GetPopulation<CardGeneSequence>(population.Id);
+            var savedPopulation = await _repository.GetPopulation(population.Id);
 
             Assert.That(savedPopulation, Is.Not.Null);
             Assert.That(savedPopulation.Genetics.OrderBy, Is.TypeOf<RandomCardOrder>());
@@ -397,8 +402,9 @@ namespace Snapdragon.Postgresql.Tests
         {
             var experimentId = await SaveExperiment("Test Existing Order Experiment");
 
-            var population = new Population<CardGeneSequence>(
-                new CardGenetics(
+            var population = new Population(
+                new Genetics(
+                    [],
                     SnapCards.All,
                     new RandomPlayerController(),
                     25,
@@ -411,7 +417,7 @@ namespace Snapdragon.Postgresql.Tests
 
             await _repository.SavePopulation(population);
 
-            var savedPopulation = await _repository.GetPopulation<CardGeneSequence>(population.Id);
+            var savedPopulation = await _repository.GetPopulation(population.Id);
 
             Assert.That(savedPopulation, Is.Not.Null);
             Assert.That(savedPopulation.Genetics.OrderBy, Is.TypeOf<ExistingCardOrder>());
@@ -426,8 +432,8 @@ namespace Snapdragon.Postgresql.Tests
             var cards = cardNames.Select(n => SnapCards.ByName[n]).ToImmutableList();
             var experimentId = await SaveExperiment("Test Specific Cards Experiment");
 
-            var population = new Population<CardGeneSequence>(
-                new CardGenetics(cards, new RandomPlayerController(), 25, new ExistingCardOrder()),
+            var population = new Population(
+                new Genetics([], cards, new RandomPlayerController(), 25, new ExistingCardOrder()),
                 0,
                 "Test Pop Specific Cards",
                 experimentId
@@ -435,7 +441,7 @@ namespace Snapdragon.Postgresql.Tests
 
             await _repository.SavePopulation(population);
 
-            var savedPopulation = await _repository.GetPopulation<CardGeneSequence>(population.Id);
+            var savedPopulation = await _repository.GetPopulation(population.Id);
 
             Assert.That(savedPopulation, Is.Not.Null);
             Assert.That(savedPopulation.Genetics.AllPossibleCards.Count, Is.EqualTo(cards.Count));
@@ -455,8 +461,8 @@ namespace Snapdragon.Postgresql.Tests
             var cards = cardNames.Select(n => SnapCards.ByName[n]).ToImmutableList();
             var experimentId = await SaveExperiment("Test Fixed Cards Experiment");
 
-            var population = new Population<PartiallyFixedCardGeneSequence>(
-                new PartiallyFixedGenetics(
+            var population = new Population(
+                new Genetics(
                     cards,
                     SnapCards.All,
                     new RandomPlayerController(),
@@ -470,9 +476,7 @@ namespace Snapdragon.Postgresql.Tests
 
             await _repository.SavePopulation(population);
 
-            var savedPopulation = await _repository.GetPopulation<PartiallyFixedCardGeneSequence>(
-                population.Id
-            );
+            var savedPopulation = await _repository.GetPopulation(population.Id);
 
             Assert.That(savedPopulation, Is.Not.Null);
             Assert.That(savedPopulation.Id, Is.EqualTo(population.Id));
@@ -487,8 +491,8 @@ namespace Snapdragon.Postgresql.Tests
             var cards = cardNames.Select(n => SnapCards.ByName[n]).ToImmutableList();
             var experimentId = await SaveExperiment("Test Fixed Cards Experiment");
 
-            var population = new Population<PartiallyFixedCardGeneSequence>(
-                new PartiallyFixedGenetics(
+            var population = new Population(
+                new Genetics(
                     cards,
                     SnapCards.All,
                     new RandomPlayerController(),
@@ -502,9 +506,7 @@ namespace Snapdragon.Postgresql.Tests
 
             await _repository.SavePopulation(population);
 
-            var savedPopulation = await _repository.GetPopulation<PartiallyFixedCardGeneSequence>(
-                population.Id
-            );
+            var savedPopulation = await _repository.GetPopulation(population.Id);
 
             Assert.That(savedPopulation, Is.Not.Null);
 
@@ -531,8 +533,9 @@ namespace Snapdragon.Postgresql.Tests
         {
             var experimentId = await SaveExperiment("Test Population By Experiment");
 
-            var population1 = new Population<CardGeneSequence>(
-                new CardGenetics(
+            var population1 = new Population(
+                new Genetics(
+                    [],
                     SnapCards.All,
                     new MonteCarloSearchController(10),
                     25,
@@ -542,8 +545,9 @@ namespace Snapdragon.Postgresql.Tests
                 "Test Pop By Experiment 1",
                 experimentId
             );
-            var population2 = new Population<CardGeneSequence>(
-                new CardGenetics(
+            var population2 = new Population(
+                new Genetics(
+                    [],
                     SnapCards.All,
                     new MonteCarloSearchController(10),
                     25,
@@ -557,7 +561,7 @@ namespace Snapdragon.Postgresql.Tests
             await _repository.SavePopulation(population1);
             await _repository.SavePopulation(population2);
 
-            var savedPops = await _repository.GetPopulations<CardGeneSequence>(experimentId);
+            var savedPops = await _repository.GetPopulations(experimentId);
 
             Assert.That(savedPops, Has.Exactly(2).Items);
 
@@ -617,13 +621,13 @@ namespace Snapdragon.Postgresql.Tests
             await _repository.AddItemToPopulation(moveDeckId1, populationId, 2);
 
             // Population needs to have an accurate generation value
-            var population = await _repository.GetPopulation<CardGeneSequence>(populationId);
+            var population = await _repository.GetPopulation(populationId);
             Assert.That(population, Is.Not.Null);
 
             population = population with { Generation = 2 };
             await _repository.SavePopulation(population);
 
-            var allCardCounts = await _repository.GetCardCounts<CardGeneSequence>(populationId);
+            var allCardCounts = await _repository.GetCardCounts(populationId);
 
             Assert.That(allCardCounts, Is.Not.Null);
 
@@ -685,20 +689,25 @@ namespace Snapdragon.Postgresql.Tests
 
             var cards = cardNames.Select(n => SnapCards.ByName[n]).ToImmutableList();
 
-            var item = new CardGeneSequence(
+            var item = new GeneSequence(
+                [],
                 cards,
-                SnapCards.All,
+                new Genetics(
+                    [],
+                    SnapCards.All,
+                    new MonteCarloSearchController(5),
+                    200,
+                    new RandomCardOrder()
+                ),
+                new MonteCarloSearchController(5),
                 Guid.NewGuid(),
-                200,
-                new RandomCardOrder(),
                 null,
-                null,
-                new MonteCarloSearchController(5)
+                null
             );
 
             await _repository.SaveItem(item);
 
-            var savedItem = await _repository.GetItem<CardGeneSequence>(item.Id);
+            var savedItem = await _repository.GetItem(item.Id);
 
             Assert.NotNull(savedItem);
         }
@@ -724,23 +733,28 @@ namespace Snapdragon.Postgresql.Tests
 
             var cards = cardNames.Select(n => SnapCards.ByName[n]).ToImmutableList();
 
-            var item = new CardGeneSequence(
+            var item = new GeneSequence(
+                [],
                 cards,
-                SnapCards.All,
+                new Genetics(
+                    [],
+                    SnapCards.All,
+                    new MonteCarloSearchController(5),
+                    200,
+                    new RandomCardOrder()
+                ),
+                new MonteCarloSearchController(5),
                 Guid.NewGuid(),
-                200,
-                new RandomCardOrder(),
                 null,
-                null,
-                new MonteCarloSearchController(5)
+                null
             );
 
             await _repository.SaveItem(item);
 
-            var savedItem = await _repository.GetItem<CardGeneSequence>(item.Id);
+            var savedItem = await _repository.GetItem(item.Id);
 
             Assert.NotNull(savedItem);
-            Assert.That(savedItem.Cards, Is.EquivalentTo(item.Cards));
+            Assert.That(savedItem.EvolvingCards, Is.EquivalentTo(item.EvolvingCards));
         }
 
         [Test]
@@ -767,21 +781,26 @@ namespace Snapdragon.Postgresql.Tests
 
             var cards = cardNames.Select(n => SnapCards.ByName[n]).ToImmutableList();
 
-            var item = new CardGeneSequence(
+            var item = new GeneSequence(
+                [],
                 cards,
-                SnapCards.All,
+                new Genetics(
+                    [],
+                    SnapCards.All,
+                    new MonteCarloSearchController(5),
+                    200,
+                    new RandomCardOrder()
+                ),
+                new MonteCarloSearchController(5),
                 Guid.NewGuid(),
-                200,
-                new RandomCardOrder(),
                 null,
-                null,
-                new MonteCarloSearchController(5)
+                null
             );
 
             await _repository.SaveItem(item);
             await _repository.AddItemToPopulation(item.Id, populationId, 0);
 
-            var savedItem = await _repository.GetItem<CardGeneSequence>(item.Id);
+            var savedItem = await _repository.GetItem(item.Id);
 
             Assert.NotNull(savedItem);
         }
@@ -815,21 +834,26 @@ namespace Snapdragon.Postgresql.Tests
 
             var cards = cardNames.Select(n => SnapCards.ByName[n]).ToImmutableList();
 
-            var item = new CardGeneSequence(
+            var item = new GeneSequence(
+                [],
                 cards,
-                SnapCards.All,
+                new Genetics(
+                    [],
+                    SnapCards.All,
+                    new MonteCarloSearchController(5),
+                    200,
+                    new RandomCardOrder()
+                ),
+                new MonteCarloSearchController(5),
                 Guid.NewGuid(),
-                200,
-                new RandomCardOrder(),
                 null,
-                null,
-                new MonteCarloSearchController(5)
+                null
             );
 
             await _repository.SaveItem(item);
             await _repository.AddItemToPopulation(item.Id, populationId, generation);
 
-            var savedItems = await _repository.GetItems<CardGeneSequence>(populationId, generation);
+            var savedItems = await _repository.GetItems(populationId, generation);
 
             Assert.That(savedItems, Has.Exactly(1).Items);
             Assert.That(savedItems[0].Id, Is.EqualTo(item.Id));
@@ -862,31 +886,34 @@ namespace Snapdragon.Postgresql.Tests
 
             var cards = cardNames.Select(n => SnapCards.ByName[n]).ToImmutableList();
 
-            var item = new CardGeneSequence(
+            var item = new GeneSequence(
+                [],
                 cards,
-                SnapCards.All,
+                new Genetics(
+                    [],
+                    SnapCards.All,
+                    new MonteCarloSearchController(5),
+                    200,
+                    new RandomCardOrder()
+                ),
+                new MonteCarloSearchController(5),
                 Guid.NewGuid(),
-                200,
-                new RandomCardOrder(),
                 null,
-                null,
-                new MonteCarloSearchController(5)
+                null
             );
 
             await _repository.SaveItem(item);
             await _repository.AddItemToPopulation(item.Id, populationId, generation);
 
-            var savedItem = await _repository.GetItem<CardGeneSequence>(item.Id);
+            var savedItem = await _repository.GetItem(item.Id);
 
             Assert.NotNull(savedItem);
-            Assert.That(savedItem.Cards, Is.EquivalentTo(item.Cards));
+            Assert.That(savedItem.EvolvingCards, Is.EquivalentTo(item.EvolvingCards));
 
-            savedItem = (
-                await _repository.GetItems<CardGeneSequence>(populationId, generation)
-            ).SingleOrDefault();
+            savedItem = (await _repository.GetItems(populationId, generation)).SingleOrDefault();
 
             Assert.NotNull(savedItem);
-            Assert.That(savedItem.Cards, Is.EquivalentTo(item.Cards));
+            Assert.That(savedItem.EvolvingCards, Is.EquivalentTo(item.EvolvingCards));
         }
 
         [Test]
@@ -921,16 +948,15 @@ namespace Snapdragon.Postgresql.Tests
             var cards = cardNames.Select(n => SnapCards.ByName[n]).ToImmutableList();
             var fixedCards = fixedCardNames.Select(n => SnapCards.ByName[n]).ToImmutableList();
 
-            var item = new PartiallyFixedCardGeneSequence(
-                new FixedCardGeneSequence(fixedCards, Guid.Empty),
-                new CardGeneSequence(
-                    cards,
+            var item = new GeneSequence(
+                fixedCards,
+                cards,
+                new Genetics(
+                    [],
                     SnapCards.All,
-                    Guid.Empty,
+                    new MonteCarloSearchController(5),
                     200,
-                    new RandomCardOrder(),
-                    null,
-                    null
+                    new RandomCardOrder()
                 ),
                 new MonteCarloSearchController(5),
                 Guid.NewGuid(),
@@ -941,19 +967,17 @@ namespace Snapdragon.Postgresql.Tests
             await _repository.SaveItem(item);
             await _repository.AddItemToPopulation(item.Id, populationId, generation);
 
-            var savedItem = await _repository.GetItem<PartiallyFixedCardGeneSequence>(item.Id);
+            var savedItem = await _repository.GetItem(item.Id);
 
             Assert.NotNull(savedItem);
-            Assert.That(savedItem.FixedCards.Cards, Is.EquivalentTo(item.FixedCards.Cards));
-            Assert.That(savedItem.EvolvingCards.Cards, Is.EquivalentTo(item.EvolvingCards.Cards));
+            Assert.That(savedItem.FixedCards, Is.EquivalentTo(item.FixedCards));
+            Assert.That(savedItem.EvolvingCards, Is.EquivalentTo(item.EvolvingCards));
 
-            savedItem = (
-                await _repository.GetItems<PartiallyFixedCardGeneSequence>(populationId, generation)
-            ).SingleOrDefault();
+            savedItem = (await _repository.GetItems(populationId, generation)).SingleOrDefault();
 
             Assert.NotNull(savedItem);
-            Assert.That(savedItem.FixedCards.Cards, Is.EquivalentTo(item.FixedCards.Cards));
-            Assert.That(savedItem.EvolvingCards.Cards, Is.EquivalentTo(item.EvolvingCards.Cards));
+            Assert.That(savedItem.FixedCards, Is.EquivalentTo(item.FixedCards));
+            Assert.That(savedItem.EvolvingCards, Is.EquivalentTo(item.EvolvingCards));
         }
 
         #endregion
@@ -1148,15 +1172,20 @@ namespace Snapdragon.Postgresql.Tests
         {
             var cards = cardNames.Select(n => SnapCards.ByName[n]).ToImmutableList();
 
-            var item = new CardGeneSequence(
+            var item = new GeneSequence(
+                [],
                 cards,
-                SnapCards.All,
+                new Genetics(
+                    [],
+                    SnapCards.All,
+                    new MonteCarloSearchController(5),
+                    200,
+                    new RandomCardOrder()
+                ),
+                new MonteCarloSearchController(5),
                 Guid.NewGuid(),
-                200,
-                new RandomCardOrder(),
                 null,
-                null,
-                new MonteCarloSearchController(5)
+                null
             );
 
             await _repository.SaveItem(item);
@@ -1215,15 +1244,15 @@ namespace Snapdragon.Postgresql.Tests
         {
             if (fixedCardNames.Length == 0)
             {
-                var population = new Population<CardGeneSequence>(
-                    new CardGenetics(
+                var population = new Population(
+                    new Genetics(
+                        [],
                         SnapCards.All,
                         new MonteCarloSearchController(5),
                         200,
-                        new RandomCardOrder(),
-                        12
+                        new RandomCardOrder()
                     ),
-                    new List<CardGeneSequence>(),
+                    new List<GeneSequence>(),
                     name,
                     Guid.NewGuid(),
                     experimentId,
@@ -1239,15 +1268,15 @@ namespace Snapdragon.Postgresql.Tests
             {
                 var fixedCards = fixedCardNames.Select(n => SnapCards.ByName[n]).ToImmutableList();
 
-                var population = new Population<PartiallyFixedCardGeneSequence>(
-                    new PartiallyFixedGenetics(
+                var population = new Population(
+                    new Genetics(
                         fixedCards,
                         SnapCards.All,
                         new MonteCarloSearchController(5),
                         200,
                         new RandomCardOrder()
                     ),
-                    new List<PartiallyFixedCardGeneSequence>(),
+                    new List<GeneSequence>(),
                     name,
                     Guid.NewGuid(),
                     experimentId,

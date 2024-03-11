@@ -14,9 +14,8 @@ namespace Snapdragon.Api.Data
         public Guid? SecondParentId { get; set; }
         public required List<string> Cards { get; set; }
 
-        // Note: I don't think I can write a cast operator for this because of the generic
-        public static Item From<T>(IGeneSequence<T> item)
-            where T : IGeneSequence<T>
+        // TODO: Replace with cast operator
+        public static Item From(GeneSequence item)
         {
             return new Item
             {

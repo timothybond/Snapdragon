@@ -1,6 +1,4 @@
-﻿using Snapdragon.GeneticAlgorithm;
-
-namespace Snapdragon.Postgresql.Data
+﻿namespace Snapdragon.Postgresql.Data
 {
     public class Population
     {
@@ -16,8 +14,7 @@ namespace Snapdragon.Postgresql.Data
 
         public required string OrderBy { get; set; }
 
-        public static Population FromPopulation<T>(Population<T> population)
-            where T : IGeneSequence<T>
+        public static Population FromPopulation(GeneticAlgorithm.Population population)
         {
             return new Population
             {

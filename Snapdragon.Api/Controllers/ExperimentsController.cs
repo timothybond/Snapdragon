@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Snapdragon.GeneticAlgorithm;
 
 namespace Snapdragon.Api.Controllers
 {
@@ -51,9 +50,7 @@ namespace Snapdragon.Api.Controllers
                 return NotFound();
             }
 
-            return (await _repository.GetPopulations<PartiallyFixedCardGeneSequence>(id))
-                .Select(Data.Population.From)
-                .ToList();
+            return (await _repository.GetPopulations(id)).Select(Data.Population.From).ToList();
         }
 
         [HttpGet("{id}/generations/{generation}/games")]
@@ -62,7 +59,7 @@ namespace Snapdragon.Api.Controllers
             int generation
         )
         {
-            var games = await _repository.GetGames<PartiallyFixedCardGeneSequence>(id, generation);
+            var games = await _repository.GetGames(id, generation);
 
             return games.Select(g => (Data.Game)g).ToList();
         }

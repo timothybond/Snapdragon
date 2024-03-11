@@ -4,8 +4,7 @@ namespace Snapdragon.Runner
 {
     internal static class Log
     {
-        public static void LogBestDeck<T>(int generation, Population<T> population)
-            where T : IGeneSequence<T>
+        public static void LogBestDeck(int generation, Population population)
         {
             if (population.Wins == null)
             {
@@ -31,7 +30,7 @@ namespace Snapdragon.Runner
 
         public static void LogBestDeck(
             int generation,
-            IReadOnlyList<PartiallyFixedCardGeneSequence> population,
+            IReadOnlyList<GeneSequence> population,
             IReadOnlyList<int> wins
         )
         {
@@ -41,7 +40,7 @@ namespace Snapdragon.Runner
                 .First();
 
             var bestCards = bestDeck
-                .Item.FixedCards.Cards.Concat(bestDeck.Item.EvolvingCards.Cards)
+                .Item.FixedCards.Concat(bestDeck.Item.EvolvingCards)
                 .OrderBy(c => c.Cost)
                 .ThenBy(c => c.Name)
                 .Select(c => c.Name)
@@ -52,10 +51,13 @@ namespace Snapdragon.Runner
             );
         }
 
-        public static void LogPopulation(int generation, IReadOnlyList<CardGeneSequence> population)
+        public static void LogPopulation(
+            int generation,
+            IReadOnlyList<GeneSequence> population
+        )
         {
             var representedCards = population
-                .SelectMany(p => p.Cards.Select(c => c.Name))
+                .SelectMany(p => p.GetCards().Select(c => c.Name))
                 .OrderBy(n => n)
                 .Distinct();
 
@@ -63,7 +65,7 @@ namespace Snapdragon.Runner
 
             foreach (var item in population)
             {
-                foreach (var card in item.Cards)
+                foreach (var card in item.GetCards())
                 {
                     cardCounts[card.Name] += 1;
                 }
@@ -81,23 +83,11 @@ namespace Snapdragon.Runner
             Console.WriteLine();
         }
 
-        public static List<int> GetCardCounts(IReadOnlyList<CardGeneSequence> items)
+        public static List<int> GetCardCounts(IReadOnlyList<GeneSequence> items)
         {
             return SnapCards
                 .All.Select(snapCard =>
-                    items.Count(i => i.Cards.Any(c => string.Equals(c.Name, snapCard.Name)))
-                )
-                .ToList();
-        }
-
-        public static List<int> GetCardCounts(IReadOnlyList<PartiallyFixedCardGeneSequence> items)
-        {
-            return SnapCards
-                .All.Select(snapCard =>
-                    items.Count(i =>
-                        i.FixedCards.Cards.Any(c => string.Equals(c.Name, snapCard.Name))
-                        || i.EvolvingCards.Cards.Any(c => string.Equals(c.Name, snapCard.Name))
-                    )
+                    items.Count(i => i.GetCards().Any(c => string.Equals(c.Name, snapCard.Name)))
                 )
                 .ToList();
         }

@@ -1,9 +1,9 @@
-﻿using System.Collections.Immutable;
-using System.Text.RegularExpressions;
-using Dapper;
+﻿using Dapper;
 using Npgsql;
 using Snapdragon.CardOrders;
 using Snapdragon.GeneticAlgorithm;
+using System.Collections.Immutable;
+using System.Text.RegularExpressions;
 
 namespace Snapdragon.Postgresql
 {
@@ -83,8 +83,7 @@ namespace Snapdragon.Postgresql
 
         #region Populations
 
-        public async Task SavePopulation<T>(Population<T> population)
-            where T : IGeneSequence<T>
+        public async Task SavePopulation(Population population)
         {
             using var container = await GetConnection();
             var conn = container.Connection;
@@ -153,8 +152,7 @@ namespace Snapdragon.Postgresql
             }
         }
 
-        public async Task<IReadOnlyList<Population<T>>> GetPopulations<T>(Guid experimentId)
-            where T : IGeneSequence<T>
+        public async Task<IReadOnlyList<Population>> GetPopulations(Guid experimentId)
         {
             using var container = await GetConnection();
             var conn = container.Connection;
@@ -168,11 +166,11 @@ namespace Snapdragon.Postgresql
                 new { ExperimentId = experimentId }
             );
 
-            var results = new List<Population<T>>();
+            var results = new List<Population>();
 
             foreach (var row in rows)
             {
-                var pop = await GetPopulation<T>(row, conn);
+                var pop = await GetPopulation(row, conn);
 
                 // TODO: Consider how this should be handled (not sure it can actually happen)
                 if (pop != null)
@@ -184,8 +182,7 @@ namespace Snapdragon.Postgresql
             return results;
         }
 
-        public async Task<Population<T>?> GetPopulation<T>(Guid id)
-            where T : IGeneSequence<T>
+        public async Task<Population?> GetPopulation(Guid id)
         {
             using var container = await GetConnection();
             var conn = container.Connection;
@@ -199,13 +196,12 @@ namespace Snapdragon.Postgresql
                 new { Id = id }
             );
 
-            return await GetPopulation<T>(row, conn);
+            return await GetPopulation(row, conn);
         }
 
-        public async Task<IReadOnlyList<CardCount>?> GetCardCounts<T>(Guid populationId)
-            where T : IGeneSequence<T>
+        public async Task<IReadOnlyList<CardCount>?> GetCardCounts(Guid populationId)
         {
-            var population = await GetPopulation<T>(populationId);
+            var population = await GetPopulation(populationId);
 
             if (population == null)
             {
@@ -243,8 +239,7 @@ namespace Snapdragon.Postgresql
             return countsByCard.Select(kvp => new CardCount(kvp.Key, kvp.Value)).ToList();
         }
 
-        public async Task<Population<T>?> GetPopulation<T>(Guid experimentId, int generation)
-            where T : IGeneSequence<T>
+        public async Task<Population?> GetPopulation(Guid experimentId, int generation)
         {
             using var container = await GetConnection();
             var conn = container.Connection;
@@ -258,14 +253,10 @@ namespace Snapdragon.Postgresql
                 new { ExperimentId = experimentId, Generation = generation }
             );
 
-            return await GetPopulation<T>(row, conn);
+            return await GetPopulation(row, conn);
         }
 
-        private async Task<Population<T>?> GetPopulation<T>(
-            Data.Population? row,
-            NpgsqlConnection conn
-        )
-            where T : IGeneSequence<T>
+        private async Task<Population?> GetPopulation(Data.Population? row, NpgsqlConnection conn)
         {
             if (row == null)
             {
@@ -289,61 +280,20 @@ namespace Snapdragon.Postgresql
             var orderBy = ParseOrderBy(row.OrderBy);
             var generation = await GetMaxGeneration(row.Id, conn);
 
-            if (typeof(PartiallyFixedCardGeneSequence) == typeof(T))
-            {
-                var genetics = new PartiallyFixedGenetics(
-                    fixedCards,
-                    allCards,
-                    controller,
-                    row.MutationPer,
-                    orderBy
-                );
+            var genetics = new Genetics(fixedCards, allCards, controller, row.MutationPer, orderBy);
 
-                var population = new Population<PartiallyFixedCardGeneSequence>(
-                    genetics,
-                    [],
-                    row.Name,
-                    row.Id,
-                    row.ExperimentId,
-                    generation,
-                    DateTimeOffset.MinValue // TODO: Store this or remove it
-                );
+            var population = new Population(
+                genetics,
+                [],
+                row.Name,
+                row.Id,
+                row.ExperimentId,
+                generation,
+                DateTimeOffset.MinValue // TODO: Store this or remove it
+            );
 
-                population = population with { Generation = generation };
-
-                return population as Population<T>;
-            }
-            else if (fixedCards.Count > 0)
-            {
-                throw new InvalidOperationException(
-                    "Population has fixed cards, but was not requested as a PartiallyFixedCardGeneSequence population."
-                );
-            }
-            else
-            {
-                var genetics = new CardGenetics(allCards, controller, row.MutationPer, orderBy);
-
-                var population = new Population<CardGeneSequence>(
-                    genetics,
-                    [],
-                    row.Name,
-                    row.Id,
-                    row.ExperimentId,
-                    generation,
-                    DateTimeOffset.MinValue // TODO: Store this or remove it
-                );
-
-                population = population with { Generation = generation };
-
-                if (typeof(CardGeneSequence) != typeof(T))
-                {
-                    throw new InvalidOperationException(
-                        "In practice you can only request populations of PartiallyFixedCardGeneSequence and CardGeneSequence."
-                    );
-                }
-
-                return population as Population<T>;
-            }
+            population = population with { Generation = generation };
+            return population;
         }
 
         private async Task<int> GetMaxGeneration(Guid populationId, NpgsqlConnection conn)
@@ -386,8 +336,7 @@ namespace Snapdragon.Postgresql
 
         #region Items
 
-        public async Task SaveItem<T>(IGeneSequence<T> item)
-            where T : IGeneSequence<T>
+        public async Task SaveItem(GeneSequence item)
         {
             var controller = item.GetControllerString() ?? string.Empty;
 
@@ -486,8 +435,7 @@ namespace Snapdragon.Postgresql
             );
         }
 
-        public async Task<T?> GetItem<T>(Guid id)
-            where T : class, IGeneSequence<T>
+        public async Task<GeneSequence?> GetItem(Guid id)
         {
             using var container = await GetConnection();
             var conn = container.Connection;
@@ -501,7 +449,7 @@ namespace Snapdragon.Postgresql
 
             if (row == null)
             {
-                return default(T);
+                return null;
             }
 
             var populationItem = await conn.QueryFirstOrDefaultAsync<Data.PopulationItem>(
@@ -511,25 +459,27 @@ namespace Snapdragon.Postgresql
 
             if (populationItem == null)
             {
-                return await ToGeneSequence<T>(row, null, conn);
+                return await ToGeneSequence(row, null, conn);
             }
 
-            var population = await GetPopulation<T>(populationItem.PopulationId);
+            var population = await GetPopulation(populationItem.PopulationId);
 
             return await ToGeneSequence(row, population, conn);
         }
 
-        public async Task<IReadOnlyList<T>> GetItems<T>(Guid populationId, int generation)
-            where T : class, IGeneSequence<T>
+        public async Task<IReadOnlyList<GeneSequence>> GetItems(
+            Guid populationId,
+            int generation
+        )
         {
             using var container = await GetConnection();
             var conn = container.Connection;
 
-            var population = await GetPopulation<T>(populationId);
+            var population = await GetPopulation(populationId);
 
             if (population == null)
             {
-                return new List<T>();
+                return new List<GeneSequence>();
             }
 
             var rows = await conn.QueryAsync<Data.Item>(
@@ -541,7 +491,7 @@ namespace Snapdragon.Postgresql
                 new { PopulationId = populationId, Generation = generation }
             );
 
-            var results = new List<T>();
+            var results = new List<GeneSequence>();
 
             // TODO: Optimize this
             foreach (var row in rows)
@@ -648,7 +598,7 @@ namespace Snapdragon.Postgresql
         #region Games / Logs
 
 
-        public async Task<IReadOnlyList<GameRecord>> GetGames<T>(Guid experimentId, int generation)
+        public async Task<IReadOnlyList<GameRecord>> GetGames(Guid experimentId, int generation)
         {
             using var container = await GetConnection();
             var conn = container.Connection;
@@ -757,17 +707,13 @@ namespace Snapdragon.Postgresql
         #region Helper Functions
 
         /// <summary>
-        /// Helper function for converting "item" rows into instances of <see cref="IGeneSequence{T}"/>.
-        ///
-        /// Because of the current oddities of dealing with generics, this will basically only work
-        /// for instances of <see cref="PartiallyFixedCardGeneSequence"/> or <see cref="CardGeneSequence"/>.
+        /// Helper function for converting "item" rows into instances of <see cref="GeneSequence"/>.
         /// </summary>
-        private async Task<T> ToGeneSequence<T>(
+        private async Task<GeneSequence> ToGeneSequence(
             Data.Item item,
-            Population<T>? population,
+            Population? population,
             NpgsqlConnection conn
         )
-            where T : class, IGeneSequence<T>
         {
             var controller = ParseController(item.Controller);
 
@@ -784,61 +730,22 @@ namespace Snapdragon.Postgresql
             var fixedCardsForPopulation =
                 population?.Genetics.GetFixedCards() ?? ImmutableList<CardDefinition>.Empty;
 
-            if (typeof(T) == typeof(PartiallyFixedCardGeneSequence))
-            {
-                var remainingCards = itemCards
-                    .Where(c => !fixedCardsForPopulation.Contains(c))
-                    .ToImmutableList();
+            var remainingCards = itemCards
+                .Where(c => !fixedCardsForPopulation.Contains(c))
+                .ToImmutableList();
 
-                // All of the defaults for an unset population below are pretty mediocre
-                var geneSequence = new PartiallyFixedCardGeneSequence(
-                    new FixedCardGeneSequence(fixedCardsForPopulation, Guid.Empty, null, null),
-                    new CardGeneSequence(
-                        remainingCards,
-                        population?.Genetics.AllPossibleCards ?? SnapCards.All,
-                        Guid.Empty,
-                        population?.Genetics.MutationPer ?? 200,
-                        population?.Genetics.OrderBy ?? new RandomCardOrder(),
-                        null,
-                        null,
-                        null
-                    ),
-                    controller,
-                    item.Id,
-                    item.FirstParentId,
-                    item.SecondParentId
-                );
+            // All of the defaults for an unset population below are pretty mediocre
+            var geneSequence = new GeneSequence(
+                fixedCardsForPopulation,
+                remainingCards,
+                population?.Genetics,
+                controller,
+                item.Id,
+                item.FirstParentId,
+                item.SecondParentId
+            );
 
-                return (geneSequence as T)!;
-            }
-            else if (fixedCardsForPopulation.Count > 0)
-            {
-                throw new InvalidOperationException(
-                    "Item had fixed cards (based on its population) but was not requested as a PartiallyFixedCardGeneSequence"
-                );
-            }
-            else if (typeof(T) != typeof(CardGeneSequence))
-            {
-                throw new InvalidOperationException(
-                    "In practice you can only request populations of PartiallyFixedCardGeneSequence and CardGeneSequence."
-                );
-            }
-            else
-            {
-                // All of the defaults for an unset population below are pretty mediocre
-                var geneSequence = new CardGeneSequence(
-                    itemCards,
-                    population?.Genetics.AllPossibleCards ?? SnapCards.All,
-                    item.Id,
-                    population?.Genetics.MutationPer ?? 200,
-                    population?.Genetics.OrderBy ?? new RandomCardOrder(),
-                    item.FirstParentId,
-                    item.SecondParentId,
-                    controller
-                );
-
-                return (geneSequence as T)!;
-            }
+            return geneSequence;
         }
 
         private async Task<ConnectionContainer> GetConnection()

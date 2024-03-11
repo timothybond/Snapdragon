@@ -19,7 +19,8 @@ namespace Snapdragon.Runner.Experiments
 
             var kaZarDefinition = SnapCards.ByName["Ka-Zar"];
 
-            var withoutKaZar = new CardGenetics(
+            var withoutKaZar = new Genetics(
+                [],
                 SnapCards.All.Remove(kaZarDefinition),
                 new MonteCarloSearchController(Simulations),
                 MutationsPer,
@@ -35,7 +36,7 @@ namespace Snapdragon.Runner.Experiments
                 repositoryBuilder
             );
 
-            var kaZarPinned = new PartiallyFixedGenetics(
+            var kaZarPinned = new Genetics(
                 [SnapCards.ByName["Ka-Zar"]],
                 SnapCards.All,
                 new MonteCarloSearchController(Simulations),

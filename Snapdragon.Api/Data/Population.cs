@@ -1,6 +1,4 @@
-﻿using Snapdragon.GeneticAlgorithm;
-
-namespace Snapdragon.Api.Data
+﻿namespace Snapdragon.Api.Data
 {
     public class Population
     {
@@ -19,9 +17,8 @@ namespace Snapdragon.Api.Data
 
         public int Generation { get; set; }
 
-        // Note: I don't think I can write a cast operator for this because of the generic
-        public static Population From<T>(Population<T> pop)
-            where T : IGeneSequence<T>
+        // TODO: Replace with a cast operator now that I've gotten rid of the generics
+        public static Population From(GeneticAlgorithm.Population pop)
         {
             return new Population
             {

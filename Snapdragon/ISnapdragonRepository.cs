@@ -39,74 +39,69 @@ namespace Snapdragon
         ///
         /// Note that this will NOT include the <see cref="Population{T}.Items"/> entries.
         /// </summary>
-        Task SavePopulation<T>(Population<T> population)
-            where T : IGeneSequence<T>;
+        Task SavePopulation(Population population);
 
         /// <summary>
-        /// Gets the <see cref="Population{T}"/> by unique identifier.
+        /// Gets the <see cref="Population"/> by unique identifier.
         ///
-        /// Note that this will NOT include the <see cref="Population{T}.Items"/> entries.
+        /// Note that this will NOT include the <see cref="Population.Items"/> entries.
         /// </summary>
-        Task<Population<T>?> GetPopulation<T>(Guid id)
-            where T : IGeneSequence<T>;
+        Task<Population?> GetPopulation(Guid id);
 
         /// <summary>
-        /// Gets the counts of all cards in the <see cref="Population{T}"/> over all of its generations.
+        /// Gets the counts of all cards in the <see cref="Population"/> over all of its generations.
         ///
         /// Returns <c>null</c> if the population is not found.
         /// </summary>
-        Task<IReadOnlyList<CardCount>?> GetCardCounts<T>(Guid populationId)
-            where T : IGeneSequence<T>;
+        Task<IReadOnlyList<CardCount>?> GetCardCounts(Guid populationId);
 
         /// <summary>
-        /// Gets the <see cref="Population{T}"/>s associated with an <see cref="Experiment"/> by its unique identifier.
+        /// Gets the <see cref="Population"/>s associated with an <see cref="Experiment"/> by its unique identifier.
         ///
-        /// Note that this will NOT include the <see cref="Population{T}.Items"/> entries.
+        /// Note that this will NOT include the <see cref="Population.Items"/> entries.
         /// </summary>
-        Task<IReadOnlyList<Population<T>>> GetPopulations<T>(Guid experimentId)
-            where T : IGeneSequence<T>;
+        Task<IReadOnlyList<Population>> GetPopulations(Guid experimentId);
 
         /// <summary>
-        /// Gets the <see cref="Population{T}"/> by <see cref="Experiment"/> unique identifier
+        /// Gets the <see cref="Population"/> by <see cref="Experiment"/> unique identifier
         /// and generation number.
         ///
-        /// Note that this will NOT include the <see cref="Population{T}.Items"/> entries.
+        /// Note that this will NOT include the <see cref="Population.Items"/> entries.
         /// </summary>
-        Task<Population<T>?> GetPopulation<T>(Guid experimentId, int generation)
-            where T : IGeneSequence<T>;
+        Task<Population?> GetPopulation(Guid experimentId, int generation);
 
         /// <summary>
-        /// Deletes the <see cref="Population{T}"/> by unique identifier.
+        /// Deletes the <see cref="Population"/> by unique identifier.
         ///
         /// For idempotency, does not throw an error if the <see cref="Experiment"/> does not exist.
         /// </summary>
         Task DeletePopulation(Guid id);
 
-        Task SaveItem<T>(IGeneSequence<T> item)
-            where T : IGeneSequence<T>;
+        Task SaveItem(GeneSequence item);
 
         /// <summary>
-        /// Links together a gene sequence with a <see cref="Population{T}"/>.
+        /// Links together a gene sequence with a <see cref="Population"/>.
         /// </summary>
         Task AddItemToPopulation(Guid itemId, Guid populationId, int generation);
 
         /// <summary>
-        /// Removes the link between a gene sequence with a <see cref="Population{T}"/>.
+        /// Removes the link between a gene sequence with a <see cref="Population"/>.
         /// </summary>
         Task RemoveItemFromPopulation(Guid itemId, Guid populationId, int generation);
 
         /// <summary>
         /// Gets a single gene sequence by unique identifier.
         /// </summary>
-        Task<T?> GetItem<T>(Guid id)
-            where T : class, IGeneSequence<T>;
+        Task<GeneSequence?> GetItem(Guid id);
 
         /// <summary>
-        /// Gets all members of a <see cref="Population{T}"/> by the unique identifier
+        /// Gets all members of a <see cref="Population"/> by the unique identifier
         /// of that <see cref="Population{T}"/> and the generation number.
         /// </summary>
-        Task<IReadOnlyList<T>> GetItems<T>(Guid populationId, int generation)
-            where T : class, IGeneSequence<T>;
+        Task<IReadOnlyList<GeneSequence>> GetItems(
+            Guid populationId,
+            int generation
+        );
 
         /// <summary>
         /// Deletes a member of a <see cref="Population{T}"/> by unique identifier.
@@ -153,7 +148,7 @@ namespace Snapdragon
         /// Gets the <see cref="GameRecord"/>s of all games played in a given <see cref="Experiment"/>
         /// during a given generation.
         /// </summary>
-        Task<IReadOnlyList<GameRecord>> GetGames<T>(Guid experimentId, int generation);
+        Task<IReadOnlyList<GameRecord>> GetGames(Guid experimentId, int generation);
 
         /// <summary>
         /// Gets an entry for a <see cref="Game"/>.

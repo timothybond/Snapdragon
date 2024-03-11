@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Snapdragon.GeneticAlgorithm;
 
 namespace Snapdragon.Api.Controllers
 {
@@ -22,7 +21,7 @@ namespace Snapdragon.Api.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Data.Item>> Get(Guid id)
         {
-            var item = await _repository.GetItem<PartiallyFixedCardGeneSequence>(id);
+            var item = await _repository.GetItem(id);
 
             if (item == null)
             {
