@@ -45,3 +45,8 @@ export interface Population {
     fixedCards: string[];
     allCards: string[];
 }
+
+export interface CardCounts {
+    name: string;
+    counts: number[];
+}

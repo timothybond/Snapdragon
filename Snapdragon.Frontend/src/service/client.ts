@@ -1,4 +1,11 @@
-import type { Card, Experiment, Game, Item, Population } from "../types/models";
+import type {
+    Card,
+    CardCounts,
+    Experiment,
+    Game,
+    Item,
+    Population,
+} from "../types/models";
 
 class Client {
     constructor(public readonly url: string) {}
@@ -41,6 +48,14 @@ class Client {
         let response = await fetch(`${this.url}/games/${gameId}`);
         let game = (await response.json()) as Game;
         return game;
+    };
+
+    getCardCounts = async (populationId: string) => {
+        let response = await fetch(
+            `${this.url}/populations/${populationId}/statistics`
+        );
+        let cardCounts = (await response.json()) as CardCounts[];
+        return cardCounts;
     };
 }
 

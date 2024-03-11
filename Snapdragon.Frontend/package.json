@@ -24,6 +24,7 @@
     "vite": "^5.1.4"
   },
   "dependencies": {
+    "chart.js": "^4.4.2",
     "svelte-table": "^0.6.3"
   }
 }

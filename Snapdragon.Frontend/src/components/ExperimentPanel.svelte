@@ -54,7 +54,7 @@
 </div>
 
 {#if $selectedPopulation}
-    <PopulationPanel population={$selectedPopulation}></PopulationPanel>
+    <PopulationPanel></PopulationPanel>
 {/if}
 
 <!-- TODO: Fix this ugly hack -->

@@ -15,6 +15,10 @@
         selectedPopulationId,
     } from "./stores/stores";
 
+    import { Chart, registerables } from "chart.js";
+
+    Chart.register(...registerables);
+
     onMount(() => {
         const hash = window.location.hash;
 

@@ -6,6 +6,7 @@ import {
     type Item,
     type Population,
     type ItemWithGames,
+    type CardCounts,
 } from "../types/models";
 import { client } from "../service/client";
 
@@ -231,5 +232,18 @@ export const desiredHash = derived(
         }
 
         return result;
+    }
+);
+
+export const cardCounts = derived(
+    selectedPopulationId,
+    (selectedPopulationId, set: (cardCounts: CardCounts[]) => void) => {
+        set([]);
+
+        if (selectedPopulationId) {
+            client
+                .getCardCounts(selectedPopulationId)
+                .then((cardCounts) => set(cardCounts));
+        }
     }
 );
