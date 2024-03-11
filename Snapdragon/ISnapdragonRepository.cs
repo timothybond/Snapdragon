@@ -51,6 +51,14 @@ namespace Snapdragon
             where T : IGeneSequence<T>;
 
         /// <summary>
+        /// Gets the counts of all cards in the <see cref="Population{T}"/> over all of its generations.
+        ///
+        /// Returns <c>null</c> if the population is not found.
+        /// </summary>
+        Task<IReadOnlyList<CardCount>?> GetCardCounts<T>(Guid populationId)
+            where T : IGeneSequence<T>;
+
+        /// <summary>
         /// Gets the <see cref="Population{T}"/>s associated with an <see cref="Experiment"/> by its unique identifier.
         ///
         /// Note that this will NOT include the <see cref="Population{T}.Items"/> entries.

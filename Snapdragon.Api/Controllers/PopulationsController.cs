@@ -42,5 +42,27 @@ namespace Snapdragon.Api.Controllers
 
             return items.Select(i => Data.Item.From(i)).ToList();
         }
+
+        [HttpGet("{id}/statistics")]
+        public async Task<ActionResult<IReadOnlyList<Data.CardCount>>> GetStatisticsAsync(Guid id)
+        {
+            var pop = await _repository.GetPopulation<PartiallyFixedCardGeneSequence>(id);
+
+            if (pop == null)
+            {
+                return NotFound();
+            }
+
+            var cardCounts = await _repository.GetCardCounts<PartiallyFixedCardGeneSequence>(id);
+
+            if (cardCounts == null)
+            {
+                return NotFound();
+            }
+
+            return cardCounts
+                .Select(cc => new Data.CardCount { Name = cc.Name, Counts = cc.Counts })
+                .ToList();
+        }
     }
 }

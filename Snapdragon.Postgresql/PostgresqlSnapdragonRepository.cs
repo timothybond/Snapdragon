@@ -202,6 +202,47 @@ namespace Snapdragon.Postgresql
             return await GetPopulation<T>(row, conn);
         }
 
+        public async Task<IReadOnlyList<CardCount>?> GetCardCounts<T>(Guid populationId)
+            where T : IGeneSequence<T>
+        {
+            var population = await GetPopulation<T>(populationId);
+
+            if (population == null)
+            {
+                return null;
+            }
+
+            var countsByCard = new Dictionary<string, List<int>>();
+
+            foreach (var cardName in population.Genetics.AllPossibleCards.Select(c => c.Name))
+            {
+                countsByCard.Add(
+                    cardName,
+                    Enumerable.Repeat<int>(0, population.Generation + 1).ToList()
+                );
+            }
+
+            using var container = await GetConnection();
+            var conn = container.Connection;
+
+            var cardCountRows = await conn.QueryAsync<Data.CardCountRow>(
+                "SELECT carddefinition.name, population_item.generation, COUNT(carddefinition.name) as count FROM population_item "
+                    + "JOIN item_carddefinition ON population_item.itemid = item_carddefinition.itemid "
+                    + "JOIN carddefinition ON carddefinition.name = item_carddefinition.carddefinitionname "
+                    + "WHERE populationid = @PopulationId "
+                    + "GROUP BY carddefinition.name, population_item.generation "
+                    + "ORDER BY carddefinition.name, population_item.generation",
+                new { PopulationId = populationId }
+            );
+
+            foreach (var row in cardCountRows)
+            {
+                countsByCard[row.Name][row.Generation] = row.Count;
+            }
+
+            return countsByCard.Select(kvp => new CardCount(kvp.Key, kvp.Value)).ToList();
+        }
+
         public async Task<Population<T>?> GetPopulation<T>(Guid experimentId, int generation)
             where T : IGeneSequence<T>
         {

@@ -566,6 +566,100 @@ namespace Snapdragon.Postgresql.Tests
             Assert.That(savedPopNames, Contains.Item("Test Pop By Experiment 2"));
         }
 
+        [Test]
+        public async Task GetCardCount_GetsExpectedCounts()
+        {
+            var experimentId = await SaveExperiment("Test Experiment For Counts");
+
+            var populationId = await SavePopulation(experimentId, "Test Population For Counts");
+
+            var kaZarCards = new string[]
+            {
+                "Ka-Zar",
+                "Squirrel Girl",
+                "Blue Marvel",
+                "Ant Man",
+                "Blade",
+                "Elektra",
+                "Rocket Raccoon",
+                "Okoye",
+                "America Chavez",
+                "Agent 13",
+                "Armor",
+                "Misty Knight"
+            };
+            var kaZarDeckId1 = await SaveItem(kaZarCards);
+            var kaZarDeckId2 = await SaveItem(kaZarCards);
+
+            var moveCards = new string[]
+            {
+                "Vulture",
+                "Human Torch",
+                "Doctor Strange",
+                "Multiple Man",
+                "Kraven",
+                "Iron Fist",
+                "Cloak",
+                "Heimdall",
+                "Medusa",
+                "Iron Man",
+                "Hawkeye",
+                "Nightcrawler"
+            };
+            var moveDeckId1 = await SaveItem(moveCards);
+            var moveDeckId2 = await SaveItem(moveCards);
+
+            await _repository.AddItemToPopulation(kaZarDeckId1, populationId, 0);
+            await _repository.AddItemToPopulation(kaZarDeckId2, populationId, 0);
+            await _repository.AddItemToPopulation(moveDeckId1, populationId, 1);
+            await _repository.AddItemToPopulation(moveDeckId2, populationId, 1);
+            await _repository.AddItemToPopulation(kaZarDeckId1, populationId, 2);
+            await _repository.AddItemToPopulation(moveDeckId1, populationId, 2);
+
+            // Population needs to have an accurate generation value
+            var population = await _repository.GetPopulation<CardGeneSequence>(populationId);
+            Assert.That(population, Is.Not.Null);
+
+            population = population with { Generation = 2 };
+            await _repository.SavePopulation(population);
+
+            var allCardCounts = await _repository.GetCardCounts<CardGeneSequence>(populationId);
+
+            Assert.That(allCardCounts, Is.Not.Null);
+
+            foreach (var cardName in kaZarCards)
+            {
+                var cardCounts = allCardCounts.SingleOrDefault(cc =>
+                    string.Equals(cc.Name, cardName)
+                );
+                Assert.That(cardCounts, Is.Not.Null);
+                Assert.That(cardCounts.Counts.SequenceEqual(new[] { 2, 0, 1 }));
+            }
+
+            foreach (var cardName in moveCards)
+            {
+                var cardCounts = allCardCounts.SingleOrDefault(cc =>
+                    string.Equals(cc.Name, cardName)
+                );
+                Assert.That(cardCounts, Is.Not.Null);
+                Assert.That(cardCounts.Counts.SequenceEqual(new[] { 0, 2, 1 }));
+            }
+
+            foreach (
+                var cardName in SnapCards
+                    .All.Select(c => c.Name)
+                    .Except(kaZarCards)
+                    .Except(moveCards)
+            )
+            {
+                var cardCounts = allCardCounts.SingleOrDefault(cc =>
+                    string.Equals(cc.Name, cardName)
+                );
+                Assert.That(cardCounts, Is.Not.Null);
+                Assert.That(cardCounts.Counts.SequenceEqual(new[] { 0, 0, 0 }));
+            }
+        }
+
         #endregion
 
         #region Item Tests
@@ -1050,6 +1144,30 @@ namespace Snapdragon.Postgresql.Tests
         /// Saves a test <see cref="CardGeneSequence"/> (with no associated population)
         /// and returns the <see cref="CardGeneSequence.Id"/>;
         /// </summary>
+        private async Task<Guid> SaveItem(params string[] cardNames)
+        {
+            var cards = cardNames.Select(n => SnapCards.ByName[n]).ToImmutableList();
+
+            var item = new CardGeneSequence(
+                cards,
+                SnapCards.All,
+                Guid.NewGuid(),
+                200,
+                new RandomCardOrder(),
+                null,
+                null,
+                new MonteCarloSearchController(5)
+            );
+
+            await _repository.SaveItem(item);
+
+            return item.Id;
+        }
+
+        /// <summary>
+        /// Saves a test <see cref="CardGeneSequence"/> (with no associated population)
+        /// and returns the <see cref="CardGeneSequence.Id"/>;
+        /// </summary>
         private async Task<Guid> SaveItem()
         {
             var cardNames = new string[]
@@ -1068,22 +1186,7 @@ namespace Snapdragon.Postgresql.Tests
                 "Heimdall"
             };
 
-            var cards = cardNames.Select(n => SnapCards.ByName[n]).ToImmutableList();
-
-            var item = new CardGeneSequence(
-                cards,
-                SnapCards.All,
-                Guid.NewGuid(),
-                200,
-                new RandomCardOrder(),
-                null,
-                null,
-                new MonteCarloSearchController(5)
-            );
-
-            await _repository.SaveItem(item);
-
-            return item.Id;
+            return await SaveItem(cardNames);
         }
 
         /// <summary>
