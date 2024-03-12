@@ -125,6 +125,21 @@ namespace Snapdragon
                 }
             }
 
+            foreach (var loc in Locations)
+            {
+                if (
+                    loc.Revealed
+                    && loc.Definition.Ongoing
+                        is OngoingBlockLocationEffect<Location> blockLocationEffect
+                )
+                {
+                    if (blockLocationEffect.Applies(location, side, loc, this))
+                    {
+                        set.Add(blockLocationEffect.EffectType);
+                    }
+                }
+            }
+
             return set;
         }
 
@@ -303,8 +318,15 @@ namespace Snapdragon
         {
             var location = this[column] with { Revealed = true };
 
-            return this.WithLocation(location)
+            var game = this.WithLocation(location)
                 .WithEvent(new LocationRevealedEvent(this.Turn, location));
+
+            if (location.Definition.OnReveal != null)
+            {
+                game = location.Definition.OnReveal.Activate(game, location);
+            }
+
+            return game;
         }
 
         /// <summary>

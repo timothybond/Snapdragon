@@ -42,7 +42,7 @@ namespace Snapdragon.Effects
             }
 
             // TODO: handle restrictions on number of cards
-            if (game[destination][Card.Side].Count >= 4)
+            if (game[destination][Card.Side].Count >= Max.CardsPerLocation)
             {
                 return game;
             }

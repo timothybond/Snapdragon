@@ -8,7 +8,7 @@ namespace Snapdragon
         int Power,
         IRevealAbility<Card>? OnReveal = null,
         IOngoingAbility<Card>? Ongoing = null,
-        ITriggeredAbility<ICard>? Triggered = null,
+        ITriggeredCardAbility? Triggered = null,
         IMoveAbility<Card>? MoveAbility = null,
         ImmutableList<EffectType>? Disallowed = null,
         IPlayRestriction? PlayRestriction = null

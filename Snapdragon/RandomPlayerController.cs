@@ -230,7 +230,7 @@ namespace Snapdragon
                         sensorsWithMoveAbilities,
                         cardsWithCardEffectBlocks
                     )
-                    && game[col][card.Side].Count < 4
+                    && game[col][card.Side].Count < Max.CardsPerLocation
                 )
                 .ToList();
         }

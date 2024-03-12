@@ -14,7 +14,7 @@
             var location = game[actualCard.Column];
 
             // TODO: Handle other slot limits
-            if (location[actualCard.Side.Other()].Count >= 4)
+            if (location[actualCard.Side.Other()].Count >= Max.CardsPerLocation)
             {
                 return game;
             }

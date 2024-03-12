@@ -9,7 +9,7 @@
         {
             // Note we normally enforce hand-size limit elsewhere.
             // TODO: find a way to centralize this
-            if (game[Side].Hand.Count >= 7)
+            if (game[Side].Hand.Count >= Max.HandSize)
             {
                 return game;
             }

@@ -5,7 +5,7 @@
         public Game Apply(Game game)
         {
             // TODO: Handle anything that restricts the slots
-            if (game[Location][Card.Side].Count >= 4)
+            if (game[Location][Card.Side].Count >= Max.CardsPerLocation)
             {
                 return game;
             }

@@ -70,7 +70,7 @@
                 player = player.DrawCard();
             }
 
-            Assert.That(player.Hand.Count, Is.EqualTo(7));
+            Assert.That(player.Hand.Count, Is.EqualTo(7)); // Note: this is Max.HandSize, but I've chosen to leave it in keeping with the name of the test
             Assert.That(player.Library.Count, Is.EqualTo(2));
         }
     }

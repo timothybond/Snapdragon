@@ -3,16 +3,16 @@
 namespace Snapdragon
 {
     public record Location(
-        string Name,
         Column Column,
+        LocationDefinition Definition,
         ImmutableList<Card> TopPlayerCards,
         ImmutableList<Card> BottomPlayerCards,
         ImmutableList<Sensor<Card>> Sensors,
         bool Revealed = false
     ) : IObjectWithColumn
     {
-        public Location(string Name, Column Column)
-            : this(Name, Column, [], [], []) { }
+        public Location(Column Column, LocationDefinition Definition)
+            : this(Column, Definition, [], [], []) { }
 
         public ImmutableList<Card> this[Side side]
         {
@@ -30,8 +30,7 @@ namespace Snapdragon
             }
         }
 
-        public IEnumerable<Card> AllCards =>
-            this.TopPlayerCards.Concat(this.BottomPlayerCards);
+        public IEnumerable<Card> AllCards => this.TopPlayerCards.Concat(this.BottomPlayerCards);
 
         /// <summary>
         /// Adds a <see cref="CardInstance"/> to the given location.

@@ -15,7 +15,7 @@ namespace Snapdragon
         int? PowerAdjustment { get; }
         IRevealAbility<Card>? OnReveal { get; }
         IOngoingAbility<Card>? Ongoing { get; }
-        ITriggeredAbility<ICard>? Triggered { get; }
+        ITriggeredCardAbility? Triggered { get; }
         IMoveAbility<Card>? MoveAbility { get; }
         ImmutableList<EffectType>? Disallowed { get; }
         IPlayRestriction? PlayRestriction { get; }

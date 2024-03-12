@@ -5,7 +5,7 @@
     {
         public override string ToString()
         {
-            return $"Location Revealed: {Location.Name} ({Location.Column}).";
+            return $"Location Revealed: {Location.Definition.Name} ({Location.Column}).";
         }
     }
 }

@@ -7,7 +7,7 @@ namespace Snapdragon
     /// </summary>
     public record WhenDiscarded(
         ISourceTriggeredEffectBuilder<ICard, CardDiscardedEvent> EffectBuilder
-    ) : BaseTriggeredAbility<ICard, CardDiscardedEvent>
+    ) : BaseTriggeredCardAbility<CardDiscardedEvent>
     {
         public override bool InHand => false;
         public override bool InDeck => false;

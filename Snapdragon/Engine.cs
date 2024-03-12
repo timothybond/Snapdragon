@@ -16,9 +16,18 @@
             Side? firstRevealed = null,
             ISnapdragonRepository? repository = null,
             Guid? experimentId = null,
-            int? generation = null
+            int? generation = null,
+            string? leftLocationName = null,
+            string? middleLocationName = null,
+            string? rightLocationName = null
         )
         {
+            var locationDefinitions = GetLocations(
+                leftLocationName,
+                middleLocationName,
+                rightLocationName
+            );
+
             var firstRevealedOrRandom = firstRevealed ?? Random.Side();
 
             // TODO: Specify different Locations, with effects
@@ -26,9 +35,9 @@
             var game = new Game(
                 Guid.NewGuid(),
                 0,
-                new Location("Left", Column.Left),
-                new Location("Middle", Column.Middle),
-                new Location("Right", Column.Right),
+                new Location(Column.Left, locationDefinitions.Left),
+                new Location(Column.Middle, locationDefinitions.Middle),
+                new Location(Column.Right, locationDefinitions.Right),
                 topPlayer.ToPlayer(Side.Top, shuffle),
                 bottomPlayer.ToPlayer(Side.Bottom, shuffle),
                 firstRevealedOrRandom,
@@ -39,7 +48,10 @@
 
             if (repository != null)
             {
-                game = game with { Logger = new RepositoryGameLogger(repository, game.Id, experimentId, generation) };
+                game = game with
+                {
+                    Logger = new RepositoryGameLogger(repository, game.Id, experimentId, generation)
+                };
             }
 
             game = game with
@@ -49,6 +61,57 @@
             };
 
             return game;
+        }
+
+        private (
+            LocationDefinition Left,
+            LocationDefinition Middle,
+            LocationDefinition Right
+        ) GetLocations(
+            string? leftLocationName = null,
+            string? middleLocationName = null,
+            string? rightLocationName = null
+        )
+        {
+            var specifiedNames = new string?[]
+            {
+                leftLocationName,
+                middleLocationName,
+                rightLocationName
+            }
+                .Where(n => n != null)
+                .ToList<string>();
+
+            var remainingNames = SnapLocations.ByName.Keys.Where(k => !specifiedNames.Contains(k));
+            var remainingLocations = remainingNames.Select(n => SnapLocations.ByName[n]).ToList();
+
+            // TODO: Clean this up once we know we have plenty of locations -
+            // right now it is here because there might not be three implemented ones.
+            while (remainingLocations.Count < 3)
+            {
+                remainingLocations.Add(SnapLocations.ByName["Ruins"]);
+            }
+
+            remainingLocations = remainingLocations.OrderBy(ld => Random.Next()).ToList();
+
+            return (
+                GetLocationOrDefault(leftLocationName, remainingLocations[0]),
+                GetLocationOrDefault(middleLocationName, remainingLocations[1]),
+                GetLocationOrDefault(rightLocationName, remainingLocations[2])
+            );
+        }
+
+        private LocationDefinition GetLocationOrDefault(
+            string? locationName,
+            LocationDefinition defaultLocation
+        )
+        {
+            if (locationName != null)
+            {
+                return SnapLocations.ByName[locationName];
+            }
+
+            return defaultLocation;
         }
     }
 }

@@ -10,7 +10,7 @@
             var player = game[Side];
             var opponent = game[Side.Other()];
 
-            if (player.Hand.Count < 7 && opponent.Library.Count > 0)
+            if (player.Hand.Count < Max.HandSize && opponent.Library.Count > 0)
             {
                 var card = opponent.Library[0];
                 opponent = opponent with { Library = opponent.Library.RemoveAt(0) };

@@ -20,7 +20,7 @@
             }
 
             // TODO: Handle effects that limit card play
-            if (game[To][Side].Count >= 4)
+            if (game[To][Side].Count >= Max.CardsPerLocation)
             {
                 throw new InvalidOperationException("Cannot move to full location.");
             }

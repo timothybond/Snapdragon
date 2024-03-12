@@ -15,7 +15,7 @@
 
             // Note that we can't always rely on the Card instances to stay the same,
             // because any adjustment creates a new instance with slightly different attributes.
-            return (card.Id == source.Id) && (game[column.Value][card.Side].Count == 4);
+            return (card.Id == source.Id) && (game[column.Value][card.Side].Count == Max.CardsPerLocation);
         }
     }
 }

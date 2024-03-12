@@ -1,6 +1,8 @@
 ﻿namespace Snapdragon.Events
 {
-    public record CardDrawnEvent(int Turn, CardInstance Card) : Event(EventType.CardDrawn, Turn)
+    public record CardDrawnEvent(int Turn, ICard Card)
+        : Event(EventType.CardDrawn, Turn),
+            ICardEvent
     {
         public override string ToString()
         {

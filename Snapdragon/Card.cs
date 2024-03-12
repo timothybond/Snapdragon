@@ -24,11 +24,11 @@ namespace Snapdragon
         int? PowerAdjustment,
         IRevealAbility<Card>? OnReveal = null,
         IOngoingAbility<Card>? Ongoing = null,
-        ITriggeredAbility<ICard>? Triggered = null,
+        ITriggeredCardAbility? Triggered = null,
         IMoveAbility<Card>? MoveAbility = null,
         ImmutableList<EffectType>? Disallowed = null,
         IPlayRestriction? PlayRestriction = null
-    ) : ICardInPlay, IObjectWithColumn
+    ) : ICardInPlay
     {
         public Card(CardDefinition definition, Side side, Column column)
             : this(
@@ -47,8 +47,7 @@ namespace Snapdragon
                 definition.MoveAbility,
                 definition.Disallowed,
                 definition.PlayRestriction
-            )
-        { }
+            ) { }
 
         public int AdjustedPower => this.Power + (this.PowerAdjustment ?? 0);
 

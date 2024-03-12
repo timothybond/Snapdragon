@@ -14,7 +14,7 @@
             var player = game[Card.Side];
 
             // TODO: Determine if there's any scenarios where this isn't correct
-            if (player.Hand.Count >= 7)
+            if (player.Hand.Count >= Max.HandSize)
             {
                 return game;
             }

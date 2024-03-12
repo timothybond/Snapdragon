@@ -4,10 +4,13 @@
     {
         public Game Apply(Game game)
         {
-            var card = new CardInstance(Definition, Side, CardState.InPlay) with { Column = Column };
+            var card = new CardInstance(Definition, Side, CardState.InPlay) with
+            {
+                Column = Column
+            };
 
             // TODO: Handle restrictions on slots
-            if (game[Column][Side].Count < 4)
+            if (game[Column][Side].Count < Max.CardsPerLocation)
             {
                 var location = game[Column];
                 location = location.WithCard(card);

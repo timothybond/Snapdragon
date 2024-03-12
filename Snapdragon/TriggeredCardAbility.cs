@@ -1,16 +1,16 @@
 ﻿namespace Snapdragon
 {
-    public record TriggeredAbility<TSource, TEvent>(
-        ITrigger<TSource, TEvent> Trigger,
-        ISourceTriggeredEffectBuilder<TSource, TEvent> EffectBuilder
-    ) : BaseTriggeredAbility<TSource, TEvent>
+    public record TriggeredCardAbility<TEvent>(
+        ITrigger<ICard, TEvent> Trigger,
+        ISourceTriggeredEffectBuilder<ICard, TEvent> EffectBuilder
+    ) : BaseTriggeredCardAbility<TEvent>
         where TEvent : Event
     {
         public override bool InHand => false;
         public override bool InDeck => false;
         public override bool DiscardedOrDestroyed => false;
 
-        protected override Game ProcessEvent(Game game, TEvent e, TSource source)
+        protected override Game ProcessEvent(Game game, TEvent e, ICard source)
         {
             if (this.Trigger.IsMet(e, game, source))
             {

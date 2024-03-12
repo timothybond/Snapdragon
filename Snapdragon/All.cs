@@ -2,6 +2,9 @@
 
 namespace Snapdragon
 {
+    /// <summary>
+    /// Helper class to quickly reference possible values of enums.
+    /// </summary>
     public static class All
     {
         public static readonly ImmutableList<Column> Columns =

@@ -47,7 +47,7 @@ namespace Snapdragon
             CurrentScores scores
         )
         {
-            for (var i = 0; i < 4; i++)
+            for (var i = 0; i < Max.CardsPerLocation; i++)
             {
                 foreach (var location in new[] { game.Left, game.Middle, game.Right })
                 {

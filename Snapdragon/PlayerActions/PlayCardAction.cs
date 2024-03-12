@@ -11,7 +11,7 @@ namespace Snapdragon.PlayerActions
             // TODO: Handle effects that limit card play or slots
             var location = game[Column];
 
-            if (location[Side].Count >= 4)
+            if (location[Side].Count >= Max.CardsPerLocation)
             {
                 throw new InvalidOperationException(
                     $"Tried to play more than 4 cards to {Column} for side {Side}."

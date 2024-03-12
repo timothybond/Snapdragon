@@ -1,5 +1,5 @@
-﻿using Snapdragon.PlayerActions;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
+using Snapdragon.PlayerActions;
 
 namespace Snapdragon.Tests
 {
@@ -38,7 +38,29 @@ namespace Snapdragon.Tests
             return cards.ToImmutableList();
         }
 
-        public static Game NewGame()
+        /// <summary>
+        /// Helper function for a game with one specific <see cref="Location"/> (the others being "Ruins").
+        /// </summary>
+        public static Game NewGame(string locationName, Column column)
+        {
+            switch (column)
+            {
+                case Column.Left:
+                    return NewGame(leftLocation: locationName);
+                case Column.Middle:
+                    return NewGame(middleLocation: locationName);
+                case Column.Right:
+                    return NewGame(rightLocation: locationName);
+                default:
+                    throw new NotImplementedException();
+            }
+        }
+
+        public static Game NewGame(
+            string leftLocation = "Ruins",
+            string middleLocation = "Ruins",
+            string rightLocation = "Ruins"
+        )
         {
             var engine = new Engine(new NullLogger());
 
@@ -48,7 +70,10 @@ namespace Snapdragon.Tests
 
             var game = engine.CreateGame(
                 new PlayerConfiguration("Top", new Deck([]), topController),
-                new PlayerConfiguration("Bottom", new Deck([]), bottomController)
+                new PlayerConfiguration("Bottom", new Deck([]), bottomController),
+                leftLocationName: leftLocation,
+                middleLocationName: middleLocation,
+                rightLocationName: rightLocation
             );
 
             return game;
@@ -71,6 +96,26 @@ namespace Snapdragon.Tests
                     Library = game[side].Library with
                     {
                         Cards = game[side].Library.Cards.AddRange(cards)
+                    }
+                }
+            );
+        }
+
+        public static Game WithCardsInDeck(
+            this Game game,
+            Side side,
+            params CardDefinition[] cardDefinitions
+        )
+        {
+            return game.WithPlayer(
+                game[side] with
+                {
+                    Library = game[side].Library with
+                    {
+                        Cards = game[side]
+                            .Library.Cards.AddRange(
+                                cardDefinitions.Select(cd => new CardInstance(cd, side))
+                            )
                     }
                 }
             );
@@ -220,6 +265,8 @@ namespace Snapdragon.Tests
                 game = game.PlaySingleTurn();
             }
 
+            game = game.StartNextTurn();
+
             game = game with
             {
                 Top = GetPlayerWithCardsToPlay(
@@ -236,7 +283,7 @@ namespace Snapdragon.Tests
                 )
             };
 
-            game = game.PlaySingleTurn();
+            game = game.PlayAlreadyStartedTurn();
 
             return game;
         }
@@ -261,6 +308,8 @@ namespace Snapdragon.Tests
                 game = game.PlaySingleTurn();
             }
 
+            game = game.StartNextTurn();
+
             game = game with
             {
                 Top = GetPlayerWithCardsToPlay(
@@ -277,7 +326,7 @@ namespace Snapdragon.Tests
                 )
             };
 
-            game = game.PlaySingleTurn();
+            game = game.PlayAlreadyStartedTurn();
 
             return game;
         }
@@ -324,6 +373,8 @@ namespace Snapdragon.Tests
                 game = game.PlaySingleTurn();
             }
 
+            game = game.StartNextTurn();
+
             game = game with
             {
                 Top = GetPlayerWithCardsToPlay(topPlayerCards, topController, Side.Top, game),
@@ -335,7 +386,7 @@ namespace Snapdragon.Tests
                 )
             };
 
-            game = game.PlaySingleTurn();
+            game = game.PlayAlreadyStartedTurn();
 
             return game;
         }
@@ -395,7 +446,10 @@ namespace Snapdragon.Tests
         /// <param name="side">Player side that will play the cards.</param>
         /// <param name="cardNames">Names of the cards.</param>
         /// <returns></returns>
-        private static IReadOnlyList<CardInstance> GetCards(Side side, IEnumerable<string> cardNames)
+        private static IReadOnlyList<CardInstance> GetCards(
+            Side side,
+            IEnumerable<string> cardNames
+        )
         {
             return cardNames
                 .Select(name => new CardInstance(SnapCards.ByName[name], side, CardState.InHand))
@@ -407,7 +461,7 @@ namespace Snapdragon.Tests
         /// the <see cref="TestPlayerController"/> to actually play them.
         ///
         /// This will leave the player's current hand, which in some cases may violate the assumption
-        /// that no player has more than 7 cards in their hand.
+        /// that no player has more than <see cref="Max.HandSize"/> (7) cards in their hand.
         /// </summary>
         private static Player GetPlayerWithCardsToPlay(
             IEnumerable<(string CardName, Column Column)> cardsToPlay,
@@ -427,7 +481,11 @@ namespace Snapdragon.Tests
 
             foreach (var absentCard in cardsNeeded)
             {
-                var card = new CardInstance(SnapCards.ByName[absentCard.CardName], side, CardState.InHand);
+                var card = new CardInstance(
+                    SnapCards.ByName[absentCard.CardName],
+                    side,
+                    CardState.InHand
+                );
                 playerHand.Add(card);
             }
 

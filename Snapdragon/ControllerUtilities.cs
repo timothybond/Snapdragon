@@ -611,7 +611,7 @@ namespace Snapdragon
             }
             else
             {
-                return 4 - game[column][side].Count;
+                return Max.CardsPerLocation - game[column][side].Count;
             }
         }
 

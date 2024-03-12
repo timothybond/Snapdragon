@@ -1,7 +1,10 @@
 ﻿namespace Snapdragon.Effects
 {
-    public record AddCopiesToHand(ICard Card, int Count, Func<CardInstance, CardInstance>? Transform = null)
-        : IEffect
+    public record AddCopiesToHand(
+        ICard Card,
+        int Count,
+        Func<CardInstance, CardInstance>? Transform = null
+    ) : IEffect
     {
         public Game Apply(Game game)
         {
@@ -10,7 +13,7 @@
             for (var i = 0; i < Count; i++)
             {
                 // TODO: Determine if there's any scenarios where this isn't correct
-                if (player.Hand.Count >= 7)
+                if (player.Hand.Count >= Max.HandSize)
                 {
                     break;
                 }

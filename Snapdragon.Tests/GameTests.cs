@@ -26,7 +26,7 @@ namespace Snapdragon.Tests
                 new NullPlayerController()
             );
 
-            var game = engine.CreateGame(topPlayerConfig, bottomPlayerConfig);
+            var game = CreateGame(engine, topPlayerConfig, bottomPlayerConfig);
 
             Assert.That(game.Turn, Is.EqualTo(0));
         }
@@ -47,7 +47,7 @@ namespace Snapdragon.Tests
                 new NullPlayerController()
             );
 
-            var game = engine.CreateGame(topPlayerConfig, bottomPlayerConfig);
+            var game = CreateGame(engine, topPlayerConfig, bottomPlayerConfig);
 
             Assert.That(game.Top.Configuration, Is.EqualTo(topPlayerConfig));
             Assert.That(game.Bottom.Configuration, Is.EqualTo(bottomPlayerConfig));
@@ -69,7 +69,7 @@ namespace Snapdragon.Tests
                 new NullPlayerController()
             );
 
-            var game = engine.CreateGame(topPlayerConfig, bottomPlayerConfig);
+            var game = CreateGame(engine, topPlayerConfig, bottomPlayerConfig);
 
             Assert.That(game.Top.Hand.Count, Is.EqualTo(3));
             Assert.That(game.Bottom.Hand.Count, Is.EqualTo(3));
@@ -171,7 +171,7 @@ namespace Snapdragon.Tests
                 new NullPlayerController()
             );
 
-            var game = engine.CreateGame(topPlayerConfig, bottomPlayerConfig, false);
+            var game = CreateGame(engine, topPlayerConfig, bottomPlayerConfig);
 
             game = game.StartNextTurn();
 
@@ -203,7 +203,7 @@ namespace Snapdragon.Tests
                 new NullPlayerController()
             );
 
-            var game = engine.CreateGame(topPlayerConfig, bottomPlayerConfig, false);
+            var game = CreateGame(engine, topPlayerConfig, bottomPlayerConfig);
 
             // TODO - Play a card
             playerController.Actions = new List<IPlayerAction>
@@ -236,7 +236,7 @@ namespace Snapdragon.Tests
                 new NullPlayerController()
             );
 
-            var game = engine.CreateGame(topPlayerConfig, bottomPlayerConfig, false);
+            var game = CreateGame(engine, topPlayerConfig, bottomPlayerConfig);
 
             // TODO - Play a card
             playerController.Actions = new List<IPlayerAction>
@@ -273,7 +273,7 @@ namespace Snapdragon.Tests
                 bottomPlayerController
             );
 
-            var game = engine.CreateGame(topPlayerConfig, bottomPlayerConfig, false);
+            var game = CreateGame(engine, topPlayerConfig, bottomPlayerConfig);
 
             if (side == Side.Top)
             {
@@ -315,7 +315,7 @@ namespace Snapdragon.Tests
                 new NullPlayerController()
             );
 
-            var game = engine.CreateGame(topPlayerConfig, bottomPlayerConfig, false);
+            var game = CreateGame(engine, topPlayerConfig, bottomPlayerConfig);
 
             // TODO - Play a card
             playerController.Actions = new List<IPlayerAction>
@@ -376,7 +376,29 @@ namespace Snapdragon.Tests
                 new NullPlayerController()
             );
 
-            return engine.CreateGame(topPlayerConfig, bottomPlayerConfig);
+            return engine.CreateGame(
+                topPlayerConfig,
+                bottomPlayerConfig,
+                leftLocationName: "Ruins",
+                middleLocationName: "Ruins",
+                rightLocationName: "Ruins"
+            );
+        }
+
+        private static Game CreateGame(
+            Engine engine,
+            PlayerConfiguration topPlayer,
+            PlayerConfiguration bottomPlayer
+        )
+        {
+            return engine.CreateGame(
+                topPlayer,
+                bottomPlayer,
+                false,
+                leftLocationName: "Ruins",
+                middleLocationName: "Ruins",
+                rightLocationName: "Ruins"
+            );
         }
 
         #endregion

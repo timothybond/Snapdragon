@@ -12,7 +12,7 @@ namespace Snapdragon.RevealAbilities
             // TODO: Handle restrictions on where cards can be added, number of slots
             var locations = new[] { game.Left, game.Middle, game.Right }
                 .Where(l => LocationFilter.Applies(l, source, game))
-                .Where(l => l[source.Side].Count < 4)
+                .Where(l => l[source.Side].Count < Max.CardsPerLocation)
                 .ToList();
 
             if (locations.Count == 0)
