@@ -1,18 +1,21 @@
 <script lang="ts">
     import { Chart } from "chart.js";
     import type { CardCounts } from "../types/models";
+    import { hiddenCardsForChart } from "../stores/stores";
 
     export let cardCounts: CardCounts[];
 
     let canvas: HTMLCanvasElement;
     let chart: Chart<"line", number[]> | undefined = undefined;
 
-    $: datasets = cardCounts.map((cc) => {
-        return {
-            data: cc.counts,
-            label: cc.name,
-        };
-    });
+    $: datasets = cardCounts
+        .filter((cc) => !$hiddenCardsForChart.has(cc.name))
+        .map((cc) => {
+            return {
+                data: cc.counts,
+                label: cc.name,
+            };
+        });
 
     $: labels = cardCounts[0]?.counts.map((v, i) => i) ?? [];
 
@@ -20,7 +23,9 @@
         if (chart) {
             chart.data = {
                 labels: labels,
-                datasets: datasets,
+                datasets: datasets.filter(
+                    (d) => !$hiddenCardsForChart.has(d.label)
+                ),
             };
             chart.update();
         }
@@ -34,6 +39,7 @@
                 datasets: datasets,
             },
             options: {
+                animation: false,
                 scales: {
                     y: {
                         beginAtZero: true,
@@ -42,7 +48,7 @@
                 },
                 plugins: {
                     legend: {
-                        display: false,
+                        //display: false,
                     },
                 },
             },

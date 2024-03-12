@@ -1,4 +1,11 @@
-import { writable, derived, type Writable } from "svelte/store";
+import {
+    writable,
+    derived,
+    type Writable,
+    readable,
+    type Readable,
+    get,
+} from "svelte/store";
 import {
     type Game,
     type Card,
@@ -247,3 +254,36 @@ export const cardCounts = derived(
         }
     }
 );
+
+function getSetStore<T>(): Readable<ReadonlySet<T>> & {
+    add: (item: T) => void;
+    remove: (item: T) => void;
+    clear: () => void;
+} {
+    const store = writable<ReadonlySet<T>>(new Set<T>());
+
+    const add = (item: T): void => {
+        const newSet = new Set<T>(get(store));
+        newSet.add(item);
+        store.set(newSet);
+    };
+
+    const remove = (item: T): void => {
+        const newSet = new Set<T>(get(store));
+        newSet.delete(item);
+        store.set(newSet);
+    };
+
+    const clear = (): void => {
+        store.set(new Set<T>());
+    };
+
+    return {
+        subscribe: store.subscribe,
+        add,
+        remove,
+        clear,
+    };
+}
+
+export const hiddenCardsForChart = getSetStore<string>();
