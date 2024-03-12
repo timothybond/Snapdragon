@@ -1,8 +1,10 @@
 ﻿using System.Collections.Immutable;
 using Snapdragon.CardDefinitionFilters;
+using Snapdragon.CardEffectEventBuilders;
 using Snapdragon.LocationFilters;
 using Snapdragon.RevealAbilities;
 using Snapdragon.SideFilters;
+using Snapdragon.TriggeredAbilities;
 
 namespace Snapdragon
 {
@@ -22,6 +24,7 @@ namespace Snapdragon
                     new BothSides<Location>()
                 )
             ),
+            new("Death's Domain", null, null, new OnCardRevealedHere(new DestroyCardInPlay())),
             new LocationDefinition("Ruins")
         }
             .OrderBy(l => l.Name)

@@ -2,24 +2,29 @@
 
 namespace Snapdragon.Effects
 {
-    public record DestroyCardInPlay(Card Card) : IEffect
+    public record DestroyCardInPlay(ICard Card) : IEffect
     {
         public Game Apply(Game game)
         {
-            var location = game[Card.Column];
-            var card = location[Card.Side].SingleOrDefault(c => c.Id == Card.Id);
+            var card = game.AllCards.SingleOrDefault(c => c.Id == Card.Id);
 
             if (card == null)
             {
                 return game;
             }
 
+            var location = game[card.Column];
             location = location.WithoutCard(card);
 
             var player = game[card.Side];
             player = player with
             {
-                Destroyed = player.Destroyed.Add(card.ToCardInstance() with { State = CardState.Destroyed })
+                Destroyed = player.Destroyed.Add(
+                    card.ToCardInstance() with
+                    {
+                        State = CardState.Destroyed
+                    }
+                )
             };
 
             return game.WithLocation(location)

@@ -1,6 +1,6 @@
-﻿using System.Collections.Immutable;
-using Snapdragon.Events;
+﻿using Snapdragon.Events;
 using Snapdragon.OngoingAbilities;
+using System.Collections.Immutable;
 
 namespace Snapdragon
 {
@@ -931,6 +931,14 @@ namespace Snapdragon
             foreach (var sensor in sensors)
             {
                 game = sensor.TriggeredAbility?.ProcessEvent(game, nextEvent, sensor) ?? game;
+            }
+
+            foreach (var location in Locations)
+            {
+                if (location.Revealed && location.Definition.Triggered != null)
+                {
+                    game = location.Definition.Triggered.ProcessEvent(game, nextEvent, location);
+                }
             }
 
             return game;
