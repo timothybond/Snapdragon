@@ -26,7 +26,7 @@ namespace Snapdragon
     /// </summary>
     public static class SnapCards
     {
-        public static ImmutableList<CardDefinition> All = new List<CardDefinition>
+        public static readonly ImmutableList<CardDefinition> All = new List<CardDefinition>
         {
             new("Wasp", 0, 1),
             new(
@@ -197,9 +197,7 @@ namespace Snapdragon
                 3,
                 null,
                 null,
-                new WhenDiscarded(
-                    new AddCopiesToHand<CardDiscardedEvent>(2, c => c with { Cost = 0 })
-                )
+                new WhenDiscarded(new AddCopiesToHand(2, c => c with { Cost = 0 }))
             ),
             new(
                 "Agent Coulson",
@@ -330,9 +328,7 @@ namespace Snapdragon
                 8,
                 null,
                 null,
-                new WhenDiscarded(
-                    new ReturnCardToHand<CardDiscardedEvent>(c => c with { Power = c.Power + 4 })
-                )
+                new WhenDiscarded(new ReturnCardToHand(c => c with { Power = c.Power + 4 }))
             ),
             new("Spectrum", 6, 7, new AddPower(new SameSide().And(new WithOngoingAbility()), 2)),
             new("Heimdall", 6, 9, new MoveCardsLeft(new OtherCards().And(new SameSide()))),
@@ -342,7 +338,7 @@ namespace Snapdragon
             .ThenBy(c => c.Name)
             .ToImmutableList();
 
-        public static ImmutableDictionary<string, CardDefinition> ByName =
+        public static readonly ImmutableDictionary<string, CardDefinition> ByName =
             All.ToImmutableDictionary(cd => cd.Name);
     }
 }

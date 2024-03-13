@@ -9,7 +9,7 @@ namespace Snapdragon.TriggeredAbilities
         {
             if (e is CardRevealedEvent cardRevealed && cardRevealed.Card.Column == source.Column)
             {
-                var effect = EffectBuilder.Build(cardRevealed);
+                var effect = EffectBuilder.Build(cardRevealed, game);
                 return effect.Apply(game);
             }
 

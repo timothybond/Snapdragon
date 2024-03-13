@@ -16,7 +16,7 @@ namespace Snapdragon
     /// </summary>
     public static class SnapLocations
     {
-        public static ImmutableList<LocationDefinition> All = new List<LocationDefinition>
+        public static readonly ImmutableList<LocationDefinition> All = new List<LocationDefinition>
         {
             new LocationDefinition(
                 "Camp Lehigh",
@@ -29,6 +29,12 @@ namespace Snapdragon
                     new AllLocations(),
                     new BothSides()
                 )
+            ),
+            new(
+                "Cloning Vats",
+                null,
+                null,
+                new OnCardRevealedHere(new AddCopyOfCardToHand(new SameSide()))
             ),
             new("Death's Domain", null, null, new OnCardRevealedHere(new DestroyCardInPlay())),
             new LocationDefinition(
@@ -46,6 +52,12 @@ namespace Snapdragon
                     null,
                     new AfterTurn(4)
                 )
+            ),
+            new(
+                "Machineworld",
+                null,
+                null,
+                new OnCardRevealedHere(new AddCopyOfCardToHand(new OtherSide()))
             ),
             new LocationDefinition(
                 "Muir Island",
@@ -94,7 +106,7 @@ namespace Snapdragon
             .OrderBy(l => l.Name)
             .ToImmutableList();
 
-        public static ImmutableDictionary<string, LocationDefinition> ByName =
+        public static readonly ImmutableDictionary<string, LocationDefinition> ByName =
             All.ToImmutableDictionary(ld => ld.Name);
     }
 }

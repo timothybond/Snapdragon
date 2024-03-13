@@ -3,12 +3,14 @@
     public record AddCopiesToHand(
         ICard Card,
         int Count,
-        Func<CardInstance, CardInstance>? Transform = null
+        Func<CardInstance, CardInstance>? Transform = null,
+        Side? Side = null
     ) : IEffect
     {
         public Game Apply(Game game)
         {
-            var player = game[Card.Side];
+            var side = Side ?? Card.Side;
+            var player = game[side];
 
             for (var i = 0; i < Count; i++)
             {
@@ -21,7 +23,8 @@
                 var card = Card.ToCardInstance() with
                 {
                     State = CardState.InHand,
-                    Id = Ids.GetNext<ICard>()
+                    Id = Ids.GetNext<ICard>(),
+                    Side = side
                 };
                 if (this.Transform != null)
                 {

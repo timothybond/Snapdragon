@@ -1,6 +1,6 @@
-﻿using System.Collections.Immutable;
-using Snapdragon.Events;
+﻿using Snapdragon.Events;
 using Snapdragon.OngoingAbilities;
+using System.Collections.Immutable;
 
 namespace Snapdragon
 {
@@ -651,12 +651,21 @@ namespace Snapdragon
                 c => c with { State = CardState.InPlay },
                 (g, c) =>
                 {
-                    g = g.WithEvent(new CardRevealedEvent(g.Turn, c));
-
                     if (c.OnReveal != null)
                     {
                         g = c.OnReveal.Activate(g, c);
+
+                        // This is to ensure that cards that get modified by their own reveal
+                        // abilities get attached to the reveal event in their modified state.
+                        //
+                        // I'm not totally sold on whether this is the right solution.
+                        // In some cases we proactively re-fetch the card by ID when performing
+                        // effects, but that isn't always true (hence me making this change).
+                        //
+                        // Also, the null coalesce operator is because Hulkbuster.
+                        c = g.AllCards.SingleOrDefault(x => x.Id == c.Id) ?? c;
                     }
+                    g = g.WithEvent(new CardRevealedEvent(g.Turn, c));
 
                     return g;
                 }
