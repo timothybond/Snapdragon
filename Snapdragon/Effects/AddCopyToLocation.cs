@@ -13,7 +13,7 @@
             var card = Card.InPlayAt(Location) with
             {
                 State = CardState.InPlay,
-                Id = Ids.GetNext<CardInstance>()
+                Id = Ids.GetNext<ICard>()
             };
 
             var location = game[Location].WithCard(card);

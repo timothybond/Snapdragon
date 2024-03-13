@@ -21,7 +21,7 @@
                 var card = Card.ToCardInstance() with
                 {
                     State = CardState.InHand,
-                    Id = Ids.GetNext<CardInstance>()
+                    Id = Ids.GetNext<ICard>()
                 };
                 if (this.Transform != null)
                 {
