@@ -10,10 +10,10 @@ namespace Snapdragon.RevealAbilities
     ) : IRevealAbility<Card>
     {
         public AddPower(ICardFilter<ICard> filter, int power)
-            : this(filter, new Constant<ICard>(power)) { }
+            : this(filter, new Constant(power)) { }
 
         public AddPower(ICardFilter<ICard> filter, int power, CardState state)
-            : this(filter, new Constant<ICard>(power), state) { }
+            : this(filter, new Constant(power), state) { }
 
         public Game Activate(Game game, Card source)
         {

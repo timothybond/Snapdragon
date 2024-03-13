@@ -32,6 +32,8 @@ namespace Snapdragon
 
         public IEnumerable<Card> AllCards => this.TopPlayerCards.Concat(this.BottomPlayerCards);
 
+        Column? IObjectWithPossibleColumn.Column => Column;
+
         /// <summary>
         /// Adds a <see cref="CardInstance"/> to the given location.
         ///

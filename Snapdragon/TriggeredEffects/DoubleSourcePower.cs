@@ -3,9 +3,9 @@ using Snapdragon.TargetFilters;
 
 namespace Snapdragon.TriggeredEffects
 {
-    public record DoubleSourcePower<TEvent>() : ISourceTriggeredEffectBuilder<ICard, TEvent>
+    public record DoubleSourcePower() : ISourceTriggeredEffectBuilder<ICard, Event>
     {
-        public IEffect Build(Game game, TEvent e, ICard source)
+        public IEffect Build(Game game, Event e, ICard source)
         {
             return new Effects.AddPowerToCards(
                 new SpecificCard(source),

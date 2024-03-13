@@ -1,8 +1,8 @@
 ﻿namespace Snapdragon.TargetFilters
 {
-    public record RightmostCardInHand<T> : ICardFilter<T>
+    public record RightmostCardInHand : ICardFilter<object>
     {
-        public bool Applies(ICard card, T source, Game game)
+        public bool Applies(ICard card, object source, Game game)
         {
             if (card.State != CardState.InHand)
             {

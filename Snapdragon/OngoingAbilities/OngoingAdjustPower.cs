@@ -1,8 +1,13 @@
-﻿namespace Snapdragon.OngoingAbilities
+﻿using Snapdragon.Calculations;
+
+namespace Snapdragon.OngoingAbilities
 {
     public record OngoingAdjustPower<T>(ICardFilter<T> TargetFilter, IPowerCalculation<T> Amount)
         : IOngoingAbility<T>
     {
+        public OngoingAdjustPower(ICardFilter<T> TargetFilter, int ConstantAmount)
+            : this(TargetFilter, (IPowerCalculation<T>)new Constant(ConstantAmount)) { }
+
         public int? Apply(Card target, T source, Game game)
         {
             if (!TargetFilter.Applies(target, source, game))

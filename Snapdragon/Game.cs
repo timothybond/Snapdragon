@@ -1,6 +1,6 @@
-﻿using Snapdragon.Events;
+﻿using System.Collections.Immutable;
+using Snapdragon.Events;
 using Snapdragon.OngoingAbilities;
-using System.Collections.Immutable;
 
 namespace Snapdragon
 {
@@ -105,10 +105,25 @@ namespace Snapdragon
             }
         }
 
+        public IEnumerable<(
+            IOngoingAbility<Location> Ability,
+            Location Source
+        )> GetLocationOngoingAbilities()
+        {
+            foreach (var location in Locations)
+            {
+                if (location.Revealed && location.Definition.Ongoing != null)
+                {
+                    yield return (location.Definition.Ongoing, location);
+                }
+            }
+        }
+
         public IReadOnlySet<EffectType> GetBlockedEffects(
             Column column,
             Side side,
-            IReadOnlyList<Card>? cardsWithLocationEffectBlocks = null
+            IReadOnlyList<Card>? cardsWithLocationEffectBlocks = null,
+            IReadOnlyList<Location>? locationsWithLocationEffectBlocks = null
         )
         {
             var set = new HashSet<EffectType>();
@@ -125,7 +140,7 @@ namespace Snapdragon
                 }
             }
 
-            foreach (var loc in Locations)
+            foreach (var loc in locationsWithLocationEffectBlocks ?? Locations)
             {
                 if (
                     loc.Revealed
@@ -947,11 +962,17 @@ namespace Snapdragon
         public Game RecalculateOngoingEffects()
         {
             var ongoingCardAbilities = this.GetCardOngoingAbilities().ToList();
+            var ongoingLocationAbilities = this.GetLocationOngoingAbilities().ToList();
 
             var recalculatedCards = this.AllCards.Select(c =>
                 c with
                 {
-                    PowerAdjustment = this.GetPowerAdjustment(c, ongoingCardAbilities, this)
+                    PowerAdjustment = this.GetPowerAdjustment(
+                        c,
+                        ongoingCardAbilities,
+                        ongoingLocationAbilities,
+                        this
+                    )
                 }
             );
 
@@ -965,6 +986,10 @@ namespace Snapdragon
         private int? GetPowerAdjustment(
             Card card,
             IReadOnlyList<(IOngoingAbility<Card> Ability, Card Source)> ongoingCardAbilities,
+            IReadOnlyList<(
+                IOngoingAbility<Location> Ability,
+                Location Source
+            )> ongoingLocationAbilities,
             Game game
         )
         {
@@ -974,6 +999,19 @@ namespace Snapdragon
             foreach (var ongoing in ongoingCardAbilities)
             {
                 if (ongoing.Ability is OngoingAdjustPower<Card> adjustPower)
+                {
+                    var adjustment = adjustPower.Apply(card, ongoing.Source, game);
+                    if (adjustment.HasValue)
+                    {
+                        total += adjustment.Value;
+                        any = true;
+                    }
+                }
+            }
+
+            foreach (var ongoing in ongoingLocationAbilities)
+            {
+                if (ongoing.Ability is OngoingAdjustPower<Location> adjustPower)
                 {
                     var adjustment = adjustPower.Apply(card, ongoing.Source, game);
                     if (adjustment.HasValue)

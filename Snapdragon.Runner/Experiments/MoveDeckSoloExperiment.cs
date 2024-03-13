@@ -15,7 +15,7 @@ namespace Snapdragon.Runner.Experiments
 
             var selfPlay = new PopulationSelfPlay(
                 Guid.NewGuid(),
-                "Without Vulture/MM Self Play 200",
+                "Without Vulture/MM Self Play 200x256",
                 DateTimeOffset.UtcNow,
                 repositoryBuilder
             );
@@ -28,11 +28,17 @@ namespace Snapdragon.Runner.Experiments
                 new RandomCardOrder()
             );
 
-            await selfPlay.Run(withoutVultureOrMultipleMan, "without-vulture-mm-solo", 64, 200, 10);
+            await selfPlay.Run(
+                withoutVultureOrMultipleMan,
+                "without-vulture-mm-solo",
+                256,
+                200,
+                10
+            );
 
             selfPlay = new PopulationSelfPlay(
                 Guid.NewGuid(),
-                "With Vulture/MM Pinned Self Play 200",
+                "With Vulture/MM Pinned Self Play 200x256",
                 DateTimeOffset.UtcNow,
                 repositoryBuilder
             );
@@ -45,7 +51,7 @@ namespace Snapdragon.Runner.Experiments
                 new RandomCardOrder()
             );
 
-            await selfPlay.Run(vultureMultipleManPinned, "with-vulture-mm-solo", 64, 200, 10);
+            await selfPlay.Run(vultureMultipleManPinned, "with-vulture-mm-solo", 256, 200, 10);
         }
     }
 }

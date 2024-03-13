@@ -2,7 +2,7 @@
 
 namespace Snapdragon
 {
-    public interface ICard
+    public interface ICard : IObjectWithPossibleColumn
     {
         int Id { get; }
         CardDefinition Definition { get; }
@@ -11,7 +11,6 @@ namespace Snapdragon
         int Power { get; }
         CardState State { get; }
         Side Side { get; }
-        Column? Column { get; }
         int? PowerAdjustment { get; }
         IRevealAbility<Card>? OnReveal { get; }
         IOngoingAbility<Card>? Ongoing { get; }

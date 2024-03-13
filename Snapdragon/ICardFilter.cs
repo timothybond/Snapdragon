@@ -5,7 +5,7 @@
         bool Applies(ICard card, Game game);
     }
 
-    public interface ICardFilter<T>
+    public interface ICardFilter<in T>
     {
         bool Applies(ICard card, T source, Game game);
     }

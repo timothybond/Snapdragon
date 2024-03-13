@@ -6,6 +6,6 @@ namespace Snapdragon.RevealAbilities
     public record AddPowerSelf(IPowerCalculation<ICard> Power) : AddPower(new Self(), Power)
     {
         public AddPowerSelf(int Power)
-            : this(new Constant<ICard>(Power)) { }
+            : this(new Constant(Power)) { }
     }
 }

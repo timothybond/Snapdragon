@@ -22,7 +22,8 @@ namespace Snapdragon.Effects
 
                 case CardState.InHand:
                     var hand = game[Card.Side].Hand;
-                    hand = hand.Select(c => this.ApplyToCard(c, game).ToCardInstance()).ToImmutableList();
+                    hand = hand.Select(c => this.ApplyToCard(c, game).ToCardInstance())
+                        .ToImmutableList();
 
                     var playerWithHand = game[Card.Side] with { Hand = hand };
                     return game.WithPlayer(playerWithHand);

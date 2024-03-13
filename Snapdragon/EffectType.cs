@@ -8,6 +8,7 @@
         PlayCard,
         DestroyCard,
         MoveCard,
+        AddCard, // Technically a superset of "PlayCard" and "MoveCard"
 
         // These two are location-specific
         MoveToLocation,

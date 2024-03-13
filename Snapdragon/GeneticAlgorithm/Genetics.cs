@@ -211,7 +211,11 @@ namespace Snapdragon.GeneticAlgorithm
                 bottomPlayerConfig,
                 repository: repository,
                 experimentId: experimentId,
-                generation: generation
+                generation: generation,
+                // TODO: Remove these once locations are in good shape
+                leftLocationName: "Ruins",
+                middleLocationName: "Ruins",
+                rightLocationName: "Ruins"
             );
 
             game = game.PlayGame();

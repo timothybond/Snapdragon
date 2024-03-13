@@ -1,8 +1,8 @@
 ﻿namespace Snapdragon.LocationFilters
 {
-    public record AllLocations<T> : ILocationFilter<T>
+    public record AllLocations : ILocationFilter<object>
     {
-        public bool Applies(Location location, T source, Game game)
+        public bool Applies(Location location, object source, Game game)
         {
             return true;
         }

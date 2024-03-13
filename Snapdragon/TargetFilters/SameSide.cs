@@ -1,14 +1,13 @@
 ﻿namespace Snapdragon.TargetFilters
 {
-    public record SameSide<T> : ICardFilter<T>, ISideFilter<T>
-        where T : ICard
+    public record SameSide : ICardFilter<ICard>, ISideFilter<ICard>
     {
-        public bool Applies(ICard card, T source, Game game)
+        public bool Applies(ICard card, ICard source, Game game)
         {
             return (card.Side == source.Side);
         }
 
-        public bool Applies(Side side, T source, Game game)
+        public bool Applies(Side side, ICard source, Game game)
         {
             return side == source.Side;
         }

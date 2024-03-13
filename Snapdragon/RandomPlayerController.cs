@@ -25,6 +25,7 @@ namespace Snapdragon
             var cardsWithLocationEffectBlocks = new List<Card>();
             var cardsWithCardEffectBlocks = new List<Card>();
             var sensorsWithMoveAbilities = new List<Sensor<Card>>();
+            var locationsWithLocationEffectBlocks = new List<Location>();
 
             foreach (var card in game.AllCards)
             {
@@ -49,10 +50,22 @@ namespace Snapdragon
                 }
             }
 
+            foreach (var location in game.Locations)
+            {
+                if (
+                    location.Definition.Ongoing != null
+                    && location.Definition.Ongoing is OngoingBlockLocationEffect<Location>
+                )
+                {
+                    locationsWithLocationEffectBlocks.Add(location);
+                }
+            }
+
             var blockedEffectsByColumn = GetBlockedEffects(
                 game,
                 side,
-                cardsWithLocationEffectBlocks
+                cardsWithLocationEffectBlocks,
+                locationsWithLocationEffectBlocks
             );
 
             // First we do moves. Note this means that when a lot of move actions are provided,

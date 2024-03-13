@@ -1,21 +1,13 @@
 ﻿namespace Snapdragon.Calculations
 {
-    public record Constant(int Value) : ICalculation
-    {
-        public int GetValue(Game game)
-        {
-            return Value;
-        }
-    }
-
-    public record Constant<T>(int Value) : ICalculation, IPowerCalculation<T>
+    public record Constant(int Value) : ICalculation, IPowerCalculation<object>
     {
         public int GetValue(Game game)
         {
             return Value;
         }
 
-        public int GetValue(Game game, T source, ICard target)
+        public int GetValue(Game game, object source, ICard target)
         {
             return Value;
         }

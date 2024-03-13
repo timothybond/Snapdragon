@@ -13,6 +13,7 @@ namespace Snapdragon
             var cardsWithMoveAbilities = new List<Card>();
             var cardsWithLocationEffectBlocks = new List<Card>();
             var cardsWithCardEffectBlocks = new List<Card>();
+            var locationsWithLocationEffectBlocks = new List<Location>();
 
             foreach (var card in game.AllCards)
             {
@@ -34,13 +35,25 @@ namespace Snapdragon
                 }
             }
 
+            foreach (var location in game.Locations)
+            {
+                if (
+                    location.Definition.Ongoing != null
+                    && location.Definition.Ongoing is OngoingBlockLocationEffect<Location>
+                )
+                {
+                    locationsWithLocationEffectBlocks.Add(location);
+                }
+            }
+
             var possibleActionSets = new List<IReadOnlyList<IPlayerAction>>();
             var possibleMoveSets = GetPossibleMoveActionSets(
                 game,
                 side,
                 cardsWithMoveAbilities,
                 cardsWithLocationEffectBlocks,
-                cardsWithCardEffectBlocks
+                cardsWithCardEffectBlocks,
+                locationsWithLocationEffectBlocks
             );
 
             foreach (var moveSet in possibleMoveSets)
@@ -66,24 +79,20 @@ namespace Snapdragon
         public static IReadOnlyDictionary<Column, IReadOnlySet<EffectType>> GetBlockedEffects(
             Game game,
             Side side,
-            IReadOnlyList<Card> cardsWithLocationEffectBlocks
+            IReadOnlyList<Card> cardsWithLocationEffectBlocks,
+            IReadOnlyList<Location> locationsWithLocationEffectBlocks
         )
         {
-            return new Dictionary<Column, IReadOnlySet<EffectType>>
-            {
-                {
-                    Column.Left,
-                    game.GetBlockedEffects(Column.Left, side, cardsWithLocationEffectBlocks)
-                },
-                {
-                    Column.Middle,
-                    game.GetBlockedEffects(Column.Middle, side, cardsWithLocationEffectBlocks)
-                },
-                {
-                    Column.Right,
-                    game.GetBlockedEffects(Column.Right, side, cardsWithLocationEffectBlocks)
-                }
-            };
+            return All.Columns.ToDictionary(
+                col => col,
+                col =>
+                    game.GetBlockedEffects(
+                        col,
+                        side,
+                        cardsWithLocationEffectBlocks,
+                        locationsWithLocationEffectBlocks
+                    )
+            );
         }
 
         /// <summary>
@@ -95,7 +104,8 @@ namespace Snapdragon
             Side side,
             IReadOnlyList<Card> cardsWithMoveAbilities,
             IReadOnlyList<Card> cardsWithLocationEffectBlocks,
-            IReadOnlyList<Card> cardsWithCardEffectBlocks
+            IReadOnlyList<Card> cardsWithCardEffectBlocks,
+            IReadOnlyList<Location> locationsWithLocationEffectBlocks
         )
         {
             var priorMoves = new Stack<MoveCardAction>();
@@ -105,7 +115,8 @@ namespace Snapdragon
             var blockedEffectsByColumn = GetBlockedEffects(
                 game,
                 side,
-                cardsWithLocationEffectBlocks
+                cardsWithLocationEffectBlocks,
+                locationsWithLocationEffectBlocks
             );
 
             // We assume no cards will BECOME moveable, by this definition, as a result of another card moving.

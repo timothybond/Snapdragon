@@ -51,7 +51,7 @@ namespace Snapdragon
 
         public int AdjustedPower => this.Power + (this.PowerAdjustment ?? 0);
 
-        Column? ICard.Column => this.Column;
+        Column? IObjectWithPossibleColumn.Column => this.Column;
 
         public override string ToString()
         {

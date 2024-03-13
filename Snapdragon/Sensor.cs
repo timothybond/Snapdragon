@@ -7,5 +7,8 @@
         T Source,
         ISensorTriggeredAbility? TriggeredAbility,
         IMoveAbility<Sensor<T>>? MoveAbility = null
-    ) : IObjectWithColumn { }
+    ) : IObjectWithColumn
+    {
+        Column? IObjectWithPossibleColumn.Column => Column;
+    }
 }

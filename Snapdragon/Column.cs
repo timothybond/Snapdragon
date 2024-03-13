@@ -23,5 +23,20 @@ namespace Snapdragon
         {
             return otherColumns[column];
         }
+
+        public static int LocationRevealTurn(this Column column)
+        {
+            switch (column)
+            {
+                case Column.Left:
+                    return 1;
+                case Column.Middle:
+                    return 2;
+                case Column.Right:
+                    return 3;
+                default:
+                    throw new NotImplementedException();
+            }
+        }
     }
 }
