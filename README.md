@@ -39,13 +39,13 @@ As noted above, this project isn't attempting to implement everything, so there'
 
 ### Locations
 
-Right now `Locations` do get "revealed" over time, but they don't have abilities, so it doesn't matter. Naturally this will change the balance of a lot of cards.
+I'm only partway through implementing `Location`s, with many categories of `Location` ability not addressed yet.
 
 ### Hidden Information
 
-The Monte Carlo game search is actually given the full state of the game, including the order of remaining cards in each player's library and hand, and all of the Location information (not that that's worth anything). This probably changes the balance of the game somewhat, although my intuition is that it's probably not SUPER important because both players have this advantage. However, any strategy that pays off heavily by virtue of surprise will probably not be selected for.
+The Monte Carlo game search is actually given the full state of the game, including the order of remaining cards in each player's library and hand, and all of the Location information. This probably changes the balance of the game somewhat, although my intuition is that it's probably not SUPER important because both players have this advantage. However, any strategy that pays off heavily by virtue of surprise will probably not be selected for.
 
-This is definitely fixable with effort, but I would need to make a transform to `Game` that basically replaces all "unknown" things (opponent's hand, both player's decks, `Location`s once those are implemented) with random things, and then continue doing so each simulated turn for the Monte Carlo game search. (Also, I would have to track any effects that modify a player's library in some way, such as shuffling in a "Rock" card.)
+This is definitely fixable with effort, but I would need to make a transform to `Game` that basically replaces all "unknown" things (opponent's hand, both player's decks, `Location`s) with random things, and then continue doing so each simulated turn for the Monte Carlo game search. (Also, I would have to track any effects that modify a player's library in some way, such as shuffling in a "Rock" card.)
 
 ### Various Card Abilities
 
