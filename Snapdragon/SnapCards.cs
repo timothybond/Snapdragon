@@ -170,6 +170,7 @@ namespace Snapdragon
                     )
                 )
             ),
+            new("Colleen Wing", 2, 4, new DiscardCard(new LowestCostInHand())),
             new("Doctor Strange", 2, 3, new MoveCardsToSelf(new OtherHighestPowerCards())),
             new(
                 "Kraven",
@@ -227,7 +228,7 @@ namespace Snapdragon
                 0,
                 new AddPowerRandomly<Card>(new SameSide().And(new OtherCards()), 2, 3)
             ),
-            new("Lady Sif", 3, 5, new DiscardCard(new TopCostInHand<Card>())),
+            new("Lady Sif", 3, 5, new DiscardCard(new HighestCostInHand())),
             new(
                 "Mister Fantastic",
                 3,
@@ -256,6 +257,7 @@ namespace Snapdragon
                     new PowerPerCard(new OtherCards().And(new SameSide()).And(new CardsHere()), 2)
                 )
             ),
+            new("Ghost Rider", 4, 3, new ReturnOneDiscardToHere()),
             new(
                 "Ka-Zar",
                 4,
@@ -332,6 +334,7 @@ namespace Snapdragon
             ),
             new("Spectrum", 6, 7, new AddPower(new SameSide().And(new WithOngoingAbility()), 2)),
             new("Heimdall", 6, 9, new MoveCardsLeft(new OtherCards().And(new SameSide()))),
+            new("Hela", 6, 6, new ReturnAllDiscardsToPlay()),
             new("Hulk", 6, 12)
         }
             .OrderBy(c => c.Cost)
