@@ -24,12 +24,12 @@ namespace Snapdragon.GeneticAlgorithm
             var allPresentCardNames = allPresentCards.Select(c => c.Name).Distinct().ToList();
 
             // Don't allow duplicates (by name)
-            var usedCards = new HashSet<string>();
+            var usedCards = new HashSet<string>(FixedCards.Select(c => c.Name));
 
             var first = this.EvolvingCards.ToList();
             var second = other.EvolvingCards.ToList();
 
-            var newDeckCards = new List<CardDefinition>();
+            var newEvolvingCards = new List<CardDefinition>();
 
             if (Genetics.OrderBy != null)
             {
@@ -48,7 +48,7 @@ namespace Snapdragon.GeneticAlgorithm
                     var mutantGene = Random.Of(
                         Genetics.AllPossibleCards.Where(c => !usedCards.Contains(c.Name)).ToList()
                     );
-                    newDeckCards.Add(mutantGene);
+                    newEvolvingCards.Add(mutantGene);
                     usedCards.Add(mutantGene.Name);
                     continue;
                 }
@@ -61,30 +61,41 @@ namespace Snapdragon.GeneticAlgorithm
                     var choice = Random.NextBool() ? f : s;
 
                     usedCards.Add(choice.Name);
-                    newDeckCards.Add(choice);
+                    newEvolvingCards.Add(choice);
                 }
                 else if (!usedCards.Contains(f.Name))
                 {
                     usedCards.Add(f.Name);
-                    newDeckCards.Add(f);
+                    newEvolvingCards.Add(f);
                 }
                 else if (!usedCards.Contains(s.Name))
                 {
                     usedCards.Add(s.Name);
-                    newDeckCards.Add(s);
+                    newEvolvingCards.Add(s);
                 }
             }
 
-            if (newDeckCards.Count < this.EvolvingCards.Count)
+            // Due to the restrictions on duplication and the random order, it's possible
+            // we can run out of cards to "accept" if we happened to skip some earlier.
+            if (newEvolvingCards.Count < this.EvolvingCards.Count)
             {
                 var randomCards = allPresentCardNames
                     .Where(n => !usedCards.Contains(n))
                     .ToList()
                     .OrderBy(n => Random.Next())
-                    .Take(this.EvolvingCards.Count - newDeckCards.Count)
+                    .Take(this.EvolvingCards.Count - newEvolvingCards.Count)
                     .Select(n => allPresentCards.First(c => string.Equals(c.Name, n)));
 
-                newDeckCards.AddRange(randomCards);
+                newEvolvingCards.AddRange(randomCards);
+            }
+
+            // This fallback shouldn't matter in practice, but just in case, we will pull in more random cards.
+            if (newEvolvingCards.Count < this.EvolvingCards.Count)
+            {
+                var randomCardsFromGenePool = Genetics
+                    .AllPossibleCards.Where(c => !usedCards.Contains(c.Name))
+                    .Take(this.EvolvingCards.Count - newEvolvingCards.Count);
+                newEvolvingCards.AddRange(randomCardsFromGenePool);
             }
 
             return this with
@@ -92,7 +103,7 @@ namespace Snapdragon.GeneticAlgorithm
                 Id = Guid.NewGuid(),
                 FirstParentId = this.Id,
                 SecondParentId = other.Id,
-                EvolvingCards = newDeckCards.ToImmutableList()
+                EvolvingCards = newEvolvingCards.ToImmutableList()
             };
         }
 
