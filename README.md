@@ -63,9 +63,9 @@ I suspect there might also be some value in choosing to cross decks in non-rando
 
 ### Database and Viewer For Populations
 
-At the moment, I can pretty trivially wire up a population and cause it to go through many generations, and spit out some details about the outcomes. However, it's sometimes not clear why certain outcomes are produced, and I would need better tools to investigate this.
+There's basic database code that can log everything for an expereiment. One obvious thing it's missing is that I can't programmatically delete old experiments (which is somewhat important because they're pretty big, with full game logs).
 
-Specifically, I would presumably need to put together a database to store the full records of each generation and the full games the members of that generation played against one another, and some kind of viewer frontend to let me easily browse through this for specific experiments.
+There's also a basic UI where I can look through what happened in an experiment. It's very much the bare minimum, though - other than being able to click through to see decks and games, there's one graph of card distributions over generations, and everything is very clunky and ugly.
 
 
 ## Technical Debt / Weird Implementation Details
