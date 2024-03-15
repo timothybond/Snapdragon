@@ -1,6 +1,6 @@
-﻿using Snapdragon.Events;
+﻿using System.Collections.Immutable;
+using Snapdragon.Events;
 using Snapdragon.OngoingAbilities;
-using System.Collections.Immutable;
 
 namespace Snapdragon
 {
@@ -309,6 +309,21 @@ namespace Snapdragon
                 default:
                     throw new NotImplementedException();
             }
+        }
+
+        public Game DrawCard(Side side)
+        {
+            var player = this[side];
+
+            // TODO: Check for any blocks on drawing cards
+            if (player.Library.Count > 0 && player.Hand.Count < Max.HandSize)
+            {
+                player = player.DrawCard();
+                return this.WithPlayer(player)
+                    .WithEvent(new CardDrawnEvent(Turn, player.Hand.Last()));
+            }
+
+            return this;
         }
 
         /// <summary>
@@ -693,11 +708,9 @@ namespace Snapdragon
             game = game.ProcessEvents();
 
             // Each Player draws a card, and gets an amount of energy equal to the turn count
-            var topPlayer = game.Top.DrawCard() with
-            {
-                Energy = game.Turn
-            };
-            var bottomPlayer = game.Bottom.DrawCard() with { Energy = game.Turn };
+            game = game.DrawCard(Side.Top).DrawCard(Side.Bottom);
+            var topPlayer = game.Top with { Energy = game.Turn };
+            var bottomPlayer = game.Bottom with { Energy = game.Turn };
 
             game = game with { Top = topPlayer, Bottom = bottomPlayer };
 

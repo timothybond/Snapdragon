@@ -14,6 +14,11 @@
         LocationRevealed = 9,
         TurnEnded = 10,
         GameEnded = 11,
-        CardMerged = 12
+        CardMerged = 12,
+        CardAddedToLocation = 13,
+        CardAddedToHand = 14,
+        CardReturnedToHand = 15,
+        CardReturnedToPlay = 16,
+        CardSwitchedSides = 17,
     }
 }

@@ -22,6 +22,13 @@ namespace Snapdragon
 
         public IPlayerController Controller => this.Configuration.Controller;
 
+        /// <summary>
+        /// Draws a card from their library (if any remain).
+        ///
+        /// Note that this should generally NOT be invoked directly - use <see cref="Game.DrawCard(Side)"/>
+        /// which will also log a <see cref="Events.CardDrawnEvent"/>.
+        /// </summary>
+        /// <returns></returns>
         public Player DrawCard()
         {
             if (Library.Count > 0 && Hand.Count < Max.HandSize)

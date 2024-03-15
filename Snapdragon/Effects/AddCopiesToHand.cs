@@ -1,4 +1,6 @@
-﻿namespace Snapdragon.Effects
+﻿using Snapdragon.Events;
+
+namespace Snapdragon.Effects
 {
     public record AddCopiesToHand(
         ICard Card,
@@ -11,6 +13,7 @@
         {
             var side = Side ?? Card.Side;
             var player = game[side];
+            var events = new List<CardAddedToHandEvent>();
 
             for (var i = 0; i < Count; i++)
             {
@@ -32,9 +35,12 @@
                 }
 
                 player = player with { Hand = player.Hand.Add(card) };
+                events.Add(new CardAddedToHandEvent(card, game.Turn));
             }
 
-            return game.WithPlayer(player);
+            game = game.WithPlayer(player);
+
+            return events.Aggregate(game, (g, e) => g.WithEvent(e));
         }
     }
 }

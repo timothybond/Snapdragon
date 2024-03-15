@@ -54,11 +54,12 @@
                 };
             }
 
-            game = game with
-            {
-                Top = game.Top.DrawCard().DrawCard().DrawCard(),
-                Bottom = game.Bottom.DrawCard().DrawCard().DrawCard()
-            };
+            game = game.DrawCard(Side.Top)
+                .DrawCard(Side.Top)
+                .DrawCard(Side.Top)
+                .DrawCard(Side.Bottom)
+                .DrawCard(Side.Bottom)
+                .DrawCard(Side.Bottom);
 
             return game;
         }

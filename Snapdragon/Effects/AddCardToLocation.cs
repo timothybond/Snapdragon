@@ -1,4 +1,6 @@
-﻿namespace Snapdragon.Effects
+﻿using Snapdragon.Events;
+
+namespace Snapdragon.Effects
 {
     public record AddCardToLocation(CardDefinition Definition, Side Side, Column Column) : IEffect
     {
@@ -16,7 +18,8 @@
                 location = location.WithCard(card);
 
                 // TODO: Decide what event, if any, to raise for cards that were added but not played
-                return game.WithLocation(location);
+                return game.WithLocation(location)
+                    .WithEvent(new CardAddedToLocationEvent(card, Column, game.Turn));
             }
 
             return game;

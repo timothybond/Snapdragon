@@ -7,7 +7,7 @@
     {
         public Game Apply(Game game)
         {
-            return game.WithPlayer(game[Side].DrawCard());
+            return game.DrawCard(Side);
         }
     }
 }
