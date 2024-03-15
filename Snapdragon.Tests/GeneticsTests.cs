@@ -1,6 +1,6 @@
-﻿using Snapdragon.CardOrders;
+﻿using System.Text;
+using Snapdragon.CardOrders;
 using Snapdragon.GeneticAlgorithm;
-using System.Text;
 
 namespace Snapdragon.Tests
 {
@@ -94,6 +94,52 @@ namespace Snapdragon.Tests
             }
 
             Assert.That(population.Count, Is.EqualTo(DeckCount));
+            Assert.Pass(results.ToString());
+        }
+
+        // Disabled due to runtime
+        //[Test]
+        //[TestCase(10, 256)]
+        //[TestCase(20, 256)]
+        //[TestCase(40, 256)]
+        //[TestCase(80, 256)]
+        //[TestCase(160, 256)]
+        public async Task PopulationConsistencyTest(int gamesPerDeck, int deckCount)
+        {
+            // This is a test of how consistently we can expect "better" decks to win.
+            // Essentially, we're going to create some random decks and see how well
+            // they perform against each other, but then do the same thing again a second time,
+            // and see how well their performance correlates each time.
+            var genetics = new Genetics(
+                [],
+                SnapCards.All,
+                new MonteCarloSearchController(5),
+                200,
+                new RandomCardOrder()
+            );
+
+            var population = genetics.GetRandomPopulation(deckCount);
+
+            var wins1 = await genetics.RunPopulationGames(population, gamesPerDeck);
+            var wins2 = await genetics.RunPopulationGames(population, gamesPerDeck);
+
+            var correlation = MathNet.Numerics.Statistics.Correlation.Pearson(
+                wins1.Select(i => (double)i),
+                wins2.Select(i => (double)i)
+            );
+
+            var results = new StringBuilder();
+
+            results.AppendLine($"Correlation: {correlation}");
+            results.AppendLine("Wins:");
+
+            for (var i = 0; i < deckCount; i++)
+            {
+                results.Append($"{wins1[i]}".PadLeft(3));
+                results.Append(", ");
+                results.AppendLine($"{wins2[i]}".PadLeft(3));
+            }
+
             Assert.Pass(results.ToString());
         }
     }
