@@ -4,7 +4,7 @@ namespace Snapdragon
 {
     public interface ICard : IObjectWithPossibleColumn
     {
-        int Id { get; }
+        long Id { get; }
         CardDefinition Definition { get; }
         string Name { get; }
         int Cost { get; }

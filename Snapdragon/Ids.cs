@@ -2,9 +2,9 @@
 {
     public static class Ids
     {
-        private static Dictionary<string, int> currentMaxIds = new Dictionary<string, int>();
+        private static Dictionary<string, long> currentMaxIds = new Dictionary<string, long>();
 
-        public static int GetNext<T>()
+        public static long GetNext<T>()
         {
             var name = typeof(T).AssemblyQualifiedName;
 

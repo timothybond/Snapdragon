@@ -8,7 +8,7 @@ namespace Snapdragon
     /// <see cref="Player"/>'s <see cref="Player.Hand"/> or <see cref="Player.Library"/>.
     /// </summary>
     public record CardInstance(
-        int Id,
+        long Id,
         CardDefinition Definition,
         string Name,
         int Cost,
@@ -46,8 +46,7 @@ namespace Snapdragon
                 definition.MoveAbility,
                 definition.Disallowed,
                 definition.PlayRestriction
-            )
-        { }
+            ) { }
 
         public int AdjustedPower => this.Power + (this.PowerAdjustment ?? 0);
 

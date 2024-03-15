@@ -115,7 +115,7 @@ namespace Snapdragon
             return this with { Sensors = this.Sensors.Add(sensor) };
         }
 
-        public Location WithSensorDeleted(int sensorId)
+        public Location WithSensorDeleted(long sensorId)
         {
             return this with { Sensors = this.Sensors.RemoveAll(t => t.Id == sensorId) };
         }

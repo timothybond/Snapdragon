@@ -374,7 +374,7 @@ namespace Snapdragon
         /// Gets a modified state with the given <see cref="Sensor{Card}"/>.  Note that unlike <see
         /// cref="WithCard(CardInstance)"/>, this adds a new effect rather than modifying an existing one.
         /// </summary>
-        public Game WithTemporaryCardEffectDeleted(int temporaryCardEffectId)
+        public Game WithTemporaryCardEffectDeleted(long temporaryCardEffectId)
         {
             return this with
             {

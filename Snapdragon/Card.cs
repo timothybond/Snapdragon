@@ -13,7 +13,7 @@ namespace Snapdragon
     /// type <see cref="Card"/>.
     /// </summary>
     public record Card(
-        int Id,
+        long Id,
         CardDefinition Definition,
         string Name,
         int Cost,

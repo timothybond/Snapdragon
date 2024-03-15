@@ -1,7 +1,7 @@
 ﻿namespace Snapdragon
 {
     public record Sensor<T>(
-        int Id,
+        long Id,
         Column Column,
         Side Side,
         T Source,
