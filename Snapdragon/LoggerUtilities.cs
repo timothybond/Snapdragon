@@ -31,7 +31,30 @@ namespace Snapdragon
             var scores = game.GetCurrentScores();
 
             var builder = new StringBuilder();
-            builder.AppendLine(string.Empty.PadLeft(columnWidths.Values.Sum() + 7, '-'));
+
+            foreach (var location in game.Locations)
+            {
+                builder.Append("-");
+                var totalPadding =
+                    columnWidths[location.Column] - location.Definition.Name.Length - 4;
+
+                for (var i = 0; i < totalPadding / 2; i++)
+                {
+                    builder.Append("-");
+                }
+                builder.Append("[");
+                builder.Append(location.Revealed ? " " : "(");
+                builder.Append(location.Definition.Name);
+                builder.Append(location.Revealed ? " " : ")");
+                builder.Append("]");
+
+                for (var i = 0; i < totalPadding - totalPadding / 2; i++)
+                {
+                    builder.Append("-");
+                }
+                builder.Append("-");
+            }
+            builder.AppendLine("-");
 
             builder.WriteSide(game, Side.Top, columnWidths, scores);
             builder.WriteSide(game, Side.Bottom, columnWidths, scores);
@@ -95,15 +118,17 @@ namespace Snapdragon
         {
             if (location.AllCards.Count() == 0)
             {
-                // Reasonable minimum
-                return 12;
+                return location.Definition.Name.Length + 4;
             }
 
             // One space on either side,
             // one space before the power,
             // two parentheses,
             // two digit power
-            return location.AllCards.Select(c => c.Name.Length).Max() + 7;
+            return Math.Max(
+                location.AllCards.Select(c => c.Name.Length).Max() + 7,
+                location.Definition.Name.Length + 4
+            );
         }
     }
 }
