@@ -11,6 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Fluent\EventSelectors\" />
     <Folder Include="HandFilters\" />
   </ItemGroup>
 
