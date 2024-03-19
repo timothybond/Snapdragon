@@ -31,3 +31,4 @@ namespace Snapdragon.Fluent.EffectBuilders
             return new CopyToHandBuilder<TContext>(cardSelector, transform);
         }
     }
+}
