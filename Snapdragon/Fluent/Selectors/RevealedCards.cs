@@ -1,4 +1,4 @@
-﻿namespace Snapdragon.Fluent.CardSelectors
+﻿namespace Snapdragon.Fluent.Selectors
 {
     public record RevealedCards : ICardSelector<object>
     {

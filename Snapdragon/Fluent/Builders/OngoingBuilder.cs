@@ -1,17 +1,37 @@
 ﻿namespace Snapdragon.Fluent.Builders
 {
-    public record OngoingBuilder<TContext> : IBuilder<OnReveal<TContext>, TContext>
+    public record OngoingBuilder<TContext>
+        : IBuilder<Ongoing<TContext>, TContext, IOngoingAbilityFactory<TContext>>
     {
         public OngoingBuilder() { }
 
-        public RevealConditionBuilder<TContext> If
+        public ConditionBuilder<Ongoing<TContext>, TContext, IOngoingAbilityFactory<TContext>> If
         {
-            get { return new RevealConditionBuilder<TContext>(); }
+            get
+            {
+                return new ConditionBuilder<
+                    Ongoing<TContext>,
+                    TContext,
+                    IOngoingAbilityFactory<TContext>
+                >(new OngoingFactory());
+            }
         }
 
-        public virtual OnReveal<TContext> Build(IEffectBuilder<TContext> effectBuilder)
+        public virtual Ongoing<TContext> Build(IOngoingAbilityFactory<TContext> outcome)
         {
-            return new OnReveal<TContext>(effectBuilder);
+            return outcome.Build();
+        }
+
+        private class OngoingFactory
+            : IResultFactory<Ongoing<TContext>, TContext, IOngoingAbilityFactory<TContext>>
+        {
+            public Ongoing<TContext> Build(
+                IOngoingAbilityFactory<TContext> outcome,
+                ICondition<TContext>? condition = null
+            )
+            {
+                return outcome.Build(condition);
+            }
         }
     }
 }

@@ -5,18 +5,21 @@ namespace Snapdragon.Fluent
 {
     public static class ConditionBuilderWithLocationExtensions
     {
-        public static IBuilderWithCondition<TResult, TContext> InColumn<TResult, TContext>(
-            this IConditionBuilder<TResult, TContext> builder,
-            params Column[] columns
-        )
+        public static IBuilderWithCondition<TAbility, TContext, TOutcome> InColumn<
+            TAbility,
+            TContext,
+            TOutcome
+        >(this IConditionBuilder<TAbility, TContext, TOutcome> builder, params Column[] columns)
             where TContext : IObjectWithColumn
         {
             return builder.WithCondition(new ColumnCondition<TContext>(columns));
         }
 
-        public static IBuilderWithCondition<TResult, TContext> LocationFull<TResult, TContext>(
-            this IConditionBuilder<TResult, TContext> builder
-        )
+        public static IBuilderWithCondition<TAbility, TContext, TOutcome> LocationFull<
+            TAbility,
+            TContext,
+            TOutcome
+        >(this IConditionBuilder<TAbility, TContext, TOutcome> builder)
             where TContext : IObjectWithColumn, ICard
         {
             return builder.WithCondition(new LocationFullCondition<TContext>());

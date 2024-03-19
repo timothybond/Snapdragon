@@ -1,13 +1,13 @@
 ﻿namespace Snapdragon.Effects
 {
-    public record AndEffect(IEffect First, IEffect Second) : IEffect
+    public record AndEffect(IEnumerable<IEffect> Effects) : IEffect
     {
+        public AndEffect(params IEffect[] effects)
+            : this((IEnumerable<IEffect>)effects) { }
+
         public Game Apply(Game game)
         {
-            game = First.Apply(game);
-            game = Second.Apply(game);
-
-            return game;
+            return Effects.Aggregate(game, (g, e) => e.Apply(g));
         }
     }
 }

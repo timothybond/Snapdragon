@@ -2,6 +2,6 @@
 {
     public interface IResultFactory<TAbility, TContext, TOutcome>
     {
-        public TAbility Build(ICondition<TContext> context, TOutcome outcome);
+        public TAbility Build(TOutcome outcome, ICondition<TContext>? condition = null);
     }
 }

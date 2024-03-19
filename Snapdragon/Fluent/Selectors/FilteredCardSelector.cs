@@ -1,13 +1,13 @@
-﻿namespace Snapdragon.Fluent.CardSelectors
+﻿namespace Snapdragon.Fluent.Selectors
 {
-    public record FilteredSelector<TContext>(
+    public record FilteredCardSelector<TContext>(
         ICardSelector<TContext> Selector,
         ICardFilter<TContext> Filter
     ) : ICardSelector<TContext>
     {
         public IEnumerable<ICard> Get(TContext context, Game game)
         {
-            return Selector.Get(context, game).Where(c => Filter.Includes(c, context));
+            return Filter.GetFrom(Selector.Get(context, game), context);
         }
     }
 }

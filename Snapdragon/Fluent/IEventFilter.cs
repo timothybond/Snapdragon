@@ -1,7 +1,7 @@
 ﻿namespace Snapdragon.Fluent
 {
-    public interface IEventFilter<TEvent>
+    public interface IEventFilter<in TEvent, in TContext>
     {
-        bool Includes(TEvent e);
+        bool Includes(TEvent e, TContext context, Game game);
     }
 }

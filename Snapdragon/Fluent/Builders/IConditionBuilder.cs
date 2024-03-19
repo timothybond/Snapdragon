@@ -1,7 +1,9 @@
 ﻿namespace Snapdragon.Fluent.Builders
 {
-    public interface IConditionBuilder<TResult, TContext>
+    public interface IConditionBuilder<TAbility, TContext, TOutcome>
     {
-        IBuilderWithCondition<TResult, TContext> WithCondition(ICondition<TContext> condition);
+        IBuilderWithCondition<TAbility, TContext, TOutcome> WithCondition(
+            ICondition<TContext> condition
+        );
     }
 }

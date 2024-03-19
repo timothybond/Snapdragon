@@ -19,12 +19,35 @@
                 return game;
             }
 
-            if (player.Discards.Any(c => c.Id == Card.Id))
+            var inDiscard = player.Discards.SingleOrDefault(c => c.Id == Card.Id);
+            var inDestroyed = player.Destroyed.SingleOrDefault(c => c.Id == Card.Id);
+            var inPlay = game.AllCards.SingleOrDefault(c => c.Id == Card.Id);
+
+            var total =
+                (inDiscard != null ? 1 : 0)
+                + (inDestroyed != null ? 1 : 0)
+                + (inPlay != null ? 1 : 0);
+
+            if (total > 1)
+            {
+                throw new InvalidOperationException(
+                    $"Found card {Card.Name} ({Card.Id}) in multiple states."
+                );
+            }
+
+            var actualCard = inDiscard ?? inDestroyed ?? (ICard)inPlay;
+
+            if (actualCard == null)
+            {
+                return game;
+            }
+
+            if (inDiscard != null)
             {
                 player = player with { Discards = player.Discards.RemoveAll(c => c.Id == Card.Id) };
             }
 
-            if (player.Destroyed.Any(c => c.Id == Card.Id))
+            if (inDestroyed != null)
             {
                 player = player with
                 {
@@ -32,7 +55,7 @@
                 };
             }
 
-            var card = Card.ToCardInstance() with { State = CardState.InHand };
+            var card = actualCard.ToCardInstance() with { State = CardState.InHand };
 
             if (this.Transform != null)
             {
@@ -43,13 +66,13 @@
 
             game = game.WithPlayer(player);
 
-            if (Card is Card cardInPlay)
+            if (inPlay != null)
             {
                 foreach (var column in All.Columns)
                 {
                     if (game[column][Card.Side].Any(c => c.Id == Card.Id))
                     {
-                        var location = game[column].WithRemovedCard(cardInPlay);
+                        var location = game[column].WithRemovedCard(inPlay);
                         game = game.WithLocation(location);
                     }
                 }

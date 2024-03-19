@@ -1,7 +1,7 @@
 ﻿namespace Snapdragon.Fluent.Builders
 {
-    public interface IBuilderWithCondition<TResult, TContext> : IBuilder<TResult, TContext>
+    public interface IBuilderWithCondition<TAbility, TContext, TOutcome> : IBuilder<TAbility, TContext, TOutcome>
     {
-        public IConditionBuilder<TResult, TContext> And { get; }
+        public IConditionBuilder<TAbility, TContext, TOutcome> And { get; }
     }
 }

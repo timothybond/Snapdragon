@@ -1,7 +1,7 @@
 ﻿namespace Snapdragon.Fluent.Builders
 {
-    public interface IBuilder<TResult, TContext>
+    public interface IBuilder<TAbility, TContext, TOutcome>
     {
-        TResult Build(IEffectBuilder<TContext> effectBuilder);
+        TAbility Build(TOutcome outcome);
     }
 }
