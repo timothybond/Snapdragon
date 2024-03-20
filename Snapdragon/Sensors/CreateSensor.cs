@@ -5,9 +5,9 @@
     {
         public Game Activate(Game game, Card source)
         {
-            var temporaryCardEffect = this.Builder.Build(game, source);
+            var sensor = this.Builder.Build(game, source);
 
-            return game.WithTemporaryCardEffect(temporaryCardEffect);
+            return game.WithSensor(sensor);
         }
     }
 }

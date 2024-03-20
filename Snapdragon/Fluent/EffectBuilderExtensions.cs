@@ -16,14 +16,39 @@ namespace Snapdragon.Fluent
         }
 
         /// <summary>
+        /// Gets an instance of <see cref="IEffectBuilder{TEvent, TContext}"/> that performs two different effects, in order.
+        /// </summary>
+        public static AndEffectBuilder<TEvent, TContext> And<TEvent, TContext>(
+            this IEffectBuilder<TEvent, TContext> first,
+            IEffectBuilder<TEvent, TContext> second
+        )
+            where TEvent : Event
+        {
+            return new AndEffectBuilder<TEvent, TContext>(first, second);
+        }
+
+        /// <summary>
         /// Gets an instance of <see cref="IEffectBuilder{TContext}"/> that performs one effect the given number of times.
         /// </summary>
-        public static AndEffectBuilder<TContext> Times<TContext>(
+        public static RepeatEffectBuilder<TContext> Times<TContext>(
             this IEffectBuilder<TContext> baseEffectBuilder,
             int times
         )
+            where TContext : class
         {
-            return new AndEffectBuilder<TContext>(Enumerable.Repeat(baseEffectBuilder, times));
+            return new RepeatEffectBuilder<TContext>(baseEffectBuilder, new ConstantValue(times));
+        }
+
+        /// <summary>
+        /// Gets an instance of <see cref="IEffectBuilder{TContext}"/> that performs one effect the given number of times.
+        /// </summary>
+        public static RepeatEffectBuilder<TContext> Times<TContext>(
+            this IEffectBuilder<TContext> baseEffectBuilder,
+            ICalculation<TContext> times
+        )
+            where TContext : class
+        {
+            return new RepeatEffectBuilder<TContext>(baseEffectBuilder, times);
         }
     }
 }

@@ -14,7 +14,7 @@ namespace Snapdragon.Runner.Experiments
 
             var selfPlay = new PopulationSelfPlay(
                 Guid.NewGuid(),
-                "Hela Pinned Self Play 200x256",
+                "Hela Pinned Self Play 100x128x40",
                 DateTimeOffset.UtcNow,
                 repositoryBuilder
             );
@@ -27,7 +27,7 @@ namespace Snapdragon.Runner.Experiments
                 new RandomCardOrder()
             );
 
-            await selfPlay.Run(helaPinned, "with-hela-solo", 256, 200, 10);
+            await selfPlay.Run(helaPinned, "with-hela-solo", 256, 100, 40);
         }
     }
 }

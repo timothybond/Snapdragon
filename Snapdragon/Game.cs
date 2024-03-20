@@ -361,26 +361,26 @@ namespace Snapdragon
 
         /// <summary>
         /// Gets a modified state with the given <see cref="Sensor{Card}"/>.  Note that unlike <see
-        /// cref="WithCard(CardInstance)"/>, this adds a new effect rather than modifying an existing one.
+        /// cref="WithCard(CardInstance)"/>, this adds a new Sensor rather than modifying an existing one.
         /// </summary>
-        public Game WithTemporaryCardEffect(Sensor<Card> temporaryCardEffect)
+        public Game WithSensor(Sensor<Card> sensor)
         {
-            var location = this[temporaryCardEffect.Column];
+            var location = this[sensor.Column];
 
-            return this.WithLocation(location.WithSensor(temporaryCardEffect));
+            return this.WithLocation(location.WithSensor(sensor));
         }
 
         /// <summary>
         /// Gets a modified state with the given <see cref="Sensor{Card}"/>.  Note that unlike <see
-        /// cref="WithCard(CardInstance)"/>, this adds a new effect rather than modifying an existing one.
+        /// cref="WithCard(CardInstance)"/>, this adds a new Sensor rather than modifying an existing one.
         /// </summary>
-        public Game WithTemporaryCardEffectDeleted(long temporaryCardEffectId)
+        public Game WithSensorDeleted(long sensorId)
         {
             return this with
             {
-                Left = this.Left.WithSensorDeleted(temporaryCardEffectId),
-                Middle = this.Middle.WithSensorDeleted(temporaryCardEffectId),
-                Right = this.Right.WithSensorDeleted(temporaryCardEffectId),
+                Left = this.Left.WithSensorDeleted(sensorId),
+                Middle = this.Middle.WithSensorDeleted(sensorId),
+                Right = this.Right.WithSensorDeleted(sensorId),
             };
         }
 
@@ -1002,7 +1002,7 @@ namespace Snapdragon
         }
 
         /// <summary>
-        /// Calculates the total power adjustment to the given <see cref="CardInstance"/>
+        /// Calculates the total power adjustment to the given <see cref="Card"/>
         /// based on the pased-in list of all active ongoing abilities
         /// </summary>
         private int? GetPowerAdjustment(

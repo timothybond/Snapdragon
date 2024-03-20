@@ -4,7 +4,8 @@ namespace Snapdragon.Fluent
 {
     public record TriggeredAbility<TEvent, TContext>(
         IEffectBuilder<TEvent, TContext> EffectBuilder,
-        IEventFilter<TEvent, TContext>? EventFilter
+        IEventFilter<TEvent, TContext>? EventFilter,
+        ICondition<TContext>? Condition = null
     ) : BaseTriggeredAbility<TContext, TEvent>
         where TEvent : Event
     {
@@ -16,20 +17,22 @@ namespace Snapdragon.Fluent
         {
             if (EventFilter?.Includes(e, source, game) ?? true)
             {
-                var effect = EffectBuilder.Build(e, source, game);
-                return effect.Apply(game);
+                if (Condition?.IsMet(source, game) ?? true)
+                {
+                    var effect = EffectBuilder.Build(e, source, game);
+                    return effect.Apply(game);
+                }
             }
-            else
-            {
-                return game;
-            }
+
+            return game;
         }
     }
 
     public record TriggeredAbilityDiscardedOrDestroyed<TEvent, TContext>(
         IEffectBuilder<TEvent, TContext> EffectBuilder,
-        IEventFilter<TEvent, TContext>? EventFilter
-    ) : TriggeredAbility<TEvent, TContext>(EffectBuilder, EventFilter)
+        IEventFilter<TEvent, TContext>? EventFilter,
+        ICondition<TContext>? Condition = null
+    ) : TriggeredAbility<TEvent, TContext>(EffectBuilder, EventFilter, Condition)
         where TEvent : Event
     {
         public override bool WhenDiscardedOrDestroyed => true;
@@ -37,8 +40,9 @@ namespace Snapdragon.Fluent
 
     public record TriggeredAbilityInHand<TEvent, TContext>(
         IEffectBuilder<TEvent, TContext> EffectBuilder,
-        IEventFilter<TEvent, TContext>? EventFilter
-    ) : TriggeredAbility<TEvent, TContext>(EffectBuilder, EventFilter)
+        IEventFilter<TEvent, TContext>? EventFilter,
+        ICondition<TContext>? Condition = null
+    ) : TriggeredAbility<TEvent, TContext>(EffectBuilder, EventFilter, Condition)
         where TEvent : Event
     {
         public override bool WhenInHand => true;
@@ -46,8 +50,9 @@ namespace Snapdragon.Fluent
 
     public record TriggeredAbilityInDeck<TEvent, TContext>(
         IEffectBuilder<TEvent, TContext> EffectBuilder,
-        IEventFilter<TEvent, TContext>? EventFilter
-    ) : TriggeredAbility<TEvent, TContext>(EffectBuilder, EventFilter)
+        IEventFilter<TEvent, TContext>? EventFilter,
+        ICondition<TContext>? Condition = null
+    ) : TriggeredAbility<TEvent, TContext>(EffectBuilder, EventFilter, Condition)
         where TEvent : Event
     {
         public override bool WhenInDeck => true;
@@ -55,8 +60,9 @@ namespace Snapdragon.Fluent
 
     public record TriggeredAbilityInHandOrDeck<TEvent, TContext>(
         IEffectBuilder<TEvent, TContext> EffectBuilder,
-        IEventFilter<TEvent, TContext>? EventFilter
-    ) : TriggeredAbility<TEvent, TContext>(EffectBuilder, EventFilter)
+        IEventFilter<TEvent, TContext>? EventFilter,
+        ICondition<TContext>? Condition = null
+    ) : TriggeredAbility<TEvent, TContext>(EffectBuilder, EventFilter, Condition)
         where TEvent : Event
     {
         public override bool WhenInHand => true;

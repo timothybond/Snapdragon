@@ -11,12 +11,13 @@ namespace Snapdragon.Fluent
         {
             var medusaOnReveal = new CardRevealed()
                 .If.InColumn(Column.Middle)
-                .ModifyPower(new Self(), 3);
+                .Build(new Self().ModifyPower(3));
 
             var rocketRaccoonOnReveal = new CardRevealed()
-                .If.PastEvent.OfType<CardRevealedEvent>()
+                .If.PastEvent()
+                .OfType<CardRevealedEvent>()
                 .Where(EventCard.SameSide.And(EventCard.Here))
-                .ModifyPower(new Self(), 2);
+                .Build(new Self().ModifyPower(2));
 
             var ironheartOnReveal = new CardRevealed().ModifyPower(My.Cards.GetRandom(3), 2);
 
@@ -60,7 +61,26 @@ namespace Snapdragon.Fluent
                 new Self().CopyToHand(new WithZeroCost()).Times(2)
             );
 
-            //var wolverineTrigger = When.DiscardedOrDestroyed.Build(new Self().ModifyPower(2).And())
+            var antManOngoing = new CardOngoing().If.LocationFull().AdjustPower(new Self(), 3);
+
+            var blueMarvelOngoing = new CardOngoing().AdjustPower(My.OtherCards, 1);
+
+            var kaZarOngoing = new CardOngoing().AdjustPower(My.OtherCards.WithCost(1), 1);
+
+            var klawOngoing = new CardOngoing().AdjustLocationPower(new LocationToTheRight(), 6);
+
+            var misterFantasticOngoing = new CardOngoing().AdjustLocationPower(
+                new AdjacentLocations(),
+                2
+            );
+
+            var armorOngoing = new CardOngoing().Block(EffectType.DestroyCard).ForLocation(At.Here);
+
+            var ebonyMawOngoing = new CardOngoing()
+                .Block(EffectType.PlayCard)
+                .ForLocationAndSide(At.Here, new SameSide());
+
+            //var rescueEvent = If.NextTurnEvent<CardPlayedEvent>().
         }
     }
 }

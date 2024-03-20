@@ -15,9 +15,11 @@ using (var repository = repositoryBuilder.Build())
     await SnapCards.All.ForEachAsync(repository.SaveCardDefinition);
 }
 
+//var helaExperiment = new HelaExperiment();
+//await helaExperiment.Run(repositoryBuilder);
+
 var moveExperiment = new MoveDeckSoloExperiment();
 await moveExperiment.Run(repositoryBuilder);
 
 //var kaZarExperiment = new KaZarSoloExperiment();
-
 //await kaZarExperiment.Run(repositoryBuilder);

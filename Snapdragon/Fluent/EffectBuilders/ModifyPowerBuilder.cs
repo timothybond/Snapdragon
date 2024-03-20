@@ -59,7 +59,7 @@ namespace Snapdragon.Fluent.EffectBuilders
         }
 
         public static ModifyPowerBuilder<TContext> DoublePower<TContext>(
-            this ICardSelector<TContext> cardSelector
+            this ISingleCardSelector<TContext> cardSelector
         )
             where TContext : class
         {

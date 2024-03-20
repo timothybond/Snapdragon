@@ -1,32 +1,129 @@
 ﻿namespace Snapdragon.Fluent.Builders
 {
     public record TriggerBuilder<TEvent, TContext>
-        : IBuilder<ITriggeredAbility<TContext>, TContext, IEffectBuilder<TEvent, TContext>>
+        : Builder<ITriggeredAbility<TContext>, TEvent, TContext, IEffectBuilder<TEvent, TContext>>
         where TEvent : Event
         where TContext : class
     {
-        public ITriggeredAbility<TContext> Build(IEffectBuilder<TEvent, TContext> outcome)
-        {
-            return new TriggeredAbility<TEvent, TContext>(outcome, null);
-        }
+        public TriggerBuilder()
+            : base(new TriggerFactory()) { }
 
-        public TriggerBuilderWithFilter<TEvent, TContext> Where(
-            IEventFilter<TEvent, TContext> eventFilter
-        )
+        //public TriggerBuilderConditionBuilder<TEvent, TContext> If
+        //{
+        //    get { return new TriggerBuilderConditionBuilder<TEvent, TContext>(null); }
+        //}
+
+        //public ITriggeredAbility<TContext> Build(IEffectBuilder<TEvent, TContext> outcome)
+        //{
+        //    return new TriggeredAbility<TEvent, TContext>(outcome, null);
+        //}
+
+        //public TriggerBuilderWithFilter<TEvent, TContext> Where(
+        //    IEventFilter<TEvent, TContext> eventFilter
+        //)
+        //{
+        //    return new TriggerBuilderWithFilter<TEvent, TContext>(eventFilter);
+        //}
+
+        private class TriggerFactory
+            : IResultFactory<
+                ITriggeredAbility<TContext>,
+                TEvent,
+                TContext,
+                IEffectBuilder<TEvent, TContext>
+            >
         {
-            return new TriggerBuilderWithFilter<TEvent, TContext>(eventFilter);
+            public ITriggeredAbility<TContext> Build(
+                IEffectBuilder<TEvent, TContext> outcome,
+                IEventFilter<TEvent, TContext>? eventFilter = null,
+                ICondition<TContext>? condition = null
+            )
+            {
+                return new TriggeredAbility<TEvent, TContext>(outcome, eventFilter, condition);
+            }
         }
     }
 
-    public record TriggerBuilderWithFilter<TEvent, TContext>(
-        IEventFilter<TEvent, TContext> EventFilter
-    ) : IBuilder<ITriggeredAbility<TContext>, TContext, IEffectBuilder<TEvent, TContext>>
-        where TEvent : Event
-        where TContext : class
-    {
-        public ITriggeredAbility<TContext> Build(IEffectBuilder<TEvent, TContext> outcome)
-        {
-            return new TriggeredAbility<TEvent, TContext>(outcome, EventFilter);
-        }
-    }
+    //public record TriggerBuilderWithFilter<TEvent, TContext>(
+    //    IEventFilter<TEvent, TContext> EventFilter
+    //) : IBuilder<ITriggeredAbility<TContext>, TContext, IEffectBuilder<TEvent, TContext>>
+    //    where TEvent : Event
+    //    where TContext : class
+    //{
+    //    public TriggerBuilderConditionBuilder<TEvent, TContext> If
+    //    {
+    //        get { return new TriggerBuilderConditionBuilder<TEvent, TContext>(EventFilter); }
+    //    }
+
+    //    public ITriggeredAbility<TContext> Build(IEffectBuilder<TEvent, TContext> outcome)
+    //    {
+    //        return new TriggeredAbility<TEvent, TContext>(outcome, EventFilter);
+    //    }
+    //}
+
+    //public record TriggerBuilderConditionBuilder<TEvent, TContext>(
+    //    IEventFilter<TEvent, TContext>? EventFilter
+    //) : IConditionBuilder<ITriggeredAbility<TContext>, TContext, IEffectBuilder<TEvent, TContext>>
+    //    where TEvent : Event
+    //    where TContext : class
+    //{
+    //    public IBuilderWithCondition<
+    //        ITriggeredAbility<TContext>,
+    //        TContext,
+    //        IEffectBuilder<TEvent, TContext>
+    //    > WithCondition(ICondition<TContext> condition)
+    //    {
+    //        return new TriggerWithConditionBuilder<TEvent, TContext>(condition, EventFilter);
+    //    }
+    //}
+
+    //public record TriggerWithConditionBuilder<TEvent, TContext>(
+    //    ICondition<TContext> Condition,
+    //    IEventFilter<TEvent, TContext>? EventFilter
+    //)
+    //    : IBuilderWithCondition<
+    //        ITriggeredAbility<TContext>,
+    //        TContext,
+    //        IEffectBuilder<TEvent, TContext>
+    //    >
+    //    where TEvent : Event
+    //    where TContext : class
+    //{
+    //    public IConditionBuilder<
+    //        ITriggeredAbility<TContext>,
+    //        TContext,
+    //        IEffectBuilder<TEvent, TContext>
+    //    > And
+    //    {
+    //        get
+    //        {
+    //            return new TriggerChainedConditionBuilder<TEvent, TContext>(Condition, EventFilter);
+    //        }
+    //    }
+
+    //    public ITriggeredAbility<TContext> Build(IEffectBuilder<TEvent, TContext> outcome)
+    //    {
+    //        return new TriggeredAbility<TEvent, TContext>(outcome, EventFilter, Condition);
+    //    }
+    //}
+
+    //public record TriggerChainedConditionBuilder<TEvent, TContext>(
+    //    ICondition<TContext> Condition,
+    //    IEventFilter<TEvent, TContext>? EventFilter
+    //) : IConditionBuilder<ITriggeredAbility<TContext>, TContext, IEffectBuilder<TEvent, TContext>>
+    //    where TEvent : Event
+    //    where TContext : class
+    //{
+    //    public IBuilderWithCondition<
+    //        ITriggeredAbility<TContext>,
+    //        TContext,
+    //        IEffectBuilder<TEvent, TContext>
+    //    > WithCondition(ICondition<TContext> newCondition)
+    //    {
+    //        return new TriggerWithConditionBuilder<TEvent, TContext>(
+    //            new AndCondition<TContext>(Condition, newCondition),
+    //            EventFilter
+    //        );
+    //    }
+    //}
 }

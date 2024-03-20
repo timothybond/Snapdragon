@@ -1,7 +1,7 @@
 ﻿namespace Snapdragon.Fluent.Builders
 {
     public record PastEventConditionBuilder<TAbility, TContext, TOutcome>(
-        IResultFactory<TAbility, TContext, TOutcome> Factory
+        IConditionBuilder<TAbility, TContext, TOutcome> PriorBuilder
     )
     {
         public PastEventOfTypeConditionBuilder<
@@ -12,7 +12,7 @@
         > OfType<TEvent>()
         {
             return new PastEventOfTypeConditionBuilder<TEvent, TAbility, TContext, TOutcome>(
-                Factory
+                PriorBuilder
             );
         }
     }

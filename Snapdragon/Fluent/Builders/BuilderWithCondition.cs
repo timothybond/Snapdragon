@@ -23,4 +23,28 @@
             }
         }
     }
+
+    public record BuilderWithCondition<TAbility, TEvent, TContext, TOutcome>(
+        ICondition<TContext> Condition,
+        IResultFactory<TAbility, TEvent, TContext, TOutcome> Factory
+    )
+        : Builder<TAbility, TEvent, TContext, TOutcome>(Factory),
+            IBuilderWithCondition<TAbility, TContext, TOutcome>
+    {
+        public override TAbility Build(TOutcome outcome)
+        {
+            return Factory.Build(outcome, null, Condition);
+        }
+
+        public IConditionBuilder<TAbility, TContext, TOutcome> And
+        {
+            get
+            {
+                return new ChainedConditionBuilder<TAbility, TEvent, TContext, TOutcome>(
+                    Condition,
+                    Factory
+                );
+            }
+        }
+    }
 }

@@ -15,4 +15,20 @@
             );
         }
     }
+
+    public record ChainedConditionBuilder<TAbility, TEvent, TContext, TOutcome>(
+        ICondition<TContext> Condition,
+        IResultFactory<TAbility, TEvent, TContext, TOutcome> Factory
+    ) : ConditionBuilder<TAbility, TEvent, TContext, TOutcome>(Factory)
+    {
+        public BuilderWithCondition<TAbility, TEvent, TContext, TOutcome> WithCondition(
+            ICondition<TContext> newCondition
+        )
+        {
+            return new BuilderWithCondition<TAbility, TEvent, TContext, TOutcome>(
+                new AndCondition<TContext>(Condition, newCondition),
+                Factory
+            );
+        }
+    }
 }

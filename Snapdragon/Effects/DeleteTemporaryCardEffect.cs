@@ -4,7 +4,7 @@
     {
         public Game Apply(Game game)
         {
-            return game.WithTemporaryCardEffectDeleted(TemporaryCardEffect.Id);
+            return game.WithSensorDeleted(TemporaryCardEffect.Id);
         }
     }
 }

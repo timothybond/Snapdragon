@@ -20,5 +20,7 @@ namespace Snapdragon.Fluent
         /// Filters events to those that specifically involve the context card.
         /// </summary>
         public static IEventFilter<ICardEvent, ICard> Self => new Self();
+
+        public static ICardSelector<ICardEvent, object> Get => new EventCardSelector();
     }
 }

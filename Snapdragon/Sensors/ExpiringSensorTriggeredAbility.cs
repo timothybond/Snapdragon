@@ -29,7 +29,7 @@
 
             if (e.Type == EventType.TurnEnded && e.Turn == this.Turn)
             {
-                game = game.WithTemporaryCardEffectDeleted(Source.Id);
+                game = game.WithSensorDeleted(Source.Id);
             }
 
             return game;

@@ -12,10 +12,22 @@
         {
             return new BuilderWithCondition<TAbility, TContext, TOutcome>(condition, Factory);
         }
+    }
 
-        public PastEventConditionBuilder<TAbility, TContext, TOutcome> PastEvent
+    public record ConditionBuilder<TAbility, TEvent, TContext, TOutcome>(
+        IResultFactory<TAbility, TEvent, TContext, TOutcome> Factory
+    ) : IConditionBuilder<TAbility, TContext, TOutcome>
+    {
+        IBuilderWithCondition<TAbility, TContext, TOutcome> IConditionBuilder<
+            TAbility,
+            TContext,
+            TOutcome
+        >.WithCondition(ICondition<TContext> condition)
         {
-            get { return new PastEventConditionBuilder<TAbility, TContext, TOutcome>(Factory); }
+            return new BuilderWithCondition<TAbility, TEvent, TContext, TOutcome>(
+                condition,
+                Factory
+            );
         }
     }
 }

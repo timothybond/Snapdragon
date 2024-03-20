@@ -84,7 +84,7 @@ namespace Snapdragon.Fluent
         /// <returns>The constructed ability that will have the power-modification effect.</returns>
         public static TAbility DoublePower<TAbility, TEvent, TContext>(
             this IBuilder<TAbility, TContext, IEffectBuilder<TEvent, TContext>> builder,
-            ICardSelector<TContext> cardSelector
+            ISingleCardSelector<TContext> cardSelector
         )
             where TEvent : Event
             where TContext : class
