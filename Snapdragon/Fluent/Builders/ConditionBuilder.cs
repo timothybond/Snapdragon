@@ -16,13 +16,15 @@
 
     public record ConditionBuilder<TAbility, TEvent, TContext, TOutcome>(
         IResultFactory<TAbility, TEvent, TContext, TOutcome> Factory
-    ) : IConditionBuilder<TAbility, TContext, TOutcome>
+    ) : IConditionBuilder<TAbility, TEvent, TContext, TOutcome>
+        where TEvent : Event
     {
-        IBuilderWithCondition<TAbility, TContext, TOutcome> IConditionBuilder<
+        IBuilderWithCondition<TAbility, TEvent, TContext, TOutcome> IConditionBuilder<
             TAbility,
+            TEvent,
             TContext,
             TOutcome
-        >.WithCondition(ICondition<TContext> condition)
+        >.WithCondition(ICondition<TEvent, TContext> condition)
         {
             return new BuilderWithCondition<TAbility, TEvent, TContext, TOutcome>(
                 condition,

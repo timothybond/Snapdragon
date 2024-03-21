@@ -1,6 +1,6 @@
 ﻿namespace Snapdragon.Fluent.Conditions
 {
-    public record PastEventCondition<TEvent, TContext>(
+    public record NoPastEventCondition<TEvent, TContext>(
         IEventFilter<TEvent, TContext>? Filter = null
     ) : ICondition<TContext>
         where TEvent : Event
@@ -14,7 +14,7 @@
                 pastEvents = pastEvents.Where(e => Filter.Includes(e, context, game));
             }
 
-            return pastEvents.Any();
+            return !pastEvents.Any();
         }
     }
 }

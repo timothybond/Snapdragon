@@ -27,7 +27,8 @@ namespace Snapdragon
         ITriggeredCardAbility? Triggered = null,
         IMoveAbility<Card>? MoveAbility = null,
         ImmutableList<EffectType>? Disallowed = null,
-        IPlayRestriction? PlayRestriction = null
+        IPlayRestriction? PlayRestriction = null,
+        int? TurnRevealed = null
     ) : ICardInPlay
     {
         public Card(CardDefinition definition, Side side, Column column)

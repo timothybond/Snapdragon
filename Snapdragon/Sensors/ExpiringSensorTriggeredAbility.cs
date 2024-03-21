@@ -16,7 +16,7 @@
         int Turn,
         Sensor<Card> Source,
         TriggeredSensorAbility<TEvent>? Inner
-    ) : ISensorTriggeredAbility
+    ) : ITriggeredAbility<Sensor<Card>>
         where TEvent : Event
     {
         public Game ProcessEvent(Game game, Event e, Sensor<Card> source)

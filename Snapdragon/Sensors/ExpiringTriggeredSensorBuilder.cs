@@ -13,7 +13,7 @@
     ) : ISensorTriggeredAbilityBuilder<Sensor<Card>, TEvent>
         where TEvent : Event
     {
-        public ISensorTriggeredAbility Build(Game game, Sensor<Card> source)
+        public ITriggeredAbility<Sensor<Card>> Build(Game game, Sensor<Card> source)
         {
             var expiresAtTurn = game.Turn + Turns;
 

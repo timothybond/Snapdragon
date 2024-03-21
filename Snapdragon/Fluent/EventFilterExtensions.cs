@@ -8,6 +8,7 @@ namespace Snapdragon.Fluent
             this IEventFilter<TEvent, TContext> first,
             IEventFilter<TEvent, TContext> second
         )
+            where TEvent : Event
         {
             return new AndEventFilter<TEvent, TContext>(first, second);
         }

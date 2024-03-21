@@ -4,9 +4,9 @@ namespace Snapdragon.TriggeredAbilities
 {
     // TODO: Either consolidate this with similarly-named types somehow,
     // or figure out a better naming scheme to differentiate it.
-    public record AddCopyOfCardToHand(ISideFilter<ICardEvent> Sides) : ICardEventEffectBuilder
+    public record AddCopyOfCardToHand(ISideFilter<CardEvent> Sides) : ICardEventEffectBuilder
     {
-        public IEffect Build(ICardEvent e, Game game)
+        public IEffect Build(CardEvent e, Game game)
         {
             var sides = All.Sides.Where(s => Sides.Applies(s, e, game));
 

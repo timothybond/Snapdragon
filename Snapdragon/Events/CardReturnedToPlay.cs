@@ -1,8 +1,7 @@
 ﻿namespace Snapdragon.Events
 {
     public record CardReturnedToPlay(ICard Card, Column Column, int Turn)
-        : Event(EventType.CardReturnedToPlay, Turn),
-            ICardEvent
+        : CardEvent(EventType.CardReturnedToPlay, Turn, Card)
     {
         public override string ToString()
         {

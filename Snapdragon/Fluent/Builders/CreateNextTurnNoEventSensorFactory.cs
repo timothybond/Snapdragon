@@ -4,7 +4,7 @@ using Snapdragon.Fluent.EventFilters;
 
 namespace Snapdragon.Fluent.Builders
 {
-    public record CreateNextTurnEventSensorFactory<TFilteredEventType>()
+    public record CreateNextTurnNoEventSensorFactory<TFilteredEventType>()
         : IResultFactory<
             OnReveal<Card>,
             TFilteredEventType,
@@ -22,7 +22,7 @@ namespace Snapdragon.Fluent.Builders
             var trigger = When
                 .Sensor.InPlayAnd<TurnEndedEvent>()
                 .Where(new TurnAfterRevealFilter<Sensor<Card>>())
-                .If.PastEvent()
+                .If.PastEvent() // TODO: Invert
                 .OfType<TFilteredEventType>()
                 .Where(eventFilter.And(new CurrentTurnFilter()))
                 .Build(outcome.And(new DestroySensorBuilder()));

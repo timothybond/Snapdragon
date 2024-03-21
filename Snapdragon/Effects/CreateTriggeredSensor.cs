@@ -1,12 +1,7 @@
-﻿using Snapdragon.Fluent;
-
-namespace Snapdragon.Effects
+﻿namespace Snapdragon.Effects
 {
-    public record CreateTriggeredSensor<TEvent>(
-        Card Source,
-        TriggeredAbility<TEvent, Sensor<Card>> SensorAbility
-    ) : IEffect
-        where TEvent : Event
+    public record CreateTriggeredSensor(Card Source, ITriggeredAbility<Sensor<Card>> SensorAbility)
+        : IEffect
     {
         public Game Apply(Game game)
         {
@@ -17,7 +12,9 @@ namespace Snapdragon.Effects
                 Source.Column,
                 Source.Side,
                 Source,
-                null // TODO - Enable ability
+                null, // TODO - Enable ability
+                null,
+                game.Turn
             );
 
             return game.WithSensor(sensor);

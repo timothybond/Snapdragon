@@ -3,6 +3,6 @@
     public interface ISensorTriggeredAbilityBuilder<TSource, TEvent>
         where TEvent : Event
     {
-        ISensorTriggeredAbility Build(Game game, TSource source);
+        ITriggeredAbility<Sensor<Card>> Build(Game game, TSource source);
     }
 }

@@ -5,9 +5,9 @@ namespace Snapdragon.Fluent.EventFilters
     /// <summary>
     /// A filter that gets cards (or events with cards) on the opposite side as the context card.
     /// </summary>
-    public record OtherSideFilter : WhereCardFilter<ICard>, IEventFilter<ICardEvent, ICard>
+    public record OtherSideFilter : WhereCardFilter<ICard>, IEventFilter<CardEvent, ICard>
     {
-        public bool Includes(ICardEvent e, ICard context, Game game)
+        public bool Includes(CardEvent e, ICard context, Game game)
         {
             return e.Card.Side != context.Side;
         }

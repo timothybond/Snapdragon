@@ -36,7 +36,7 @@
             public ITriggeredAbility<TContext> Build(
                 IEffectBuilder<TEvent, TContext> outcome,
                 IEventFilter<TEvent, TContext>? eventFilter = null,
-                ICondition<TContext>? condition = null
+                ICondition<TEvent, TContext>? condition = null
             )
             {
                 return new TriggeredAbility<TEvent, TContext>(outcome, eventFilter, condition);

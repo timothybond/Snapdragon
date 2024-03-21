@@ -5,7 +5,7 @@
     {
         public Game Activate(Game game, Card source)
         {
-            var sensor = this.Builder.Build(game, source);
+            var sensor = this.Builder.Build(game, source) with { TurnRevealed = game.Turn };
 
             return game.WithSensor(sensor);
         }

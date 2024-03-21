@@ -5,7 +5,7 @@
         Game ProcessEvent(Game game, Event e, Sensor<Card> source);
     }
 
-    public abstract record BaseSensorTriggeredAbility<TEvent> : ISensorTriggeredAbility
+    public abstract record BaseSensorTriggeredAbility<TEvent> : ITriggeredAbility<Sensor<Card>>
         where TEvent : Event
     {
         public Game ProcessEvent(Game game, Event e, Sensor<Card> source)

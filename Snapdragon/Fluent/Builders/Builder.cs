@@ -18,6 +18,7 @@
     public record Builder<TAbility, TEvent, TContext, TOutcome>(
         IResultFactory<TAbility, TEvent, TContext, TOutcome> Factory
     ) : IBuilder<TAbility, TContext, TOutcome>
+        where TEvent : Event
     {
         public ConditionBuilder<TAbility, TEvent, TContext, TOutcome> If
         {

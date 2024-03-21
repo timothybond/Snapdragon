@@ -663,7 +663,7 @@ namespace Snapdragon
         {
             var game = this.WithModifiedCard(
                 card,
-                c => c with { State = CardState.InPlay },
+                c => c with { State = CardState.InPlay, TurnRevealed = this.Turn },
                 (g, c) =>
                 {
                     if (c.OnReveal != null)

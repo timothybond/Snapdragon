@@ -5,7 +5,7 @@ namespace Snapdragon.Fluent
     public record TriggeredAbility<TEvent, TContext>(
         IEffectBuilder<TEvent, TContext> EffectBuilder,
         IEventFilter<TEvent, TContext>? EventFilter,
-        ICondition<TContext>? Condition = null
+        ICondition<TEvent, TContext>? Condition = null
     ) : BaseTriggeredAbility<TContext, TEvent>
         where TEvent : Event
     {
@@ -17,7 +17,9 @@ namespace Snapdragon.Fluent
         {
             if (EventFilter?.Includes(e, source, game) ?? true)
             {
-                if (Condition?.IsMet(source, game) ?? true)
+                // At this point the trigger is "firing", but still might do nothing because of the condition.
+                // (Not sure if this will matter here, but some triggers can only fire once, e.g. next card played.)
+                if (Condition?.IsMet(e, source, game) ?? true)
                 {
                     var effect = EffectBuilder.Build(e, source, game);
                     return effect.Apply(game);
@@ -31,7 +33,7 @@ namespace Snapdragon.Fluent
     public record TriggeredAbilityDiscardedOrDestroyed<TEvent, TContext>(
         IEffectBuilder<TEvent, TContext> EffectBuilder,
         IEventFilter<TEvent, TContext>? EventFilter,
-        ICondition<TContext>? Condition = null
+        ICondition<TEvent, TContext>? Condition = null
     ) : TriggeredAbility<TEvent, TContext>(EffectBuilder, EventFilter, Condition)
         where TEvent : Event
     {
@@ -41,7 +43,7 @@ namespace Snapdragon.Fluent
     public record TriggeredAbilityInHand<TEvent, TContext>(
         IEffectBuilder<TEvent, TContext> EffectBuilder,
         IEventFilter<TEvent, TContext>? EventFilter,
-        ICondition<TContext>? Condition = null
+        ICondition<TEvent, TContext>? Condition = null
     ) : TriggeredAbility<TEvent, TContext>(EffectBuilder, EventFilter, Condition)
         where TEvent : Event
     {
@@ -51,7 +53,7 @@ namespace Snapdragon.Fluent
     public record TriggeredAbilityInDeck<TEvent, TContext>(
         IEffectBuilder<TEvent, TContext> EffectBuilder,
         IEventFilter<TEvent, TContext>? EventFilter,
-        ICondition<TContext>? Condition = null
+        ICondition<TEvent, TContext>? Condition = null
     ) : TriggeredAbility<TEvent, TContext>(EffectBuilder, EventFilter, Condition)
         where TEvent : Event
     {
@@ -61,7 +63,7 @@ namespace Snapdragon.Fluent
     public record TriggeredAbilityInHandOrDeck<TEvent, TContext>(
         IEffectBuilder<TEvent, TContext> EffectBuilder,
         IEventFilter<TEvent, TContext>? EventFilter,
-        ICondition<TContext>? Condition = null
+        ICondition<TEvent, TContext>? Condition = null
     ) : TriggeredAbility<TEvent, TContext>(EffectBuilder, EventFilter, Condition)
         where TEvent : Event
     {

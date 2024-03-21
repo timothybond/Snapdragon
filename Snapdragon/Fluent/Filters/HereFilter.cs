@@ -9,7 +9,7 @@
     /// /// </summary>
     public record HereFilter
         : WhereCardFilter<IObjectWithPossibleColumn>,
-            IEventFilter<ICardEvent, IObjectWithPossibleColumn>,
+            IEventFilter<CardEvent, IObjectWithPossibleColumn>,
             ILocationSelector<IObjectWithPossibleColumn>
     {
         protected override bool Includes(ICard card, IObjectWithPossibleColumn context)
@@ -17,7 +17,7 @@
             return card.Column == context.Column;
         }
 
-        public bool Includes(ICardEvent e, IObjectWithPossibleColumn context, Game game)
+        public bool Includes(CardEvent e, IObjectWithPossibleColumn context, Game game)
         {
             return e.Card.Column == context.Column;
         }

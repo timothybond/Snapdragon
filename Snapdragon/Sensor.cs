@@ -5,9 +5,10 @@
         Column Column,
         Side Side,
         T Source,
-        ISensorTriggeredAbility? TriggeredAbility,
-        IMoveAbility<Sensor<T>>? MoveAbility = null
-    ) : IObjectWithColumn
+        ITriggeredAbility<Sensor<T>>? TriggeredAbility,
+        IMoveAbility<Sensor<T>>? MoveAbility = null,
+        int? TurnRevealed = null
+    ) : IObjectWithColumn, IRevealableObject, IObjectWithSide
     {
         Column? IObjectWithPossibleColumn.Column => Column;
     }

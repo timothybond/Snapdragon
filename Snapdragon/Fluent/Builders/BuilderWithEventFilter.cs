@@ -7,6 +7,7 @@
     )
         : Builder<TAbility, TEvent, TContext, TOutcome>(Factory),
             IBuilder<TAbility, TContext, TOutcome>
+        where TEvent : Event
     {
         public override TAbility Build(TOutcome outcome)
         {

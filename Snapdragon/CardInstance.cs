@@ -50,6 +50,8 @@ namespace Snapdragon
 
         public int AdjustedPower => this.Power + (this.PowerAdjustment ?? 0);
 
+        public int? TurnRevealed => null;
+
         public override string ToString()
         {
             return $"{Name} ({Id}) {Cost}E {AdjustedPower}P";

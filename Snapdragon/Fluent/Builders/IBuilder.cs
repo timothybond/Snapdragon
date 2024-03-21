@@ -4,4 +4,9 @@
     {
         TAbility Build(TOutcome outcome);
     }
+
+    public interface IBuilder<TAbility, TEvent, TContext, TOutcome>
+    {
+        TAbility Build(TOutcome outcome);
+    }
 }

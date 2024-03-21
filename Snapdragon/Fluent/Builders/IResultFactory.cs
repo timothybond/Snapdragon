@@ -6,11 +6,12 @@
     }
 
     public interface IResultFactory<TAbility, TEvent, TContext, TOutcome>
+        where TEvent : Event
     {
         public TAbility Build(
             TOutcome outcome,
             IEventFilter<TEvent, TContext>? eventFilter = null,
-            ICondition<TContext>? condition = null
+            ICondition<TEvent, TContext>? condition = null
         );
     }
 }

@@ -80,7 +80,13 @@ namespace Snapdragon.Fluent
                 .Block(EffectType.PlayCard)
                 .ForLocationAndSide(At.Here, new SameSide());
 
-            //var rescueEvent = If.NextTurnEvent<CardPlayedEvent>().
+            var rescueOnReveal = If.NextTurnEvent<CardPlayedEvent>()
+                .Where(EventCard.AtSensor.And(EventCard.SameSide))
+                .ModifyPower(new SourceCard(), 4);
+
+            var gamoraOnReveal = If.NoNextTurnEvent<CardPlayedEvent>()
+                .Where(EventCard.AtSensor.And(EventCard.SameSide))
+                .ModifyPower(new SourceCard(), 4);
         }
     }
 }

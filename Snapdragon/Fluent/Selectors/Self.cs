@@ -8,14 +8,14 @@ namespace Snapdragon.Fluent.Selectors
     public record Self
         : WhereCardFilter<ICard>,
             ISingleCardSelector<ICard>,
-            IEventFilter<ICardEvent, ICard>
+            IEventFilter<CardEvent, ICard>
     {
         public ICard? GetOrDefault(ICard context, Game game)
         {
             return game.AllCards.SingleOrDefault(c => c.Id == context.Id);
         }
 
-        public bool Includes(ICardEvent e, ICard context, Game game)
+        public bool Includes(CardEvent e, ICard context, Game game)
         {
             return e.Card.Id == context.Id;
         }

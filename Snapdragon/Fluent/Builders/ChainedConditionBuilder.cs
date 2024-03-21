@@ -17,16 +17,17 @@
     }
 
     public record ChainedConditionBuilder<TAbility, TEvent, TContext, TOutcome>(
-        ICondition<TContext> Condition,
+        ICondition<TEvent, TContext> Condition,
         IResultFactory<TAbility, TEvent, TContext, TOutcome> Factory
     ) : ConditionBuilder<TAbility, TEvent, TContext, TOutcome>(Factory)
+        where TEvent : Event
     {
         public BuilderWithCondition<TAbility, TEvent, TContext, TOutcome> WithCondition(
-            ICondition<TContext> newCondition
+            ICondition<TEvent, TContext> newCondition
         )
         {
             return new BuilderWithCondition<TAbility, TEvent, TContext, TOutcome>(
-                new AndCondition<TContext>(Condition, newCondition),
+                new AndCondition<TEvent, TContext>(Condition, newCondition),
                 Factory
             );
         }

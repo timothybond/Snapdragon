@@ -2,6 +2,6 @@
 {
     public interface ICardEventEffectBuilder
     {
-        IEffect Build(ICardEvent e, Game game);
+        IEffect Build(CardEvent e, Game game);
     }
 }

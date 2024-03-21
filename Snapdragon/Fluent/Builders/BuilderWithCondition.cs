@@ -25,18 +25,18 @@
     }
 
     public record BuilderWithCondition<TAbility, TEvent, TContext, TOutcome>(
-        ICondition<TContext> Condition,
+        ICondition<TEvent, TContext> Condition,
         IResultFactory<TAbility, TEvent, TContext, TOutcome> Factory
     )
         : Builder<TAbility, TEvent, TContext, TOutcome>(Factory),
-            IBuilderWithCondition<TAbility, TContext, TOutcome>
+            IBuilderWithCondition<TAbility, TEvent, TContext, TOutcome> where TEvent : Event
     {
         public override TAbility Build(TOutcome outcome)
         {
             return Factory.Build(outcome, null, Condition);
         }
 
-        public IConditionBuilder<TAbility, TContext, TOutcome> And
+        public IConditionBuilder<TAbility, TEvent, TContext, TOutcome> And
         {
             get
             {

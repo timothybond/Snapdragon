@@ -4,6 +4,7 @@
         IEventFilter<TEvent, TContext> First,
         IEventFilter<TEvent, TContext> Second
     ) : IEventFilter<TEvent, TContext>
+        where TEvent : Event
     {
         public bool Includes(TEvent e, TContext context, Game game)
         {
