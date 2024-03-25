@@ -20,7 +20,7 @@
     ) : IBuilder<TAbility, TContext, TOutcome>
         where TEvent : Event
     {
-        public ConditionBuilder<TAbility, TEvent, TContext, TOutcome> If
+        public virtual IConditionBuilder<TAbility, TEvent, TContext, TOutcome> If
         {
             get { return new ConditionBuilder<TAbility, TEvent, TContext, TOutcome>(Factory); }
         }

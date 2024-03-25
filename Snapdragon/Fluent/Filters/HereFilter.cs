@@ -10,7 +10,7 @@
     public record HereFilter
         : WhereCardFilter<IObjectWithPossibleColumn>,
             IEventFilter<CardEvent, IObjectWithPossibleColumn>,
-            ILocationSelector<IObjectWithPossibleColumn>
+            ISingleItemSelector<Location, IObjectWithPossibleColumn>
     {
         protected override bool Includes(ICard card, IObjectWithPossibleColumn context)
         {
@@ -22,12 +22,14 @@
             return e.Card.Column == context.Column;
         }
 
-        public IEnumerable<Location> Get(IObjectWithPossibleColumn context, Game game)
+        public Location? GetOrDefault(IObjectWithPossibleColumn context, Game game)
         {
-            if (context.Column != null)
+            if (context.Column == null)
             {
-                yield return game[context.Column.Value];
+                return null;
             }
+
+            return game[context.Column.Value];
         }
     }
 }

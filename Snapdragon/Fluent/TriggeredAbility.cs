@@ -6,7 +6,7 @@ namespace Snapdragon.Fluent
         IEffectBuilder<TEvent, TContext> EffectBuilder,
         IEventFilter<TEvent, TContext>? EventFilter,
         ICondition<TEvent, TContext>? Condition = null
-    ) : BaseTriggeredAbility<TContext, TEvent>
+    ) : BaseTriggeredAbility<TContext, TEvent>, ISpecialCardTrigger
         where TEvent : Event
     {
         public virtual bool WhenDiscardedOrDestroyed => false;

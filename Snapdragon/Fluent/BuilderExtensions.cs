@@ -14,7 +14,7 @@ namespace Snapdragon.Fluent
         /// <returns>The constructed ability that will have the power-modification effect.</returns>
         public static TAbility ModifyPower<TAbility, TContext>(
             this IBuilder<TAbility, TContext, IEffectBuilder<TContext>> builder,
-            ICardSelector<TContext> cardSelector,
+            ISelector<ICard, TContext> cardSelector,
             int amount
         )
             where TContext : class
@@ -31,7 +31,7 @@ namespace Snapdragon.Fluent
         /// <returns>The constructed ability that will have the power-modification effect.</returns>
         public static TAbility ModifyPower<TAbility, TContext>(
             this IBuilder<TAbility, TContext, IEffectBuilder<TContext>> builder,
-            ICardSelector<TContext> cardSelector,
+            ISelector<ICard, TContext> cardSelector,
             ICalculation<TContext> amount
         )
             where TContext : class
@@ -48,7 +48,7 @@ namespace Snapdragon.Fluent
         /// <returns>The constructed ability that will have the power-modification effect.</returns>
         public static TAbility ModifyPower<TAbility, TEvent, TContext>(
             this IBuilder<TAbility, TContext, IEffectBuilder<TEvent, TContext>> builder,
-            ICardSelector<TContext> cardSelector,
+            ISelector<ICard, TContext> cardSelector,
             int amount
         )
             where TEvent : Event
@@ -66,7 +66,7 @@ namespace Snapdragon.Fluent
         /// <returns>The constructed ability that will have the power-modification effect.</returns>
         public static TAbility ModifyPower<TAbility, TEvent, TContext>(
             this IBuilder<TAbility, TContext, IEffectBuilder<TEvent, TContext>> builder,
-            ICardSelector<TContext> cardSelector,
+            ISelector<ICard, TContext> cardSelector,
             ICalculation<TContext> amount
         )
             where TEvent : Event
@@ -84,7 +84,7 @@ namespace Snapdragon.Fluent
         /// <returns>The constructed ability that will have the power-modification effect.</returns>
         public static TAbility DoublePower<TAbility, TEvent, TContext>(
             this IBuilder<TAbility, TContext, IEffectBuilder<TEvent, TContext>> builder,
-            ISingleCardSelector<TContext> cardSelector
+            ISingleItemSelector<ICard, TContext> cardSelector
         )
             where TEvent : Event
             where TContext : class
@@ -102,7 +102,7 @@ namespace Snapdragon.Fluent
         /// <returns>The constructed ability that will cause the discards.</returns>
         public static TAbility Discard<TAbility, TContext>(
             this IBuilder<TAbility, TContext, IEffectBuilder<TContext>> builder,
-            ICardSelector<TContext> cardSelector
+            ISelector<ICard, TContext> cardSelector
         )
         {
             return builder.Build(new DiscardBuilder<TContext>(cardSelector));
@@ -116,10 +116,10 @@ namespace Snapdragon.Fluent
         /// <returns>The constructed ability that will cause the destruction.</returns>
         public static TAbility Destroy<TAbility, TContext>(
             this IBuilder<TAbility, TContext, IEffectBuilder<TContext>> builder,
-            ICardSelector<TContext> cardSelector
+            ISelector<ICard, TContext> cardSelector
         )
         {
-            return builder.Build(new DiscardBuilder<TContext>(cardSelector));
+            return builder.Build(new DestroyBuilder<TContext>(cardSelector));
         }
     }
 }

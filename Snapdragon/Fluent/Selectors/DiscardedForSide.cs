@@ -1,8 +1,8 @@
 ﻿namespace Snapdragon.Fluent.Selectors
 {
-    public record DiscardedForSide(bool OtherSide) : ICardSelector<ICard>
+    public record DiscardedForSide(bool OtherSide) : ISelector<ICard, IObjectWithSide>
     {
-        public IEnumerable<ICard> Get(ICard context, Game game)
+        public IEnumerable<ICard> Get(IObjectWithSide context, Game game)
         {
             var side = OtherSide ? context.Side.Other() : context.Side;
             return game[side].Discards;

@@ -1,10 +1,10 @@
 ﻿namespace Snapdragon.Fluent.Selectors
 {
-    public record SameSide : ISideSelector<ICard>
+    public record SameSide : ISingleItemSelector<Player, IObjectWithSide>
     {
-        public IEnumerable<Side> Get(ICard context, Game game)
+        public Player? GetOrDefault(IObjectWithSide context, Game game)
         {
-            yield return context.Side;
+            return game[context.Side];
         }
     }
 }

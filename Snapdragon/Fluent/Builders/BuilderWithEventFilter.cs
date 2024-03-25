@@ -2,8 +2,7 @@
 {
     public record BuilderWithEventFilter<TAbility, TEvent, TContext, TOutcome>(
         IResultFactory<TAbility, TEvent, TContext, TOutcome> Factory,
-        IEventFilter<TEvent, TContext> EventFilter,
-        ICondition<TContext>? Condition = null
+        IEventFilter<TEvent, TContext> EventFilter
     )
         : Builder<TAbility, TEvent, TContext, TOutcome>(Factory),
             IBuilder<TAbility, TContext, TOutcome>
@@ -11,7 +10,18 @@
     {
         public override TAbility Build(TOutcome outcome)
         {
-            return Factory.Build(outcome, EventFilter, Condition);
+            return Factory.Build(outcome, EventFilter);
+        }
+
+        public override IConditionBuilder<TAbility, TEvent, TContext, TOutcome> If
+        {
+            get
+            {
+                return new EventFilteredConditionBuilder<TAbility, TEvent, TContext, TOutcome>(
+                    Factory,
+                    EventFilter
+                );
+            }
         }
     }
 }

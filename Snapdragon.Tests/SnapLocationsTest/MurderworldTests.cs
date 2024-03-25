@@ -42,13 +42,13 @@
             // Note: PlayCards will wait until turn 4 to play these because they cost 4 total
             var game = TestHelpers
                 .NewGame("Murderworld", column)
-                .PlayCards(side, column, "Mantis", "Okoye")
+                .PlayCards(side, column, "Multiple Man", "Okoye")
                 .PlaySingleTurn()
                 .PlaySingleTurn();
 
             Assert.That(game.Turn, Is.EqualTo(6));
             Assert.That(game[column][side], Has.Exactly(2).Items);
-            Assert.That(game[column][side][0].Name, Is.EqualTo("Mantis"));
+            Assert.That(game[column][side][0].Name, Is.EqualTo("Multiple Man"));
             Assert.That(game[column][side][1].Name, Is.EqualTo("Okoye"));
         }
     }

@@ -17,6 +17,7 @@
 
                 player = player with { Hand = player.Hand.Add(card with { Side = Side }) };
 
+                // TODO: Raise an event of some kind for this (although maybe not a normal "draw" one)
                 return game.WithPlayer(player).WithPlayer(opponent);
             }
 

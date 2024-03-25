@@ -88,7 +88,8 @@ namespace Snapdragon.Tests
 
         public static Game WithCardsInDeck(this Game game, Side side, params string[] cardNames)
         {
-            var cards = GetCards(side, cardNames);
+            var cards = GetCards(side, cardNames)
+                .Select(c => c with { State = CardState.InLibrary });
 
             return game.WithPlayer(
                 game[side] with

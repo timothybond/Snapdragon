@@ -9,9 +9,9 @@ namespace Snapdragon
         ISourceTriggeredEffectBuilder<ICard, CardDestroyedFromPlayEvent> EffectBuilder
     ) : BaseTriggeredCardAbility<CardDestroyedFromPlayEvent>
     {
-        public override bool InHand => false;
-        public override bool InDeck => false;
-        public override bool DiscardedOrDestroyed => true;
+        public override bool WhenInHand => false;
+        public override bool WhenInDeck => false;
+        public override bool WhenDiscardedOrDestroyed => true;
 
         protected override Game ProcessEvent(Game game, CardDestroyedFromPlayEvent e, ICard source)
         {

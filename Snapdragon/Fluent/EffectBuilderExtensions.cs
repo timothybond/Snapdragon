@@ -50,5 +50,34 @@ namespace Snapdragon.Fluent
         {
             return new RepeatEffectBuilder<TContext>(baseEffectBuilder, times);
         }
+
+        /// <summary>
+        /// Gets an instance of <see cref="IEffectBuilder{TEvent, TContext}"/> that performs one effect the given number of times.
+        /// </summary>
+        public static RepeatEffectBuilder<TEvent, TContext> Times<TEvent, TContext>(
+            this IEffectBuilder<TEvent, TContext> baseEffectBuilder,
+            int times
+        )
+            where TContext : class
+            where TEvent : Event
+        {
+            return new RepeatEffectBuilder<TEvent, TContext>(
+                baseEffectBuilder,
+                new ConstantValue(times)
+            );
+        }
+
+        /// <summary>
+        /// Gets an instance of <see cref="IEffectBuilder{TEvent, TContext}"/> that performs one effect the given number of times.
+        /// </summary>
+        public static RepeatEffectBuilder<TEvent, TContext> Times<TEvent, TContext>(
+            this IEffectBuilder<TEvent, TContext> baseEffectBuilder,
+            ICalculation<TEvent, TContext> times
+        )
+            where TContext : class
+            where TEvent : Event
+        {
+            return new RepeatEffectBuilder<TEvent, TContext>(baseEffectBuilder, times);
+        }
     }
 }

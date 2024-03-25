@@ -5,8 +5,8 @@ namespace Snapdragon.Fluent.EffectBuilders
 {
     // TODO: See if I can get rid of this extra reference to CardMovedEvent
     public record CopyToLocationBuilder<TContext>(
-        ICardSelector<CardMovedEvent, TContext> CardSelector,
-        ILocationSelector<CardMovedEvent, TContext> LocationSelector
+        ISelector<ICard, CardMovedEvent, TContext> CardSelector,
+        ISelector<Location, CardMovedEvent, TContext> LocationSelector
     ) : IEffectBuilder<CardMovedEvent, TContext>
         where TContext : ICard
     {
@@ -36,8 +36,8 @@ namespace Snapdragon.Fluent.EffectBuilders
     public static class CopyToLocationExtensions
     {
         public static CopyToLocationBuilder<TContext> CopyToLocation<TContext>(
-            this ICardSelector<CardMovedEvent, TContext> cardSelector,
-            ILocationSelector<CardMovedEvent, TContext> locationSelector
+            this ISelector<ICard, CardMovedEvent, TContext> cardSelector,
+            ISelector<Location, CardMovedEvent, TContext> locationSelector
         )
             where TContext : class, ICard
         {

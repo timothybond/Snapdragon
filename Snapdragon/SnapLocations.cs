@@ -1,11 +1,10 @@
 ﻿using System.Collections.Immutable;
 using Snapdragon.CardEffectEventBuilders;
-using Snapdragon.GameFilters;
-using Snapdragon.LocationFilters;
-using Snapdragon.OngoingAbilities;
-using Snapdragon.RevealAbilities;
-using Snapdragon.SideFilters;
-using Snapdragon.TargetFilters;
+using Snapdragon.Events;
+using Snapdragon.Fluent;
+using Snapdragon.Fluent.EffectBuilders;
+using Snapdragon.Fluent.Filters;
+using Snapdragon.Fluent.Selectors;
 using Snapdragon.TriggeredAbilities;
 using Snapdragon.TriggeredEffects;
 
@@ -16,25 +15,41 @@ namespace Snapdragon
     /// </summary>
     public static class SnapLocations
     {
+        /// <summary>
+        /// Convenience reference for the builder for <see cref="OnReveal{Card}"/> abilities.
+        /// </summary>
+        public static Fluent.LocationRevealed OnReveal => new Fluent.LocationRevealed();
+
+        /// <summary>
+        /// Convenience reference for the builder for <see cref="Ongoing{Card}"/> abilities.
+        /// </summary>
+        public static Fluent.LocationOngoing Ongoing => new Fluent.LocationOngoing();
+
+        public static HereFilter Here => new HereFilter();
+
+        public static SnapCardsSelector PossibleCards => new SnapCardsSelector();
+
         public static readonly ImmutableList<LocationDefinition> All = new List<LocationDefinition>
         {
             new LocationDefinition(
                 "Camp Lehigh",
-                new AddRandomCardToHands(new CardDefinitionFilters.CardsWithCost(3))
+                OnReveal.Build(new BothSides().AddToHand(PossibleCards.WithCost(3).GetRandom()))
             ),
             new LocationDefinition(
                 "Central Park",
-                new AddCardsToLocations<Location>(
-                    new CardDefinition("Squirrel", 1, 1),
-                    new AllLocations(),
-                    new BothSides()
+                OnReveal.Build(
+                    new AllLocations().AddCard(
+                        new CardDefinition("Squirrel", 1, 1),
+                        new BothSides()
+                    )
                 )
             ),
             new(
                 "Cloning Vats",
                 null,
                 null,
-                new OnCardRevealedHere(new AddCopyOfCardToHand(new SameSide()))
+                When.RevealedAnd<CardRevealedEvent>()
+                    .Build(EventCard.Get.CopyToHand(EventCard.Player))
             ),
             new("Death's Domain", null, null, new OnCardRevealedHere(new DestroyCardInPlay())),
             new LocationDefinition(
@@ -43,21 +58,13 @@ namespace Snapdragon
                 null,
                 new OnTurnEnd<Location>(new AddPowerToCardsHere(-1))
             ),
-            new(
-                "Kyln",
-                null,
-                new OngoingBlockLocationEffect<Location>(
-                    EffectType.PlayCard,
-                    new CardsHere(),
-                    null,
-                    new AfterTurn(4)
-                )
-            ),
+            new("Kyln", null, Ongoing.If.AfterTurn(4).Block(EffectType.PlayCard).ForLocation(Here)),
             new(
                 "Machineworld",
                 null,
                 null,
-                new OnCardRevealedHere(new AddCopyOfCardToHand(new OtherSide()))
+                When.RevealedAnd<CardRevealedEvent>()
+                    .Build(EventCard.Get.CopyToHand(EventCard.Player.Other()))
             ),
             new LocationDefinition(
                 "Muir Island",
@@ -74,33 +81,33 @@ namespace Snapdragon
             new LocationDefinition(
                 "Necrosha",
                 null,
-                new OngoingAdjustPower<Location>(new CardsHere(), -2)
+                Ongoing.AdjustPower(new RevealedCards().AtLocation(), -2)
             ),
             new LocationDefinition(
                 "Negative Zone",
                 null,
-                new OngoingAdjustPower<Location>(new CardsHere(), -3)
+                Ongoing.AdjustPower(new RevealedCards().AtLocation(), -3)
             ),
             new LocationDefinition(
                 "Nidavellir",
                 null,
-                new OngoingAdjustPower<Location>(new CardsHere(), 5)
+                Ongoing.AdjustPower(new RevealedCards().AtLocation(), 5)
             ),
             new LocationDefinition("Ruins"),
             new LocationDefinition(
                 "Sanctum Sanctorum",
                 null,
-                new OngoingBlockLocationEffect<Location>(EffectType.PlayCard, new CardsHere())
+                Ongoing.Block(EffectType.PlayCard).ForLocation(Here)
             ),
             new LocationDefinition(
                 "Sewer System",
                 null,
-                new OngoingAdjustPower<Location>(new CardsHere(), -1)
+                Ongoing.AdjustPower(new RevealedCards().AtLocation(), -1)
             ),
             new LocationDefinition(
                 "Xandar",
                 null,
-                new OngoingAdjustPower<Location>(new CardsHere(), 1)
+                Ongoing.AdjustPower(new RevealedCards().AtLocation(), 1)
             ),
         }
             .OrderBy(l => l.Name)

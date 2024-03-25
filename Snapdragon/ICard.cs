@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using Snapdragon.Fluent;
 
 namespace Snapdragon
 {
@@ -11,9 +12,9 @@ namespace Snapdragon
         int Power { get; }
         CardState State { get; }
         int? PowerAdjustment { get; }
-        IRevealAbility<Card>? OnReveal { get; }
-        IOngoingAbility<Card>? Ongoing { get; }
-        ITriggeredCardAbility? Triggered { get; }
+        OnReveal<Card>? OnReveal { get; }
+        Ongoing<Card>? Ongoing { get; }
+        ITriggeredAbility<ICard>? Triggered { get; }
         IMoveAbility<Card>? MoveAbility { get; }
         ImmutableList<EffectType>? Disallowed { get; }
         IPlayRestriction? PlayRestriction { get; }

@@ -1,17 +1,14 @@
 ﻿using System.Collections.Immutable;
-using Snapdragon.Calculations;
-using Snapdragon.CardConditions;
-using Snapdragon.CardModifiers;
-using Snapdragon.CardTriggers;
 using Snapdragon.Events;
-using Snapdragon.LocationFilters;
+using Snapdragon.Fluent;
+using Snapdragon.Fluent.EffectBuilders;
+using Snapdragon.Fluent.Filters;
+using Snapdragon.Fluent.Selectors;
+using Snapdragon.Fluent.Transforms;
 using Snapdragon.MoveAbilities;
-using Snapdragon.OngoingAbilities;
 using Snapdragon.PlayRestrictions;
 using Snapdragon.RevealAbilities;
-using Snapdragon.Sensors;
 using Snapdragon.TargetFilters;
-using Snapdragon.TriggeredEffects;
 using Snapdragon.Triggers;
 
 namespace Snapdragon
@@ -26,28 +23,44 @@ namespace Snapdragon
     /// </summary>
     public static class SnapCards
     {
+        public static SnapCardsSelector PossibleCards => new SnapCardsSelector();
+
+        /// <summary>
+        /// Self-reference for fluent abilities. Provided here for convenience.
+        /// </summary>
+        public static Fluent.Selectors.Self Self => new Fluent.Selectors.Self();
+
+        /// <summary>
+        /// Convenience reference for the builder for <see cref="OnReveal{Card}"/> abilities.
+        /// </summary>
+        public static Fluent.CardRevealed OnReveal => new Fluent.CardRevealed();
+
+        /// <summary>
+        /// Convenience reference for the builder for <see cref="Ongoing{Card}"/> abilities.
+        /// </summary>
+        public static Fluent.CardOngoing Ongoing => new Fluent.CardOngoing();
+
+        public static HereFilter Here => new HereFilter();
+
         public static readonly ImmutableList<CardDefinition> All = new List<CardDefinition>
         {
             new("Wasp", 0, 1),
+            new("Ant Man", 1, 1, null, Ongoing.If.LocationFull().AdjustPower(Self, 3)),
             new(
-                "Ant Man",
+                "Agent 13",
                 1,
-                1,
-                null,
-                new OngoingAdjustPower<Card>(new SelfIfLocationFull(), new Constant(3))
+                2,
+                OnReveal.AddToHand(new RandomSingleItem<CardDefinition, Card>(), My.Self)
             ),
-            new("Agent 13", 1, 2, new AddRandomCardToHand()),
-            new("Blade", 1, 3, new DiscardCard(new RightmostCardInHand())),
+            new("Blade", 1, 3, OnReveal.Discard(My.Hand.Last())),
             new(
                 "Ebony Maw",
                 1,
                 7,
                 null,
-                new OngoingBlockLocationEffect<Card>(
-                    EffectType.PlayCard,
-                    new CardsHere(),
-                    new SameSide()
-                ),
+                new CardOngoing()
+                    .Block(EffectType.PlayCard)
+                    .ForLocationAndSide(At.Here, new Fluent.Selectors.SameSide()),
                 null,
                 null,
                 null,
@@ -57,23 +70,16 @@ namespace Snapdragon
                 "Elektra",
                 1,
                 2,
-                new DestroyRandomCardsInPlay<Card>(
-                    new OtherSide().And(new CardsWithCost(1)).And(new CardsHere()),
-                    1
-                )
+                // TODO: Make sure not to select indestructible items
+                OnReveal.Destroy(Opposing.Cards.Here().WithCost(1).GetRandom())
             ),
             new(
                 "Hawkeye",
                 1,
                 1,
-                new CreateSensor<CardPlayedEvent>(
-                    new SensorBuilder<CardPlayedEvent>(
-                        new SensorTriggeredAbilityBuilder<CardPlayedEvent>(
-                            new CardPlayedHereNextTurn(),
-                            new GiveParentPowerBuilder<CardPlayedEvent>(3)
-                        )
-                    )
-                )
+                If.NextTurnEvent<CardPlayedEvent>()
+                    .Where(EventCard.AtSensor.And(EventCard.SameSide))
+                    .ModifyPower(new SourceCard(), 3)
             ),
             new(
                 "Human Torch",
@@ -81,65 +87,52 @@ namespace Snapdragon
                 2,
                 null,
                 null,
-                new TriggeredCardAbility<CardMovedEvent>(new OnMoved(), new DoubleSourcePower())
+                When.InPlayAnd<CardMovedEvent>().Where(EventCard.Self).Build(Self.DoublePower())
             ),
-            new(
-                "Iron Fist",
-                1,
-                2,
-                new CreateSensor<CardRevealedEvent>(
-                    new SensorBuilder<CardRevealedEvent>(
-                        new SensorTriggeredAbilityBuilder<CardRevealedEvent>(
-                            new CardRevealed(),
-                            new MoveNextRevealedCardLeft(),
-                            false // Hulkbuster merges don't work if we delete on first activation
-                        )
-                    )
-                )
-            ),
+            new("Iron Fist", 1, 2, When.NextCardRevealed(EventCard.Get.MoveLeft())),
             new("Misty Knight", 1, 2),
             new("Nightcrawler", 1, 2, null, null, null, new CanMoveOnce()),
             new(
                 "Rocket Raccoon",
                 1,
                 2,
-                new OnRevealIf(new OpponentPlayedSameTurn(), new AddPowerSelf(2))
+                OnReveal
+                    .If.PastEvent()
+                    .OfType<CardPlayedEvent>()
+                    .Where(EventCard.OtherSide.And(EventCard.Here))
+                    .Build(Self.ModifyPower(2))
             ),
             new(
                 "Squirrel Girl",
                 1,
                 2,
-                new AddCardsToLocations<Card>(
-                    new CardDefinition("Squirrel", 1, 1),
-                    new OtherLocations(),
-                    new SameSide(),
-                    1
+                OnReveal.Build(
+                    new OtherLocations<Card>().AddCard(
+                        new CardDefinition("Squirrel", 1, 1),
+                        My.Self
+                    )
                 )
             ),
-            new(
-                "America Chavez",
-                2,
-                3,
-                new AddPower(
-                    new TopCardInLibrary<ICard>().And(new SameSide()),
-                    2,
-                    CardState.InLibrary
-                )
-            ),
-            new(
-                "Mantis",
-                2,
-                2,
-                new OnRevealIf(new OpponentPlayedSameTurn(), new DrawOpponentCard())
-            ),
-            new("Medusa", 2, 2, new OnRevealIf(new InLocation(Column.Middle), new AddPowerSelf(3))),
-            new("Okoye", 2, 2, new AddPower(new SameSide(), 1, CardState.InLibrary)),
+            new("America Chavez", 2, 3, OnReveal.Build(My.Library.First().ModifyPower(2))),
+            // TODO: Implement
+            //new(
+            //    "Mantis",
+            //    2,
+            //    2,
+            //    new OnRevealIf(new OpponentPlayedSameTurn(), new DrawOpponentCard())
+            //),
+            new("Medusa", 2, 2, OnReveal.If.InColumn(Column.Middle).Build(Self.ModifyPower(3))),
+            new("Okoye", 2, 2, OnReveal.ModifyPower(My.Library, 1)),
             new("Shocker", 2, 3),
             new(
                 "Star-Lord",
                 2,
                 2,
-                new OnRevealIf(new OpponentPlayedSameTurn(), new AddPowerSelf(3))
+                OnReveal
+                    .If.PastEvent()
+                    .OfType<CardPlayedEvent>()
+                    .Where(EventCard.OtherSide.And(EventCard.Here))
+                    .Build(Self.ModifyPower(3))
             ),
             new(
                 "Angela",
@@ -147,50 +140,38 @@ namespace Snapdragon
                 2,
                 null,
                 null,
-                new TriggeredCardAbility<CardRevealedEvent>(
-                    new OnRevealCardHereSameSide(),
-                    new AddPowerToSource<CardRevealedEvent>(1)
-                )
+                When.InPlayAnd<CardRevealedEvent>()
+                    .Where(EventCard.SameSide.And(EventCard.OtherCards).And(EventCard.Here))
+                    .Build(Self.ModifyPower(1))
             ),
-            new(
-                "Armor",
-                2,
-                3,
-                null,
-                new OngoingBlockLocationEffect<Card>(EffectType.DestroyCard, new CardsHere())
-            ),
-            new(
-                "Cloak",
-                2,
-                4,
-                new CreateSensor<Event>(
-                    new SensorBuilder<Event>(
-                        new ExpiringTriggeredSensorBuilder<Event>(1),
-                        new CanMoveToHereNextTurnBuilder<Card>()
-                    )
-                )
-            ),
-            new("Colleen Wing", 2, 4, new DiscardCard(new LowestCostInHand())),
-            new("Doctor Strange", 2, 3, new MoveCardsToSelf(new OtherHighestPowerCards())),
+            new("Armor", 2, 3, null, Ongoing.Block(EffectType.DestroyCard).ForLocation(Here)),
+            new("Cloak", 2, 4, NextTurn.CanMoveHere()),
+            new("Colleen Wing", 2, 4, OnReveal.Discard(My.Hand.WithMinCost().GetRandom())),
+            new("Doctor Strange", 2, 3, OnReveal.Build(My.OtherCards.WithMaxPower().MoveToHere())),
             new(
                 "Kraven",
                 2,
                 2,
                 null,
                 null,
-                new TriggeredCardAbility<CardMovedEvent>(
-                    new OnCardMovedHere(),
-                    new AddPowerToSource<CardMovedEvent>(2)
-                )
+                When.InPlayAnd<CardMovedEvent>().Where(Moved.ToHere).Build(Self.ModifyPower(2))
             ),
-            new("Hulkbuster", 2, 3, new MergeWithRandomCard()),
+            // TODO: Implement
+            new(
+                "Hulkbuster",
+                2,
+                3,
+                OnReveal.Build(Self.MergeInto(My.OtherCards.Here().GetRandom()))
+            ),
             new(
                 "Multiple Man",
                 2,
                 3,
                 null,
                 null,
-                new TriggeredCardAbility<CardMovedEvent>(new OnMoved(), new AddCopyToOldLocation())
+                When.InPlayAnd<CardMovedEvent>()
+                    .Where(EventCard.Self)
+                    .Build(Self.CopyToLocation(At.PriorLocation))
             ),
             new(
                 "Swarm",
@@ -198,14 +179,15 @@ namespace Snapdragon
                 3,
                 null,
                 null,
-                new WhenDiscarded(new AddCopiesToHand(2, c => c with { Cost = 0 }))
+                When.Discarded.Build(Self.CopyToHand(new WithZeroCost()).Times(2))
             ),
             new(
                 "Agent Coulson",
                 3,
                 4,
-                new AddRandomCardToHand(new CardDefinitionFilters.CardsWithCost(4)).And(
-                    new AddRandomCardToHand(new CardDefinitionFilters.CardsWithCost(5))
+                OnReveal.Build(
+                    My.Self.AddToHand(PossibleCards.WithCost(4).GetRandom())
+                        .And(My.Self.AddToHand(PossibleCards.WithCost(5).GetRandom()))
                 )
             ),
             new(
@@ -214,82 +196,55 @@ namespace Snapdragon
                 1,
                 null,
                 null,
-                new TriggeredCardAbility<CardRevealedEvent>(
-                    new OnRevealCardSameSide(),
-                    new AddPowerToSource<CardRevealedEvent>(1)
-                )
+                When.InPlayAnd<CardRevealedEvent>()
+                    .Where(EventCard.SameSide.And(EventCard.OtherCards))
+                    .Build(Self.ModifyPower(1))
             ),
-            new("Cable", 3, 4, new DrawOpponentCard()),
+            new("Cable", 3, 4, OnReveal.Build(new DrawOpponentCardBuilder())),
             new("Cyclops", 3, 4),
-            new("Green Goblin", 3, -3, new SwitchSides()),
-            new(
-                "Ironheart",
-                3,
-                0,
-                new AddPowerRandomly<Card>(new SameSide().And(new OtherCards()), 2, 3)
-            ),
-            new("Lady Sif", 3, 5, new DiscardCard(new HighestCostInHand())),
+            new("Green Goblin", 3, -3, OnReveal.Build(Self.SwitchSides())),
+            new("Ironheart", 3, 0, OnReveal.ModifyPower(My.OtherCards.GetRandom(3), 2)),
+            new("Lady Sif", 3, 5, OnReveal.Discard(My.Hand.WithMaxCost().GetRandom())),
             new(
                 "Mister Fantastic",
                 3,
                 2,
                 null,
-                new OngoingAddLocationPower<Card>(new AdjacentToCard(), new Constant(2))
+                Ongoing.AdjustLocationPower(new AdjacentLocations(), 2)
             ),
-            new("Nakia", 3, 3, new ModifyCardsInOwnerHand(new ModifyCardPower(1))),
-            new("Sword Master", 3, 6, new DiscardCard()),
+            new("Nakia", 3, 3, OnReveal.ModifyPower(My.Hand, 1)),
+            new("Sword Master", 3, 6, OnReveal.Discard(My.Hand.GetRandom())),
             new(
                 "Vulture",
                 3,
                 3,
                 null,
                 null,
-                new TriggeredCardAbility<CardMovedEvent>(
-                    new OnMoved(),
-                    new AddPowerToSource<CardMovedEvent>(5)
-                )
+                When.InPlayAnd<CardMovedEvent>().Where(EventCard.Self).Build(Self.ModifyPower(5))
             ),
             new(
                 "Wolfsbane",
                 3,
                 1,
-                new AddPowerSelf(
-                    new PowerPerCard(new OtherCards().And(new SameSide()).And(new CardsHere()), 2)
-                )
+                OnReveal.Build(Self.ModifyPower(2).Times(My.OtherCards.Here().Count()))
             ),
-            new("Ghost Rider", 4, 3, new ReturnOneDiscardToHere()),
-            new(
-                "Ka-Zar",
-                4,
-                4,
-                null,
-                new OngoingAdjustPower<Card>(
-                    new CardsWithCost(1).And(new SameSide()),
-                    new Constant(1)
-                )
-            ),
+            new("Ghost Rider", 4, 3, OnReveal.Build(My.Discards.GetRandom().ReturnDiscardTo(Here))),
+            new("Ka-Zar", 4, 4, null, Ongoing.AdjustPower(My.OtherCards.WithCost(1), 1)),
             new(
                 "Jessica Jones",
                 4,
                 5,
-                new CreateSensor<TurnEndedEvent>(
-                    new SensorBuilder<TurnEndedEvent>(
-                        new SensorTriggeredAbilityBuilder<TurnEndedEvent>(
-                            new NoCardPlayedHereNextTurn(),
-                            new GiveParentPowerBuilder<TurnEndedEvent>(4)
-                        )
-                    )
-                )
+                If.NoNextTurnEvent<CardPlayedEvent>()
+                    .Where(EventCard.Here.And(EventCard.SameSide))
+                    .ModifyPower(new SourceCard(), 4)
             ),
-            new("Mister Negative", 4, -1, new ModifyCardsInOwnerDeck(new SwapCostAndPower())),
+            new("Mister Negative", 4, -1, OnReveal.Build(My.Library.SwapCostAndPower())),
             new(
                 "Sentry",
                 4,
                 10,
-                new AddCardsToLocations<Card>(
-                    new CardDefinition("Void", 4, -10),
-                    new SpecificLocation(Column.Right),
-                    new SameSide()
+                OnReveal.Build(
+                    new SpecificLocation(Column.Right).AddCard(new CardDefinition("Void", 4, -10))
                 ),
                 null,
                 null,
@@ -298,43 +253,56 @@ namespace Snapdragon
                 new CannotPlayInColumn(Column.Right)
             ),
             new("The Thing", 4, 6),
+            new("Blue Marvel", 5, 3, null, Ongoing.AdjustPower(My.OtherCards, 1)),
             new(
-                "Blue Marvel",
+                "Gamora",
                 5,
-                3,
-                null,
-                new OngoingAdjustPower<Card>(new OtherCards().And(new SameSide()), new Constant(1))
+                8,
+                OnReveal
+                    .If.PastEvent()
+                    .OfType<CardPlayedEvent>()
+                    .Where(EventCard.OtherSide.And(EventCard.Here))
+                    .Build(Self.ModifyPower(4))
             ),
-            new("Gamora", 5, 7, new OnRevealIf(new OpponentPlayedSameTurn(), new AddPowerSelf(5))),
-            new("Hobgoblin", 5, -8, new SwitchSides()),
-            new(
-                "Klaw",
-                5,
-                4,
-                null,
-                new OngoingAddLocationPower<Card>(new ToTheRight(), new Constant(6))
-            ),
+            new("Hobgoblin", 5, -8, OnReveal.Build(Self.SwitchSides())),
+            new("Klaw", 5, 4, null, Ongoing.AdjustLocationPower(new LocationToTheRight(), 6)),
             new(
                 "White Tiger",
                 5,
                 1,
-                new AddCardToRandomLocation(
-                    new CardDefinition("Tiger Spirit", 5, 8),
-                    new OtherLocations()
+                OnReveal.Build(
+                    new OtherLocations<Card>()
+                        .WithOpenSlots(My.Self)
+                        .GetRandom()
+                        .AddCard(new CardDefinition("Tiger Spirit", 5, 8))
                 )
             ),
-            new("Iron Man", 5, 0, null, new DoubleLocationPower()),
+            new("Iron Man", 5, 0, null, new OngoingAbilities.DoubleLocationPower()),
             new(
                 "Apocalypse",
                 6,
                 8,
                 null,
                 null,
-                new WhenDiscarded(new ReturnCardToHand(c => c with { Power = c.Power + 4 }))
+                When.Discarded.Build(Self.ModifyPower(4).And(Self.ReturnToHand()))
             ),
-            new("Spectrum", 6, 7, new AddPower(new SameSide().And(new WithOngoingAbility()), 2)),
-            new("Heimdall", 6, 9, new MoveCardsLeft(new OtherCards().And(new SameSide()))),
-            new("Hela", 6, 6, new ReturnAllDiscardsToPlay()),
+            new(
+                "Spectrum",
+                6,
+                7,
+                OnReveal.Build(My.OtherCards.WithOngoingAbilities().ModifyPower(2))
+            ),
+            new("Heimdall", 6, 9, OnReveal.Build(My.OtherCards.MoveLeft())),
+            new(
+                "Hela",
+                6,
+                6,
+                OnReveal.Build(
+                    My.Discards.First()
+                        .ReturnDiscardTo(new AllLocations().WithOpenSlots(My.Self).GetRandom())
+                        .Times(My.Discards.Count())
+                )
+            ),
             new("Hulk", 6, 12)
         }
             .OrderBy(c => c.Cost)
@@ -343,5 +311,13 @@ namespace Snapdragon
 
         public static readonly ImmutableDictionary<string, CardDefinition> ByName =
             All.ToImmutableDictionary(cd => cd.Name);
+
+        public static void Sandbox()
+        {
+            var withCost = new WithCost(4);
+
+            FilterExtensions.GetRandom<CardDefinition, object>(withCost);
+            FilterExtensions.GetRandom((IFilter<CardDefinition, object>)withCost);
+        }
     }
 }

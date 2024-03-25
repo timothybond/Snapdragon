@@ -1,6 +1,6 @@
 ﻿namespace Snapdragon.Fluent.Selectors
 {
-    public record AdjacentLocations : ILocationSelector<IObjectWithColumn>
+    public record AdjacentLocations : ISelector<Location, IObjectWithColumn>
     {
         public IEnumerable<Location> Get(IObjectWithColumn context, Game game)
         {

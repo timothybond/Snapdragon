@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using Snapdragon.Fluent;
 
 namespace Snapdragon
 {
@@ -17,9 +18,9 @@ namespace Snapdragon
         Side Side,
         Column? Column,
         int? PowerAdjustment,
-        IRevealAbility<Card>? OnReveal = null,
-        IOngoingAbility<Card>? Ongoing = null,
-        ITriggeredCardAbility? Triggered = null,
+        OnReveal<Card>? OnReveal = null,
+        Ongoing<Card>? Ongoing = null,
+        ITriggeredAbility<ICard>? Triggered = null,
         IMoveAbility<Card>? MoveAbility = null,
         ImmutableList<EffectType>? Disallowed = null,
         IPlayRestriction? PlayRestriction = null

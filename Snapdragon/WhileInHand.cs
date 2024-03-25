@@ -8,9 +8,9 @@
         : BaseTriggeredCardAbility<TEvent>
         where TEvent : Event
     {
-        public override bool InHand => true;
-        public override bool InDeck => false;
-        public override bool DiscardedOrDestroyed => false;
+        public override bool WhenInHand => true;
+        public override bool WhenInDeck => false;
+        public override bool WhenDiscardedOrDestroyed => false;
 
         protected override Game ProcessEvent(Game game, TEvent e, ICard source)
         {

@@ -7,16 +7,7 @@
         [TestCase(Side.Bottom, Column.Middle)]
         public void NoCardsPlayed_PowerIsNine(Side side, Column column)
         {
-            var game = TestHelpers.PlayCards(
-                5,
-                side == Side.Top ? new[] { ("Jessica Jones", column) } : new (string, Column)[] { },
-                side == Side.Bottom
-                    ? new[] { ("Jessica Jones", column) }
-                    : new (string, Column)[] { }
-            );
-
-            var engine = new Engine(new NullLogger());
-            game = game.PlaySingleTurn();
+            var game = TestHelpers.PlayCards(side, column, "Jessica Jones").PlaySingleTurn();
 
             Assert.That(game[column][side].Count, Is.EqualTo(1));
 
@@ -31,22 +22,10 @@
         [TestCase(Side.Bottom, Column.Middle)]
         public void CardPlayed_PowerRemainsAtFive(Side side, Column column)
         {
-            var game = TestHelpers.PlayCards(
-                5,
-                side == Side.Top ? new[] { ("Jessica Jones", column) } : new (string, Column)[] { },
-                side == Side.Bottom
-                    ? new[] { ("Jessica Jones", column) }
-                    : new (string, Column)[] { }
-            );
-
-            game = TestHelpers.PlayCards(
-                game,
-                6,
-                side == Side.Top ? new[] { ("Misty Knight", column) } : new (string, Column)[] { },
-                side == Side.Bottom
-                    ? new[] { ("Misty Knight", column) }
-                    : new (string, Column)[] { }
-            );
+            var game = TestHelpers
+                .PlayCards(side, column, "Jessica Jones")
+                .PlayCards(side, column, "Misty Knight")
+                .PlaySingleTurn();
 
             Assert.That(game[column][side].Count, Is.EqualTo(2));
 

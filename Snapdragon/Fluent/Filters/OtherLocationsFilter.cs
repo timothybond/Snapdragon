@@ -5,7 +5,7 @@
     ///
     /// Note this is defined for items that may not have a location (in which case all locations are returned).
     /// </summary>
-    public record OtherLocationsFilter : ILocationSelector<IObjectWithPossibleColumn>
+    public record OtherLocationsFilter : ISelector<Location, IObjectWithPossibleColumn>
     {
         public IEnumerable<Location> Get(IObjectWithPossibleColumn context, Game game)
         {

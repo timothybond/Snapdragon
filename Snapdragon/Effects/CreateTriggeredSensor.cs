@@ -1,7 +1,9 @@
 ﻿namespace Snapdragon.Effects
 {
-    public record CreateTriggeredSensor(Card Source, ITriggeredAbility<Sensor<Card>> SensorAbility)
-        : IEffect
+    public record CreateTriggeredSensor(
+        Card Source,
+        ITriggeredAbility<Sensor<Card>> TriggeredAbility
+    ) : IEffect
     {
         public Game Apply(Game game)
         {
@@ -12,7 +14,7 @@
                 Source.Column,
                 Source.Side,
                 Source,
-                null, // TODO - Enable ability
+                TriggeredAbility,
                 null,
                 game.Turn
             );

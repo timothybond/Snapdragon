@@ -1,6 +1,7 @@
 ﻿namespace Snapdragon.Fluent.Calculations
 {
-    public record CardPower<TContext>(ISingleCardSelector<TContext> Selector) : ICalculation<TContext>
+    public record CardPower<TContext>(ISingleItemSelector<ICard, TContext> Selector)
+        : ICalculation<TContext>
         where TContext : class
     {
         public int GetValue(TContext context, Game game)

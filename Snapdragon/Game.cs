@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using Snapdragon.Events;
+using Snapdragon.Fluent;
 using Snapdragon.OngoingAbilities;
 
 namespace Snapdragon
@@ -88,7 +89,7 @@ namespace Snapdragon
         public IEnumerable<Sensor<Card>> AllSensors =>
             this.Left.Sensors.Concat(this.Middle.Sensors).Concat(this.Right.Sensors);
 
-        public IEnumerable<(IOngoingAbility<Card> Ability, Card Source)> GetCardOngoingAbilities()
+        public IEnumerable<(Ongoing<Card> Ability, Card Source)> GetCardOngoingAbilities()
         {
             foreach (var column in All.Columns)
             {
@@ -106,7 +107,7 @@ namespace Snapdragon
         }
 
         public IEnumerable<(
-            IOngoingAbility<Location> Ability,
+            Ongoing<Location> Ability,
             Location Source
         )> GetLocationOngoingAbilities()
         {
@@ -133,9 +134,16 @@ namespace Snapdragon
             {
                 if (source.Ongoing is OngoingBlockLocationEffect<Card> blockLocationEffect)
                 {
-                    if (blockLocationEffect.Applies(location, side, source, this))
+                    // TODO: see if we can reduce the redundancy here
+                    if (
+                        blockLocationEffect.Selector.Get(source, this).Any(l => l.Column == column)
+                        && (blockLocationEffect.Condition?.IsMet(source, this) ?? true)
+                    )
                     {
-                        set.Add(blockLocationEffect.EffectType);
+                        foreach (var blockedEffect in blockLocationEffect.BlockedEffects)
+                        {
+                            set.Add(blockedEffect);
+                        }
                     }
                 }
             }
@@ -148,9 +156,16 @@ namespace Snapdragon
                         is OngoingBlockLocationEffect<Location> blockLocationEffect
                 )
                 {
-                    if (blockLocationEffect.Applies(location, side, loc, this))
+                    // TODO: see if we can reduce the redundancy here
+                    if (
+                        blockLocationEffect.Selector.Get(loc, this).Any(l => l.Column == column)
+                        && (blockLocationEffect.Condition?.IsMet(loc, this) ?? true)
+                    )
                     {
-                        set.Add(blockLocationEffect.EffectType);
+                        foreach (var blockedEffect in blockLocationEffect.BlockedEffects)
+                        {
+                            set.Add(blockedEffect);
+                        }
                     }
                 }
             }
@@ -187,11 +202,13 @@ namespace Snapdragon
 
             foreach (var source in cardsWithCardEffectBlocks ?? AllCards)
             {
-                if (source.Ongoing is OngoingBlockCardEffect<ICard> blockCardEffect)
+                if (source.Ongoing is OngoingBlockCardEffect<Card> blockCardEffect)
                 {
-                    if (blockCardEffect.Applies(card, source, this))
+                    // TODO: see if we can reduce the redundancy here
+                    if (blockCardEffect.Selector.Get(source, this).Any(c => c.Id == card.Id))
                     {
-                        set.Add(blockCardEffect.EffectType);
+                        foreach (var blockedEffect in blockCardEffect.BlockedEffects)
+                            set.Add(blockedEffect);
                     }
                 }
             }
@@ -353,7 +370,7 @@ namespace Snapdragon
 
             if (location.Definition.OnReveal != null)
             {
-                game = location.Definition.OnReveal.Activate(game, location);
+                game = location.Definition.OnReveal.Apply(location, game).Apply(game);
             }
 
             return game;
@@ -668,7 +685,7 @@ namespace Snapdragon
                 {
                     if (c.OnReveal != null)
                     {
-                        g = c.OnReveal.Activate(g, c);
+                        g = c.OnReveal.Apply(c, g).Apply(g);
 
                         // This is to ensure that cards that get modified by their own reveal
                         // abilities get attached to the reveal event in their modified state.
@@ -852,16 +869,13 @@ namespace Snapdragon
             for (var i = 0; i < originalState.Top.Discards.Count; i++)
             {
                 var discardedOrDestroyedCard = originalState.Top.Discards[i];
-                if (discardedOrDestroyedCard.Triggered != null)
+                if (discardedOrDestroyedCard.Triggered?.DiscardedOrDestroyed() ?? false)
                 {
-                    if (discardedOrDestroyedCard.Triggered.DiscardedOrDestroyed)
-                    {
-                        game = discardedOrDestroyedCard.Triggered.ProcessEvent(
-                            game,
-                            nextEvent,
-                            discardedOrDestroyedCard
-                        );
-                    }
+                    game = discardedOrDestroyedCard.Triggered.ProcessEvent(
+                        game,
+                        nextEvent,
+                        discardedOrDestroyedCard
+                    );
                 }
             }
 
@@ -870,7 +884,7 @@ namespace Snapdragon
                 var discardedOrDestroyedCard = originalState.Top.Destroyed[i];
                 if (discardedOrDestroyedCard.Triggered != null)
                 {
-                    if (discardedOrDestroyedCard.Triggered.DiscardedOrDestroyed)
+                    if (discardedOrDestroyedCard.Triggered.DiscardedOrDestroyed())
                     {
                         game = discardedOrDestroyedCard.Triggered.ProcessEvent(
                             game,
@@ -884,16 +898,13 @@ namespace Snapdragon
             for (var i = 0; i < originalState.Bottom.Discards.Count; i++)
             {
                 var discardedOrDestroyedCard = originalState.Bottom.Discards[i];
-                if (discardedOrDestroyedCard.Triggered != null)
+                if (discardedOrDestroyedCard.Triggered?.DiscardedOrDestroyed() ?? false)
                 {
-                    if (discardedOrDestroyedCard.Triggered.DiscardedOrDestroyed)
-                    {
-                        game = discardedOrDestroyedCard.Triggered.ProcessEvent(
-                            game,
-                            nextEvent,
-                            discardedOrDestroyedCard
-                        );
-                    }
+                    game = discardedOrDestroyedCard.Triggered.ProcessEvent(
+                        game,
+                        nextEvent,
+                        discardedOrDestroyedCard
+                    );
                 }
             }
 
@@ -902,7 +913,7 @@ namespace Snapdragon
                 var discardedOrDestroyedCard = originalState.Bottom.Destroyed[i];
                 if (discardedOrDestroyedCard.Triggered != null)
                 {
-                    if (discardedOrDestroyedCard.Triggered.DiscardedOrDestroyed)
+                    if (discardedOrDestroyedCard.Triggered.DiscardedOrDestroyed())
                     {
                         game = discardedOrDestroyedCard.Triggered.ProcessEvent(
                             game,
@@ -918,7 +929,7 @@ namespace Snapdragon
                 var cardInHand = originalState.Top.Hand[i];
                 if (cardInHand.Triggered != null)
                 {
-                    if (cardInHand.Triggered.InHand)
+                    if (cardInHand.Triggered.InHand())
                     {
                         game = cardInHand.Triggered.ProcessEvent(game, nextEvent, cardInHand);
                     }
@@ -930,7 +941,7 @@ namespace Snapdragon
                 var cardInHand = originalState.Bottom.Hand[i];
                 if (cardInHand.Triggered != null)
                 {
-                    if (cardInHand.Triggered.InHand)
+                    if (cardInHand.Triggered.InHand())
                     {
                         game = cardInHand.Triggered.ProcessEvent(game, nextEvent, cardInHand);
                     }
@@ -942,7 +953,7 @@ namespace Snapdragon
                 var cardInLibrary = originalState.Top.Library.Cards[i];
                 if (cardInLibrary.Triggered != null)
                 {
-                    if (cardInLibrary.Triggered.InDeck)
+                    if (cardInLibrary.Triggered.InDeck())
                     {
                         game =
                             cardInLibrary.Triggered?.ProcessEvent(game, nextEvent, cardInLibrary)
@@ -956,7 +967,7 @@ namespace Snapdragon
                 var cardInLibrary = originalState.Bottom.Library.Cards[i];
                 if (cardInLibrary.Triggered != null)
                 {
-                    if (cardInLibrary.Triggered.InDeck)
+                    if (cardInLibrary.Triggered.InDeck())
                     {
                         game =
                             cardInLibrary.Triggered?.ProcessEvent(game, nextEvent, cardInLibrary)
@@ -1007,11 +1018,8 @@ namespace Snapdragon
         /// </summary>
         private int? GetPowerAdjustment(
             Card card,
-            IReadOnlyList<(IOngoingAbility<Card> Ability, Card Source)> ongoingCardAbilities,
-            IReadOnlyList<(
-                IOngoingAbility<Location> Ability,
-                Location Source
-            )> ongoingLocationAbilities,
+            IReadOnlyList<(Ongoing<Card> Ability, Card Source)> ongoingCardAbilities,
+            IReadOnlyList<(Ongoing<Location> Ability, Location Source)> ongoingLocationAbilities,
             Game game
         )
         {
@@ -1022,10 +1030,10 @@ namespace Snapdragon
             {
                 if (ongoing.Ability is OngoingAdjustPower<Card> adjustPower)
                 {
-                    var adjustment = adjustPower.Apply(card, ongoing.Source, game);
-                    if (adjustment.HasValue)
+                    // TODO: Reduce redundancy here
+                    if (adjustPower.Selector.Get(ongoing.Source, this).Any(c => c.Id == card.Id))
                     {
-                        total += adjustment.Value;
+                        total += adjustPower.Amount;
                         any = true;
                     }
                 }
@@ -1035,10 +1043,10 @@ namespace Snapdragon
             {
                 if (ongoing.Ability is OngoingAdjustPower<Location> adjustPower)
                 {
-                    var adjustment = adjustPower.Apply(card, ongoing.Source, game);
-                    if (adjustment.HasValue)
+                    // TODO: Reduce redundancy here
+                    if (adjustPower.Selector.Get(ongoing.Source, this).Any(c => c.Id == card.Id))
                     {
-                        total += adjustment.Value;
+                        total += adjustPower.Amount;
                         any = true;
                     }
                 }
@@ -1069,12 +1077,16 @@ namespace Snapdragon
                 // Now apply any ongoing effects that ADD power to a location (e.g. Mister Fantastic, Klaw)
                 foreach (var card in this.AllCards)
                 {
-                    if (card.Ongoing is OngoingAddLocationPower<Card> addLocationPower)
+                    if (card.Ongoing is OngoingAdjustLocationPower<Card> addLocationPower)
                     {
-                        if (addLocationPower.LocationFilter.Applies(location, card, this))
+                        if (
+                            addLocationPower
+                                .Selector.Get(card, this)
+                                .Any(l => l.Column == location.Column)
+                        )
                         {
                             // TODO: Deal with the fact that the card isn't the "target"
-                            var power = addLocationPower.Amount.GetValue(this, card, card);
+                            var power = addLocationPower.Amount;
 
                             // TODO: Check if anything adds power to the opposite side (probably the case)
                             scores = scores.WithAddedPower(power, column, card.Side);

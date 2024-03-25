@@ -2,7 +2,7 @@
 
 namespace Snapdragon.Effects
 {
-    public abstract record ModifyCard(CardInstance Card) : IEffect
+    public abstract record ModifyCard(ICard Card) : IEffect
     {
         public Game Apply(Game game)
         {
@@ -13,7 +13,7 @@ namespace Snapdragon.Effects
                     var library = game[Card.Side].Library;
                     library = new Library(
                         library
-                            .Cards.Select(c => this.ApplyToCard(c, game).ToCardInstance())
+                            .Cards.Select(c => this.ApplyToPossibleCard(c, game).ToCardInstance())
                             .ToImmutableList()
                     );
 
@@ -22,7 +22,8 @@ namespace Snapdragon.Effects
 
                 case CardState.InHand:
                     var hand = game[Card.Side].Hand;
-                    hand = hand.Select(c => this.ApplyToCard(c, game).ToCardInstance()).ToImmutableList();
+                    hand = hand.Select(c => this.ApplyToPossibleCard(c, game).ToCardInstance())
+                        .ToImmutableList();
 
                     var playerWithHand = game[Card.Side] with { Hand = hand };
                     return game.WithPlayer(playerWithHand);
@@ -44,14 +45,15 @@ namespace Snapdragon.Effects
                         return game;
                     }
 
+                    // TODO: See if we can clear up the weird round-trip here
                     return game.WithModifiedCard(
                         actualCard,
-                        c => this.ApplyToCard(c, game).InPlayAt(c.Column)
+                        c => this.ApplyToPossibleCard(c, game).InPlayAt(c.Column)
                     );
                 case CardState.Destroyed:
                     var playerWithDestroyed = game[Card.Side];
                     var destroyed = playerWithDestroyed
-                        .Destroyed.Select(c => this.ApplyToCard(c, game).ToCardInstance())
+                        .Destroyed.Select(c => this.ApplyToPossibleCard(c, game).ToCardInstance())
                         .ToImmutableList();
 
                     playerWithDestroyed = playerWithDestroyed with { Destroyed = destroyed };
@@ -59,7 +61,7 @@ namespace Snapdragon.Effects
                 case CardState.Discarded:
                     var playerWithDiscards = game[Card.Side];
                     var discards = playerWithDiscards
-                        .Discards.Select(c => this.ApplyToCard(c, game).ToCardInstance())
+                        .Discards.Select(c => this.ApplyToPossibleCard(c, game).ToCardInstance())
                         .ToImmutableList();
 
                     playerWithDiscards = playerWithDiscards with { Discards = discards };
@@ -75,48 +77,26 @@ namespace Snapdragon.Effects
         /// <param name="possibleCard">A card to which the effect might (but does not necessarily) apply.</param>
         /// <param name="game">The overall game state.</param>
         /// <returns>The modified card (or, for a non-match or blocked effect, the original card).</returns>
-        private ICard ApplyToCard(ICard possibleCard, Game game)
+        protected ICard ApplyToPossibleCard(ICard possibleCard, Game game)
         {
             if (possibleCard.Id != Card.Id)
             {
                 return possibleCard;
             }
 
-            var blockedEffects = possibleCard is Card possibleCardInPlay
-                ? game.GetBlockedEffects(possibleCardInPlay)
-                : new HashSet<EffectType>();
-
-            if (possibleCard.Column != null)
+            if (IsBlocked(possibleCard, game))
             {
-                blockedEffects = blockedEffects
-                    .Concat(game.GetBlockedEffects(possibleCard.Column.Value, possibleCard.Side))
-                    .ToHashSet();
+                return possibleCard;
             }
 
-            foreach (var effectType in this.EffectTypes())
-            {
-                if (blockedEffects.Contains(effectType))
-                {
-                    return possibleCard;
-                }
-            }
-
-            return WithModification(possibleCard);
+            return ApplyToCard(possibleCard, game);
         }
 
-        /// <summary>
-        /// Gets any <see cref="EffectType"/> that this counts as (for determining if it's blocked).
-        /// </summary>
-        protected abstract IEnumerable<EffectType> EffectTypes();
+        protected abstract bool IsBlocked(ICard card, Game game);
 
         /// <summary>
-        /// Gets the <see cref="Card"/> with the modification applied.
-        ///
-        /// This is only called once we determine that the card in question should be modified
-        /// (including that the effect is not blocked).
+        /// Performs the actual modification on a matched card that was checked elsewhere for relevant blocked effects.
         /// </summary>
-        /// <param name="card"></param>
-        /// <returns></returns>
-        protected abstract ICard WithModification(ICard card);
+        protected abstract ICard ApplyToCard(ICard card, Game game);
     }
 }

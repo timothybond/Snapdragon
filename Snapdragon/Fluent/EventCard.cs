@@ -25,10 +25,23 @@ namespace Snapdragon.Fluent
         public static IEventFilter<CardEvent, IObjectWithSide> SameSide => new ThisSideFilter();
 
         /// <summary>
+        /// Filters events to those on the oppose side as the contex item.
+        /// </summary>
+        public static IEventFilter<CardEvent, IObjectWithSide> OtherSide => new OtherSideFilter();
+
+        /// <summary>
+        /// Filters events to those on different cards than the contex item.
+        /// </summary>
+        public static IEventFilter<CardEvent, ICard> OtherCards => new OtherCardsFilter();
+
+        public static ISingleItemSelector<Player, CardEvent, object> Player =>
+            new EventCardSide<object>();
+
+        /// <summary>
         /// Filters events to those that specifically involve the context card.
         /// </summary>
         public static IEventFilter<CardEvent, ICard> Self => new Self();
 
-        public static ICardSelector<CardEvent, object> Get => new EventCardSelector();
+        public static ISingleItemSelector<ICard, CardEvent, object> Get => new EventCardSelector();
     }
 }

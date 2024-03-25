@@ -12,7 +12,7 @@ namespace Snapdragon.Runner.Experiments
 
             var selfPlay = new PopulationSelfPlay(
                 Guid.NewGuid(),
-                "Without Ka-Zar Self-Play",
+                "Without Ka-Zar Self-Play 128x200x40",
                 DateTimeOffset.UtcNow,
                 repositoryBuilder
             );
@@ -27,11 +27,11 @@ namespace Snapdragon.Runner.Experiments
                 new RandomCardOrder()
             );
 
-            await selfPlay.Run(withoutKaZar, "without-ka-zar-solo", 64, 100, 10);
+            await selfPlay.Run(withoutKaZar, "without-ka-zar-solo", 128, 200, 40);
 
             selfPlay = new PopulationSelfPlay(
                 Guid.NewGuid(),
-                "With Ka-Zar Pinned Self-Play",
+                "With Ka-Zar Pinned Self-Play 128x200x40",
                 DateTimeOffset.UtcNow,
                 repositoryBuilder
             );
@@ -44,7 +44,7 @@ namespace Snapdragon.Runner.Experiments
                 new RandomCardOrder()
             );
 
-            await selfPlay.Run(kaZarPinned, "with-ka-zar-pinned-solo", 64, 100, 10);
+            await selfPlay.Run(kaZarPinned, "with-ka-zar-pinned-solo", 128, 200, 40);
         }
     }
 }

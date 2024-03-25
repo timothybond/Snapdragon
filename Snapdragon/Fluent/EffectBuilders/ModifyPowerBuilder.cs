@@ -9,39 +9,24 @@ namespace Snapdragon.Fluent.EffectBuilders
     /// <param name="CardSelector">Selector to get affected cards.</param>
     /// <param name="Amount">Amount of power to add (or subtract)</param>
     public record ModifyPowerBuilder<TContext>(
-        ICardSelector<TContext> CardSelector,
+        ISelector<ICard, TContext> CardSelector,
         ICalculation<TContext> Amount
-    ) : IEffectBuilder<TContext>
+    ) : BaseCardEffectBuilder<TContext>(CardSelector)
         where TContext : class
     {
-        public ModifyPowerBuilder(ICardSelector<TContext> CardSelector, int Amount)
+        public ModifyPowerBuilder(ISelector<ICard, TContext> CardSelector, int Amount)
             : this(CardSelector, new ConstantValue(Amount)) { }
 
-        public IEffect Build(TContext context, Game game)
+        protected override IEffect BuildCardEffect(ICard card, TContext context, Game game)
         {
-            var cards = CardSelector.Get(context, game).ToList();
-
-            if (cards.Count == 0)
-            {
-                return new NullEffect();
-            }
-
-            var effects = cards.Select(card => new AddPowerToCard(
-                card,
-                Amount.GetValue(context, game)
-            ));
-
-            return effects.Aggregate<IEffect, IEffect>(
-                new NullEffect(),
-                (accEffect, effects) => new AndEffect(accEffect, effects)
-            );
+            return new AddPowerToCard(card, Amount.GetValue(context, game));
         }
     }
 
     public static class ModifyPowerExtensions
     {
         public static ModifyPowerBuilder<TContext> ModifyPower<TContext>(
-            this ICardSelector<TContext> cardSelector,
+            this ISelector<ICard, TContext> cardSelector,
             ICalculation<TContext> amount
         )
             where TContext : class
@@ -50,7 +35,7 @@ namespace Snapdragon.Fluent.EffectBuilders
         }
 
         public static ModifyPowerBuilder<TContext> ModifyPower<TContext>(
-            this ICardSelector<TContext> cardSelector,
+            this ISelector<ICard, TContext> cardSelector,
             int amount
         )
             where TContext : class
@@ -59,7 +44,7 @@ namespace Snapdragon.Fluent.EffectBuilders
         }
 
         public static ModifyPowerBuilder<TContext> DoublePower<TContext>(
-            this ISingleCardSelector<TContext> cardSelector
+            this ISingleItemSelector<ICard, TContext> cardSelector
         )
             where TContext : class
         {

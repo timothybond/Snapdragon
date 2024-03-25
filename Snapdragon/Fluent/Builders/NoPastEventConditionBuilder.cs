@@ -17,4 +17,28 @@
             );
         }
     }
+
+    public record NoPastEventConditionBuilder<TAbility, TEvent, TContext, TOutcome>(
+        IConditionBuilder<TAbility, TEvent, TContext, TOutcome> PriorBuilder
+    )
+        where TEvent : Event
+    {
+        public NoPastEventOfTypeConditionBuilder<
+            TPastEvent,
+            TAbility,
+            TEvent,
+            TContext,
+            TOutcome
+        > OfType<TPastEvent>()
+            where TPastEvent : Event
+        {
+            return new NoPastEventOfTypeConditionBuilder<
+                TPastEvent,
+                TAbility,
+                TEvent,
+                TContext,
+                TOutcome
+            >(PriorBuilder);
+        }
+    }
 }

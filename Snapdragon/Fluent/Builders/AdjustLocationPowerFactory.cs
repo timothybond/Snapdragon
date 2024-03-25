@@ -1,7 +1,7 @@
 ﻿namespace Snapdragon.Fluent.Builders
 {
     public record AdjustLocationPowerFactory<TContext>(
-        ILocationSelector<TContext> Selector,
+        ISelector<Location, TContext> Selector,
         int Amount
     ) : IOngoingAbilityFactory<TContext>
     {

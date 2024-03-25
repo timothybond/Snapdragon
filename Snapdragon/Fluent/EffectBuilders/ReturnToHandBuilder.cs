@@ -2,7 +2,7 @@
 
 namespace Snapdragon.Fluent.EffectBuilders
 {
-    public record ReturnToHandBuilder<TContext>(ICardSelector<TContext> CardSelector)
+    public record ReturnToHandBuilder<TContext>(ISelector<ICard, TContext> CardSelector)
         : IEffectBuilder<TContext>
     {
         public IEffect Build(TContext context, Game game)
@@ -21,7 +21,7 @@ namespace Snapdragon.Fluent.EffectBuilders
     public static class ReturnToHandExtensions
     {
         public static ReturnToHandBuilder<TContext> ReturnToHand<TContext>(
-            this ICardSelector<TContext> cardSelector
+            this ISelector<ICard, TContext> cardSelector
         )
             where TContext : class
         {

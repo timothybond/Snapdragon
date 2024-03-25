@@ -13,6 +13,11 @@ namespace Snapdragon.Effects
                 return game;
             }
 
+            if (game.GetBlockedEffects(card).Contains(EffectType.DestroyCard))
+            {
+                return game;
+            }
+
             var location = game[card.Column];
             location = location.WithoutCard(card);
 

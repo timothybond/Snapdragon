@@ -1,10 +1,10 @@
 ﻿namespace Snapdragon.Fluent.Selectors
 {
-    public record EventCardSelector : ICardSelector<CardEvent, object>
+    public record EventCardSelector : ISingleItemSelector<ICard, CardEvent, object>
     {
-        public IEnumerable<ICard> Get(CardEvent e, object context, Game game)
+        public ICard? GetOrDefault(CardEvent e, object context, Game game)
         {
-            yield return e.Card;
+            return e.Card;
         }
     }
 }

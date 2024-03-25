@@ -5,9 +5,9 @@
     ///
     /// (As far as I know this is only used to get the rightmost card in a player's hand, for Blade.)
     /// </summary>
-    public record LastOf : ISingleCardFilter<object>
+    public record LastOf<TSelected> : ISingleItemFilter<TSelected, object>
     {
-        public ICard? GetOrDefault(IEnumerable<ICard> initial, object context)
+        public TSelected? GetOrDefault(IEnumerable<TSelected> initial, object context, Game game)
         {
             var items = initial.ToList();
 
@@ -16,7 +16,7 @@
                 return items[items.Count - 1];
             }
 
-            return null;
+            return default;
         }
     }
 }

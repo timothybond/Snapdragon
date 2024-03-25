@@ -21,13 +21,13 @@ namespace Snapdragon.Fluent.Builders
         {
             var trigger = When
                 .Sensor.InPlayAnd<TurnEndedEvent>()
-                .Where(new TurnAfterRevealFilter<Sensor<Card>>())
-                .If.PastEvent() // TODO: Invert
+                .Where(new TurnAfterReveal<Sensor<Card>>())
+                .If.NoPastEvent()
                 .OfType<TFilteredEventType>()
                 .Where(eventFilter.And(new CurrentTurnFilter()))
                 .Build(outcome.And(new DestroySensorBuilder()));
 
-            return new CardRevealed().Build(new CreateSensorBuilder(trigger));
+            return new CardRevealed().Build(new CreateTriggeredSensorBuilder(trigger));
         }
     }
 }

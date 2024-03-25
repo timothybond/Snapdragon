@@ -3,9 +3,9 @@
     /// <summary>
     /// A filter that gets all cards from the given set that are tied for minimum Cost.
     /// </summary>
-    public record MinCostOf : ICardFilter<object>
+    public record MinCostOf : IFilter<ICard, object>
     {
-        public IEnumerable<ICard> GetFrom(IEnumerable<ICard> initial, object context)
+        public IEnumerable<ICard> GetFrom(IEnumerable<ICard> initial, object context, Game game)
         {
             var cards = initial.ToList();
             if (cards.Count == 0)

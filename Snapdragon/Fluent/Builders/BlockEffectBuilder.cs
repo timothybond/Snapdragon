@@ -8,26 +8,26 @@ namespace Snapdragon.Fluent.Builders
     )
         where TContext : class
     {
-        public Ongoing<TContext> ForLocation(ILocationSelector<TContext> locationSelector)
+        public Ongoing<TContext> ForLocation(ISelector<Location, TContext> locationSelector)
         {
             return ForLocationAndSide(locationSelector, new BothSides());
         }
 
         public Ongoing<TContext> ForLocationAndSide(
-            ILocationSelector<TContext> locationSelector,
-            ISideSelector<TContext> sideSelector
+            ISelector<Location, TContext> locationSelector,
+            ISelector<Player, TContext> playerSelector
         )
         {
             return OngoingBuilder.Build(
                 new BlockLocationEffectFactory<TContext>(
                     locationSelector,
-                    sideSelector,
+                    playerSelector,
                     EffectTypes
                 )
             );
         }
 
-        public Ongoing<TContext> ForCards(ICardSelector<TContext> cardSelector)
+        public Ongoing<TContext> ForCards(ISelector<ICard, TContext> cardSelector)
         {
             return OngoingBuilder.Build(
                 new BlockCardEffectFactory<TContext>(cardSelector, EffectTypes)

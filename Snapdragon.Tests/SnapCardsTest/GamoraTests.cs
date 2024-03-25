@@ -5,7 +5,7 @@
         [Test]
         [TestCase(Side.Top, Column.Middle)]
         [TestCase(Side.Bottom, Column.Middle)]
-        public void PlayCardAlone_PowerIsSeven(Side side, Column column)
+        public void PlayCardAlone_PowerIsEight(Side side, Column column)
         {
             var game = TestHelpers.PlayCards(
                 6,
@@ -18,13 +18,13 @@
             var gamora = game[column][side][0];
             Assert.That(gamora.Name, Is.EqualTo("Gamora"));
 
-            Assert.That(gamora.Power, Is.EqualTo(7));
+            Assert.That(gamora.Power, Is.EqualTo(8));
         }
 
         [Test]
         [TestCase(Side.Top, Column.Middle)]
         [TestCase(Side.Bottom, Column.Middle)]
-        public void PlayCardWithAnotherCardOnSameSide_PowerIsSeven(Side side, Column column)
+        public void PlayCardWithAnotherCardOnSameSide_PowerIsEight(Side side, Column column)
         {
             var game = TestHelpers.PlayCards(
                 6,
@@ -41,7 +41,7 @@
             var gamora = game[column][side][0];
             Assert.That(gamora.Name, Is.EqualTo("Gamora"));
 
-            Assert.That(gamora.Power, Is.EqualTo(7));
+            Assert.That(gamora.Power, Is.EqualTo(8));
         }
 
         [Test]

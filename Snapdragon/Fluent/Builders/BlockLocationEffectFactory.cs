@@ -3,8 +3,8 @@
 namespace Snapdragon.Fluent.Builders
 {
     public record BlockLocationEffectFactory<TContext>(
-        ILocationSelector<TContext> LocationSelector,
-        ISideSelector<TContext> SideSelector,
+        ISelector<Location, TContext> LocationSelector,
+        ISelector<Player, TContext> PlayerSelector,
         params EffectType[] EffectTypes
     ) : IOngoingAbilityFactory<TContext>
     {
@@ -13,7 +13,7 @@ namespace Snapdragon.Fluent.Builders
             return new OngoingBlockLocationEffect<TContext>(
                 LocationSelector,
                 EffectTypes.ToImmutableList(),
-                SideSelector,
+                PlayerSelector,
                 condition
             );
         }

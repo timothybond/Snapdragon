@@ -30,6 +30,11 @@ namespace Snapdragon.Effects
                 return game;
             }
 
+            if (From == To)
+            {
+                return game;
+            }
+
             // TODO: handle restrictions on number of cards
             if (game[To][Card.Side].Count >= Max.CardsPerLocation)
             {

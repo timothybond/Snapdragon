@@ -2,7 +2,7 @@
 
 namespace Snapdragon.Fluent.Selectors
 {
-    public record MovedFromSelector : ILocationSelector<CardMovedEvent, object>
+    public record MovedFromSelector : ISelector<Location, CardMovedEvent, object>
     {
         public IEnumerable<Location> Get(CardMovedEvent e, object context, Game game)
         {

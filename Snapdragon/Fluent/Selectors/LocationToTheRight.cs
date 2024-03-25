@@ -1,6 +1,6 @@
 ﻿namespace Snapdragon.Fluent.Selectors
 {
-    public record LocationToTheRight : ILocationSelector<IObjectWithColumn>
+    public record LocationToTheRight : ISelector<Location, IObjectWithColumn>
     {
         public IEnumerable<Location> Get(IObjectWithColumn context, Game game)
         {

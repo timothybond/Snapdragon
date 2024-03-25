@@ -1,4 +1,4 @@
-﻿using Snapdragon.OngoingAbilities;
+﻿using Snapdragon.Fluent;
 using Snapdragon.PlayerActions;
 using static Snapdragon.ControllerUtilities;
 

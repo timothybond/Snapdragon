@@ -6,7 +6,7 @@ namespace Snapdragon.Fluent
     {
         public static Ongoing<TContext> AdjustPower<TContext>(
             this IBuilder<Ongoing<TContext>, TContext, IOngoingAbilityFactory<TContext>> builder,
-            ICardSelector<TContext> selector,
+            ISelector<ICard, TContext> selector,
             int amount
         )
         {
@@ -15,7 +15,7 @@ namespace Snapdragon.Fluent
 
         public static Ongoing<TContext> AdjustLocationPower<TContext>(
             this IBuilder<Ongoing<TContext>, TContext, IOngoingAbilityFactory<TContext>> builder,
-            ILocationSelector<TContext> selector,
+            ISelector<Location, TContext> selector,
             int amount
         )
         {

@@ -1,6 +1,6 @@
-﻿using CsvHelper;
+﻿using System.Globalization;
+using CsvHelper;
 using Snapdragon.GeneticAlgorithm;
-using System.Globalization;
 
 namespace Snapdragon.Runner.Experiments
 {
@@ -13,7 +13,7 @@ namespace Snapdragon.Runner.Experiments
         string Name,
         DateTimeOffset Started,
         ISnapdragonRepositoryBuilder? RepositoryBuilder = null,
-        int GamesPerDeck = 5
+        int GamesPerDeck = 40
     ) : Experiment(Id, Name, Started, RepositoryBuilder)
     {
         public async Task Run(
@@ -21,7 +21,7 @@ namespace Snapdragon.Runner.Experiments
             Genetics secondSchema,
             string firstName,
             string secondName,
-            int deckCount = 64,
+            int deckCount = 128,
             int generations = 100
         )
         {

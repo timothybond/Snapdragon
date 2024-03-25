@@ -27,7 +27,7 @@ namespace Snapdragon.Fluent
             var bladeOnReveal = new CardRevealed().Discard(My.Hand.Last());
             var modokOnReveal = new CardRevealed().Discard(My.Hand);
 
-            ICardSelector<ICard> selector = new Self();
+            ISelector<ICard, ICard> selector = new Self();
 
             var humanTorchTrigger = When.InPlayAnd<CardMovedEvent>()
                 .Where(EventCard.Self)
@@ -87,6 +87,11 @@ namespace Snapdragon.Fluent
             var gamoraOnReveal = If.NoNextTurnEvent<CardPlayedEvent>()
                 .Where(EventCard.AtSensor.And(EventCard.SameSide))
                 .ModifyPower(new SourceCard(), 4);
+
+            var revealedCardsHere = new RevealedCards().AtLocation();
+
+            var cloningVatsTrigger = When.RevealedAnd<CardRevealedEvent>()
+                .Build(EventCard.Get.CopyToHand());
         }
     }
 }
