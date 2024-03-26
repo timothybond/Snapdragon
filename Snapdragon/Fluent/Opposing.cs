@@ -12,6 +12,9 @@ namespace Snapdragon.Fluent
             true
         );
 
+        public static readonly ISelector<Card, IObjectWithSide> CardsIncludingUnrevealed =
+            new RevealedAndUnrevealedCards().ForPlayer(Player);
+
         public static readonly ISelector<ICard, IObjectWithSide> Hand = new HandForSide(true);
 
         public static readonly ISelector<ICard, IObjectWithSide> Discards = new DiscardedForSide(

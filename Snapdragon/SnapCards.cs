@@ -114,13 +114,18 @@ namespace Snapdragon
                 )
             ),
             new("America Chavez", 2, 3, OnReveal.Build(My.Library.First().ModifyPower(2))),
-            // TODO: Implement
-            //new(
-            //    "Mantis",
-            //    2,
-            //    2,
-            //    new OnRevealIf(new OpponentPlayedSameTurn(), new DrawOpponentCard())
-            //),
+            new(
+                "Mantis",
+                2,
+                2,
+                OnReveal.Build(
+                    ((ISelector<Card, ICard>)Opposing.CardsIncludingUnrevealed) // TODO: Get rid of cast here
+                        .Here()
+                        .PlayedThisTurn()
+                        .GetRandom()
+                        .CopyToLocation(Here, My.Self)
+                )
+            ),
             new("Medusa", 2, 2, OnReveal.If.InColumn(Column.Middle).Build(Self.ModifyPower(3))),
             new("Okoye", 2, 2, OnReveal.ModifyPower(My.Library, 1)),
             new("Shocker", 2, 3),

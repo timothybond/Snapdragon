@@ -21,6 +21,13 @@ namespace Snapdragon.Fluent
             return new FilteredSelector<ICard, Location>(selector, new HereFilter());
         }
 
+        public static ISelector<ICard, TContext> PlayedThisTurn<TContext>(
+            this ISelector<ICard, TContext> selector
+        )
+        {
+            return new FilteredSelector<ICard, TContext>(selector, new PlayedThisTurn<TContext>());
+        }
+
         public static ISelector<ICard, TContext> Here<TContext>(
             this ISelector<ICard, TContext> selector
         )
@@ -116,7 +123,38 @@ namespace Snapdragon.Fluent
 
         #endregion
 
+        #region Player Selectors
+
+        public static ISelector<Player, TEvent, TContext> Other<TEvent, TContext>(
+            this ISingleItemSelector<Player, TEvent, TContext> initialSelector
+        )
+            where TEvent : Event
+        {
+            return new OtherPlayerSelector<TEvent, TContext>(initialSelector);
+        }
+
+        public static ISelector<Player, TContext> Other<TContext>(
+            this ISingleItemSelector<Player, TContext> initialSelector
+        )
+        {
+            return new OtherPlayerSelector<TContext>(initialSelector);
+        }
+
+        #endregion
+
         #region General Selectors
+
+        public static ISelector<TSelected, TContext> ForPlayer<TSelected, TContext>(
+            this ISelector<TSelected, TContext> initial,
+            ISingleItemSelector<Player, TContext> playerSelector
+        )
+            where TSelected : IObjectWithSide
+        {
+            return new FilteredSelector<TSelected, TContext>(
+                initial,
+                new PlayerFilter<TSelected, TContext>(playerSelector)
+            );
+        }
 
         public static ISingleItemSelector<ICard, TContext> First<TContext>(
             this ISelector<ICard, TContext> selector
