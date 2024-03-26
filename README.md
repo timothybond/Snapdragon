@@ -108,3 +108,43 @@ The genetics code works, but isn't very well-organized. I think much of the logi
 At the moment I think the "Population" and "Genetics" classes have similar roles, and should probably be considered for merging, although I'm not 100% sure.
 
 I recently merged all of the different "IGeneSequence" types into a single class, now called GeneSequence, but there's still some cleanup to be done from that.
+
+### Abilities That Modify Power
+
+There's some logic (particularly Luke Cage's ability) that means I need to keep track of what power modifications have been made to each card, I think as a sequence. (At the moment I just keep the end result.)
+
+### Event Order Of Operations 
+
+At the moment when I resolve an event, if it creates other events, they get resolved later. That doesn't match the actual game, where at least events caused by an on-reveal ability trigger other abilities before the on-reveal ability finishes.
+
+A good example of this is if Carnage eats Nova, which immediately gives its power increase to all cards, even the ones Carnage is about to eat - this will cause a different outcome if e.g. Carnage also is about to eat Bucky Barnes, who will get the boost; in my logic the resulting Winter Soldier would incorrectly get it instead.
+
+### Fluent API for Abilities
+
+I recently rewrote the logic to construct most of the abilities (particularly Ongoing and On-Reveal ones) as a fluent API (at the moment, still nested under a `Snapdragon.Fluent` namespace). I think in general it's an improvement on the prior implementation for abilities, particularly in terms of how easy it is to follow things in `SnapCards.cs` but also in terms of how flexible and extensible the abilities are, but there's definitely some cleanup and refactoring that would be good:
+
+- A lot of the old ability logic is still in place and needs to be deleted
+- Once this is the only way to make abilities, there's no point in keeping it in a `Fluent` namespace (which was more so I could keep track of the in-progress work)
+- Some of the builder types are hard to follow and not well-documented - in practice they end up *mostly* being intuitive, but there's no justification for not making them cleaner and documenting them
+- The types *mostly* work as desired when chaining together stuff, but occasionally I need to explicitly specify one
+- I'm not always consistent with where I define the extension methods that get invoked in `SnapCards.cs`
+- There are a lot of places where I define things that take a context object, and copies that take the context object *and* an event, and I should try to do away with this
+- There are two orders in which some things are created, where either I invoke an extension method on a builder or I call `.Build(...)` on something invoking an extension method on a selector. For example, from `SnapCards.cs`:
+
+```
+new(
+    "Agent 13",
+    1,
+    2,
+    OnReveal.AddToHand(new RandomSingleItem<CardDefinition, Card>(), My.Self)
+),
+
+// ...
+
+new(
+    "Spectrum",
+    6,
+    7,
+    OnReveal.Build(My.OtherCards.WithOngoingAbilities().ModifyPower(2))
+),
+```
