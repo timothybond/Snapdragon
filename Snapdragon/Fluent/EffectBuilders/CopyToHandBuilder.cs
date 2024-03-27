@@ -2,6 +2,38 @@
 
 namespace Snapdragon.Fluent.EffectBuilders
 {
+    public record CopyToHandBuilder<TContext>(
+        ISingleItemSelector<ICard, TContext> CardSelector,
+        ICardTransform? Transform = null,
+        ISelector<Player, TContext>? PlayerSelector = null
+    ) : IEffectBuilder<TContext>
+    {
+        public IEffect Build(TContext context, Game game)
+        {
+            var card = CardSelector.GetOrDefault(context, game);
+
+            if (card == null)
+            {
+                return new NullEffect();
+            }
+
+            var players =
+                PlayerSelector?.Get(context, game).ToList() ?? new List<Player> { game[card.Side] };
+
+            if (players.Count == 0)
+            {
+                return new NullEffect();
+            }
+
+            if (players.Count == 1)
+            {
+                return new AddCopyToHand(card, Transform, players[0]);
+            }
+
+            return new AndEffect(players.Select(side => new AddCopyToHand(card, Transform, side)));
+        }
+    }
+
     public record CopyToHandBuilder<TEvent, TContext>(
         ISingleItemSelector<ICard, TEvent, TContext> CardSelector,
         ICardTransform? Transform = null,
@@ -38,23 +70,23 @@ namespace Snapdragon.Fluent.EffectBuilders
 
     public static class CopyToHandExtensions
     {
-        public static CopyToHandBuilder<Event, TContext> CopyToHand<TContext>(
+        public static CopyToHandBuilder<TContext> CopyToHand<TContext>(
             this ISingleItemSelector<ICard, TContext> cardSelector,
             ICardTransform? transform = null
         )
             where TContext : class
         {
-            return new CopyToHandBuilder<Event, TContext>(cardSelector, transform);
+            return new CopyToHandBuilder<TContext>(cardSelector, transform);
         }
 
-        public static CopyToHandBuilder<Event, TContext> CopyToHand<TContext>(
+        public static CopyToHandBuilder<TContext> CopyToHand<TContext>(
             this ISingleItemSelector<ICard, TContext> cardSelector,
             ISelector<Player, TContext> playerSelector,
             ICardTransform? transform = null
         )
             where TContext : class
         {
-            return new CopyToHandBuilder<Event, TContext>(cardSelector, transform, playerSelector);
+            return new CopyToHandBuilder<TContext>(cardSelector, transform, playerSelector);
         }
 
         public static CopyToHandBuilder<TEvent, TContext> CopyToHand<TEvent, TContext>(

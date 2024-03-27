@@ -119,11 +119,11 @@ namespace Snapdragon
                 2,
                 2,
                 OnReveal.Build(
-                    ((ISelector<Card, ICard>)Opposing.CardsIncludingUnrevealed) // TODO: Get rid of cast here
-                        .Here()
+                    Opposing
+                        .CardsIncludingUnrevealed.Here()
                         .PlayedThisTurn()
                         .GetRandom()
-                        .CopyToLocation(Here, My.Self)
+                        .CopyToHand(My.Self)
                 )
             ),
             new("Medusa", 2, 2, OnReveal.If.InColumn(Column.Middle).Build(Self.ModifyPower(3))),
