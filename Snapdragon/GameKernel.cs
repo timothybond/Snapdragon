@@ -70,21 +70,14 @@ namespace Snapdragon
             );
         }
 
-        public ImmutableList<long> this[Column column, Side side]
+        public IEnumerable<ICard> this[Column column, Side side]
         {
-            get
-            {
-                return (column, side) switch
-                {
-                    (Column.Left, Side.Top) => TopLeftCards,
-                    (Column.Middle, Side.Top) => TopMiddleCards,
-                    (Column.Right, Side.Top) => TopRightCards,
-                    (Column.Left, Side.Bottom) => BottomLeftCards,
-                    (Column.Middle, Side.Bottom) => BottomMiddleCards,
-                    (Column.Right, Side.Bottom) => BottomRightCards,
-                    (_, _) => throw new NotImplementedException()
-                };
-            }
+            get { return CardIdsForLocation(column, side).Select(id => Cards[id]); }
+        }
+
+        public ICard this[long cardId]
+        {
+            get { return this.Cards[cardId]; }
         }
 
         #region Public Methods
@@ -178,7 +171,7 @@ namespace Snapdragon
                 );
             }
 
-            var newCollection = this[column, side];
+            var newCollection = CardIdsForLocation(column, side);
 
             if (newCollection.Count + 1 > Max.CardsPerLocation)
             {
@@ -214,7 +207,7 @@ namespace Snapdragon
         public GameKernel MoveCard(long cardId, Side side, Column from, Column to)
         {
             ValidateCardExists(cardId);
-            ValidateState(cardId, CardState.InPlay);
+            ValidateState(cardId, CardState.InPlay, CardState.PlayedButNotRevealed);
             ValidateLocation(cardId, from);
 
             return this.RemoveCardFromLocationUnsafe(cardId, from, side)
@@ -338,6 +331,82 @@ namespace Snapdragon
             ValidateSide(cardId, side);
 
             return this.RemoveCardFromGameUnsafe(cardId);
+        }
+
+        /// <summary>
+        /// Returns a card to the owner's hand, either from a location
+        /// in play or from the discards/destroyed collection.
+        /// </summary>
+        /// <param name="cardId">Unique identifier of the card.</param>
+        /// <param name="side">Card owner's side.</param>
+        public GameKernel ReturnCardToHand(long cardId, Side side)
+        {
+            ValidateCardExists(cardId);
+            ValidateSide(cardId, side);
+
+            var kernel = this;
+            var card = Cards[cardId];
+
+            switch (CardStates[cardId])
+            {
+                case CardState.InHand:
+                    throw new InvalidOperationException(
+                        $"Card {card.Name} ({card.Id}) is already in the owner's hand."
+                    );
+                case CardState.InLibrary:
+                    throw new InvalidOperationException(
+                        $"Card {card.Name} ({card.Id}) is in the owner's library."
+                    );
+                case CardState.InPlay:
+                case CardState.PlayedButNotRevealed:
+                    var column = CardLocations[cardId];
+                    if (column == null)
+                    {
+                        throw new InvalidOperationException(
+                            $"Card {card.Name} ({card.Id}) is in state {CardStates[cardId]} but has no location."
+                        );
+                    }
+                    kernel = kernel.RemoveCardFromLocationUnsafe(cardId, column.Value, side);
+                    break;
+                case CardState.Discarded:
+                    kernel = kernel.RemoveCardFromDiscardsUnsafe(cardId, side);
+                    break;
+                case CardState.Destroyed:
+                    kernel = kernel.RemoveCardFromDestroyedUnsafe(cardId, side);
+                    break;
+                default:
+                    throw new NotImplementedException();
+            }
+
+            kernel = kernel
+                .WithCardInState(cardId, CardState.InHand)
+                .AddCardToHandUnsafe(cardId, side);
+
+            return kernel;
+        }
+
+        /// <summary>
+        /// Switches the side of a card. It must be in play, and will be moved to the appropriate location collection.
+        /// </summary>
+        /// <param name="cardId">Unique identifier of the card.</param>
+        /// <param name="currentSide">Current side of the card (not the one it will be switched to).</param>
+        public GameKernel SwitchCardSide(long cardId, Side currentSide)
+        {
+            ValidateCardExists(cardId);
+            ValidateSide(cardId, currentSide);
+            ValidateState(cardId, CardState.InPlay, CardState.PlayedButNotRevealed);
+
+            var card = Cards[cardId];
+
+            var column =
+                CardLocations[cardId]
+                ?? throw new InvalidOperationException(
+                    $"Card {card.Name} ({card.Id}) is in state {CardStates[cardId]} but has no location."
+                );
+
+            return this.RemoveCardFromLocationUnsafe(cardId, column, currentSide)
+                .SetCardSideUnsafe(cardId, currentSide.Other())
+                .AddCardToLocationUnsafe(cardId, column, currentSide.Other());
         }
 
         /// <summary>
@@ -475,7 +544,7 @@ namespace Snapdragon
         {
             ValidateCardExists(cardId);
             ValidateSide(cardId, side);
-            ValidateState(cardId, CardState.InLibrary);
+            ValidateState(cardId, CardState.Discarded);
 
             switch (side)
             {
@@ -572,10 +641,9 @@ namespace Snapdragon
         private GameKernel AddCardToLocationUnsafe(long cardId, Column column, Side side)
         {
             ValidateCardExists(cardId);
-            ValidateLocation(cardId, column);
             ValidateSide(cardId, side);
 
-            var existingCards = this[column, side];
+            var existingCards = CardIdsForLocation(column, side);
 
             return this.WithUpdatedLocationCollection(column, side, existingCards.Add(cardId));
         }
@@ -602,7 +670,20 @@ namespace Snapdragon
                 default:
                     throw new NotImplementedException();
             }
-            ;
+        }
+
+        /// <summary>
+        /// Internal helper function that assigns a new value for the <see cref="Side"/> of a card.
+        ///
+        /// Should only be used as part of a larger operation as it does not add or remove
+        /// the card to/from any collections.
+        /// </summary>
+        /// <param name="cardId">Unique identifier of the card.</param>
+        /// <param name="side">New side of the card.</param>
+        /// <returns></returns>
+        private GameKernel SetCardSideUnsafe(long cardId, Side side)
+        {
+            return this with { CardSides = CardSides.SetItem(cardId, side) };
         }
 
         /// <summary>
@@ -649,14 +730,53 @@ namespace Snapdragon
                 );
             }
 
+            var newCardLocationsBuilder = this.CardLocations.ToBuilder();
+
+            foreach (var cardId in newLocationItems)
+            {
+                newCardLocationsBuilder[cardId] = column;
+            }
+
+            var newCardLocations = newCardLocationsBuilder.ToImmutable();
+
             return (column, side) switch
             {
-                (Column.Left, Side.Top) => this with { TopLeftCards = newLocationItems },
-                (Column.Middle, Side.Top) => this with { TopMiddleCards = newLocationItems },
-                (Column.Right, Side.Top) => this with { TopRightCards = newLocationItems },
-                (Column.Left, Side.Bottom) => this with { BottomLeftCards = newLocationItems },
-                (Column.Middle, Side.Bottom) => this with { BottomMiddleCards = newLocationItems },
-                (Column.Right, Side.Bottom) => this with { BottomRightCards = newLocationItems },
+                (Column.Left, Side.Top)
+                    => this with
+                    {
+                        TopLeftCards = newLocationItems,
+                        CardLocations = newCardLocations
+                    },
+                (Column.Middle, Side.Top)
+                    => this with
+                    {
+                        TopMiddleCards = newLocationItems,
+                        CardLocations = newCardLocations
+                    },
+                (Column.Right, Side.Top)
+                    => this with
+                    {
+                        TopRightCards = newLocationItems,
+                        CardLocations = newCardLocations
+                    },
+                (Column.Left, Side.Bottom)
+                    => this with
+                    {
+                        BottomLeftCards = newLocationItems,
+                        CardLocations = newCardLocations
+                    },
+                (Column.Middle, Side.Bottom)
+                    => this with
+                    {
+                        BottomMiddleCards = newLocationItems,
+                        CardLocations = newCardLocations
+                    },
+                (Column.Right, Side.Bottom)
+                    => this with
+                    {
+                        BottomRightCards = newLocationItems,
+                        CardLocations = newCardLocations
+                    },
                 (_, _) => throw new NotImplementedException()
             };
         }
@@ -670,6 +790,20 @@ namespace Snapdragon
         private GameKernel WithCardInState(long cardId, CardState state)
         {
             return this with { CardStates = CardStates.SetItem(cardId, state) };
+        }
+
+        private ImmutableList<long> CardIdsForLocation(Column column, Side side)
+        {
+            return (column, side) switch
+            {
+                (Column.Left, Side.Top) => TopLeftCards,
+                (Column.Middle, Side.Top) => TopMiddleCards,
+                (Column.Right, Side.Top) => TopRightCards,
+                (Column.Left, Side.Bottom) => BottomLeftCards,
+                (Column.Middle, Side.Bottom) => BottomMiddleCards,
+                (Column.Right, Side.Bottom) => BottomRightCards,
+                (_, _) => throw new NotImplementedException()
+            };
         }
 
         #endregion
