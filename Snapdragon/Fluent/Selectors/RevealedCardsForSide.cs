@@ -1,8 +1,8 @@
 ﻿namespace Snapdragon.Fluent.Selectors
 {
-    public class RevealedCardsForSide(bool OtherSide) : ISelector<Card, IObjectWithSide>
+    public class RevealedCardsForSide(bool OtherSide) : ISelector<ICard, IObjectWithSide>
     {
-        public IEnumerable<Card> Get(IObjectWithSide context, Game game)
+        public IEnumerable<ICard> Get(IObjectWithSide context, Game game)
         {
             var side = context.Side;
             if (OtherSide)

@@ -75,6 +75,112 @@ namespace Snapdragon.Tests
             Assert.That(game.Bottom.Hand.Count, Is.EqualTo(3));
         }
 
+        [Test]
+        public void CreateGame_SetsEnergyToZero()
+        {
+            var engine = new Engine(new NullLogger());
+
+            var topPlayerConfig = new PlayerConfiguration(
+                "Top",
+                new Deck([Cards.OneOne, Cards.TwoTwo, Cards.TwoThree]),
+                new NullPlayerController()
+            );
+            var bottomPlayerConfig = new PlayerConfiguration(
+                "Bottom",
+                new Deck([Cards.OneTwo, Cards.OneThree, Cards.TwoOne]),
+                new NullPlayerController()
+            );
+
+            var game = CreateGame(engine, topPlayerConfig, bottomPlayerConfig);
+
+            Assert.That(game.TopPlayer.Energy, Is.EqualTo(0));
+            Assert.That(game.BottomPlayer.Energy, Is.EqualTo(0));
+        }
+
+        #endregion
+
+        #region DrawCard
+
+
+        [Test]
+        public void DrawCard_AddsNextCardToHand()
+        {
+            var engine = new Engine(new NullLogger());
+
+            var topPlayerConfig = new PlayerConfiguration(
+                "Top",
+                new Deck([Cards.OneOne, Cards.OneTwo, Cards.OneThree, Cards.TwoOne]),
+                new NullPlayerController()
+            );
+            var bottomPlayerConfig = new PlayerConfiguration(
+                "Bottom",
+                new Deck([Cards.OneTwo, Cards.OneThree, Cards.TwoOne, Cards.TwoTwo]),
+                new NullPlayerController()
+            );
+
+            var game = CreateGame(engine, topPlayerConfig, bottomPlayerConfig)
+                .DrawCard(Side.Top)
+                .DrawCard(Side.Bottom);
+
+            Assert.That(game.Top.Hand, Has.Exactly(4).Items);
+            Assert.That(game.Bottom.Hand, Has.Exactly(4).Items);
+
+            Assert.That(game.Top.Hand.Last().Definition, Is.EqualTo(Cards.TwoOne));
+            Assert.That(game.Bottom.Hand.Last().Definition, Is.EqualTo(Cards.TwoTwo));
+        }
+
+        [Test]
+        [TestCase(Side.Top)]
+        [TestCase(Side.Bottom)]
+        public void DrawCard_DrawsToMaxOfSeven(Side side)
+        {
+            var engine = new Engine(new NullLogger());
+
+            var topPlayerConfig = new PlayerConfiguration(
+                "Top",
+                new Deck(
+                    [
+                        Cards.OneOne,
+                        Cards.OneTwo,
+                        Cards.OneThree,
+                        Cards.TwoOne,
+                        Cards.TwoTwo,
+                        Cards.TwoThree,
+                        Cards.ThreeOne,
+                        Cards.ThreeTwo,
+                        Cards.ThreeThree
+                    ]
+                ),
+                new NullPlayerController()
+            );
+            var bottomPlayerConfig = new PlayerConfiguration(
+                "Bottom",
+                new Deck(
+                    [
+                        Cards.OneOne,
+                        Cards.OneTwo,
+                        Cards.OneThree,
+                        Cards.TwoOne,
+                        Cards.TwoTwo,
+                        Cards.TwoThree,
+                        Cards.ThreeOne,
+                        Cards.ThreeTwo,
+                        Cards.ThreeThree
+                    ]
+                ),
+                new NullPlayerController()
+            );
+
+            var game = CreateGame(engine, topPlayerConfig, bottomPlayerConfig);
+
+            for (var i = 0; i < 8; i++)
+            {
+                game = game.DrawCard(side);
+            }
+
+            Assert.That(game[side].Hand.Count, Is.EqualTo(7));
+        }
+
         #endregion
 
         #region StartTurn
@@ -99,8 +205,8 @@ namespace Snapdragon.Tests
 
             game = game.StartNextTurn();
 
-            Assert.That(game.Top.Energy, Is.EqualTo(turn));
-            Assert.That(game.Bottom.Energy, Is.EqualTo(turn));
+            Assert.That(game.TopPlayer.Energy, Is.EqualTo(turn));
+            Assert.That(game.BottomPlayer.Energy, Is.EqualTo(turn));
         }
 
         [Test]
@@ -208,12 +314,12 @@ namespace Snapdragon.Tests
             // TODO - Play a card
             playerController.Actions = new List<IPlayerAction>
             {
-                new PlayCardAction(Side.Top, game.Top.Hand[0], column)
+                new PlayCardAction(Side.Top, game.Top.Hand.First(), column)
             };
 
             game = game.PlaySingleTurn();
 
-            Assert.That(game[column].TopPlayerCards.Count, Is.EqualTo(1));
+            Assert.That(game[column].TopCards.Count, Is.EqualTo(1));
         }
 
         [Test]
@@ -241,12 +347,12 @@ namespace Snapdragon.Tests
             // TODO - Play a card
             playerController.Actions = new List<IPlayerAction>
             {
-                new PlayCardAction(Side.Top, game.Top.Hand[0], column)
+                new PlayCardAction(Side.Top, game.Top.Hand.First(), column)
             };
 
             game = game.PlaySingleTurn();
 
-            Assert.That(game[column].TopPlayerCards[0].State, Is.EqualTo(CardState.InPlay));
+            Assert.That(game[column].TopCards.First().State, Is.EqualTo(CardState.InPlay));
         }
 
         [Test]
@@ -279,14 +385,14 @@ namespace Snapdragon.Tests
             {
                 topPlayerController.Actions = new List<IPlayerAction>
                 {
-                    new PlayCardAction(Side.Top, game.Top.Hand[0], column)
+                    new PlayCardAction(Side.Top, game.Top.Hand.First(), column)
                 };
             }
             else
             {
                 bottomPlayerController.Actions = new List<IPlayerAction>
                 {
-                    new PlayCardAction(Side.Bottom, game.Bottom.Hand[0], column)
+                    new PlayCardAction(Side.Bottom, game.Bottom.Hand.First(), column)
                 };
             }
 
@@ -320,7 +426,7 @@ namespace Snapdragon.Tests
             // TODO - Play a card
             playerController.Actions = new List<IPlayerAction>
             {
-                new PlayCardAction(Side.Top, game.Top.Hand[0], column)
+                new PlayCardAction(Side.Top, game.Top.Hand.First(), column)
             };
 
             game = game.PlaySingleTurn();
@@ -391,14 +497,21 @@ namespace Snapdragon.Tests
             PlayerConfiguration bottomPlayer
         )
         {
-            return engine.CreateGame(
-                topPlayer,
-                bottomPlayer,
-                false,
-                leftLocationName: "Ruins",
-                middleLocationName: "Ruins",
-                rightLocationName: "Ruins"
-            );
+            return engine
+                .CreateGame(
+                    topPlayer,
+                    bottomPlayer,
+                    false,
+                    leftLocationName: "Ruins",
+                    middleLocationName: "Ruins",
+                    rightLocationName: "Ruins"
+                )
+                .DrawCard(Side.Top)
+                .DrawCard(Side.Top)
+                .DrawCard(Side.Top)
+                .DrawCard(Side.Bottom)
+                .DrawCard(Side.Bottom)
+                .DrawCard(Side.Bottom);
         }
 
         #endregion

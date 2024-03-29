@@ -1,4 +1,5 @@
 ﻿using Snapdragon.Fluent;
+using Snapdragon.GameKernelAccessors;
 using Snapdragon.PlayerActions;
 
 namespace Snapdragon
@@ -10,9 +11,9 @@ namespace Snapdragon
             Side side
         )
         {
-            var cardsWithMoveAbilities = new List<Card>();
-            var cardsWithLocationEffectBlocks = new List<Card>();
-            var cardsWithCardEffectBlocks = new List<Card>();
+            var cardsWithMoveAbilities = new List<ICard>();
+            var cardsWithLocationEffectBlocks = new List<ICard>();
+            var cardsWithCardEffectBlocks = new List<ICard>();
             var locationsWithLocationEffectBlocks = new List<Location>();
 
             foreach (var card in game.AllCards)
@@ -24,11 +25,11 @@ namespace Snapdragon
 
                 if (card.Ongoing != null)
                 {
-                    if (card.Ongoing is OngoingBlockLocationEffect<Card>)
+                    if (card.Ongoing is OngoingBlockLocationEffect<ICard>)
                     {
                         cardsWithLocationEffectBlocks.Add(card);
                     }
-                    else if (card.Ongoing is OngoingBlockCardEffect<Card>)
+                    else if (card.Ongoing is OngoingBlockCardEffect<ICard>)
                     {
                         cardsWithCardEffectBlocks.Add(card);
                     }
@@ -79,7 +80,7 @@ namespace Snapdragon
         public static IReadOnlyDictionary<Column, IReadOnlySet<EffectType>> GetBlockedEffects(
             Game game,
             Side side,
-            IReadOnlyList<Card> cardsWithLocationEffectBlocks,
+            IReadOnlyList<ICard> cardsWithLocationEffectBlocks,
             IReadOnlyList<Location> locationsWithLocationEffectBlocks
         )
         {
@@ -102,14 +103,14 @@ namespace Snapdragon
         public static IReadOnlyList<IReadOnlyList<IPlayerAction>> GetPossibleMoveActionSets(
             Game game,
             Side side,
-            IReadOnlyList<Card> cardsWithMoveAbilities,
-            IReadOnlyList<Card> cardsWithLocationEffectBlocks,
-            IReadOnlyList<Card> cardsWithCardEffectBlocks,
+            IReadOnlyList<ICard> cardsWithMoveAbilities,
+            IReadOnlyList<ICard> cardsWithLocationEffectBlocks,
+            IReadOnlyList<ICard> cardsWithCardEffectBlocks,
             IReadOnlyList<Location> locationsWithLocationEffectBlocks
         )
         {
             var priorMoves = new Stack<MoveCardAction>();
-            var skippedCards = new Stack<Card>();
+            var skippedCards = new Stack<ICard>();
             var results = new List<IReadOnlyList<IPlayerAction>>();
 
             var blockedEffectsByColumn = GetBlockedEffects(
@@ -122,17 +123,14 @@ namespace Snapdragon
             // We assume no cards will BECOME moveable, by this definition, as a result of another card moving.
             // At the moment I don't know of any scenario where that could happen.
             // This is mostly a performance optimization.
-            var moveableCards = new List<Card>();
+            var moveableCards = new List<ICard>();
 
             var sensorsWithMoveAbilities = game
                 .AllSensors.Where(s => s.MoveAbility != null)
                 .ToList();
 
-            // This got unrolled to reduce enumerations as a performance boost.
-            // I feel like it might have gone too far and may test to see if it matters much.
-            for (var i = 0; i < game.Left[side].Count; i++)
+            foreach (var card in game.Left[side])
             {
-                var card = game.Left[side][i];
                 if (
                     game.CanMove(
                         card,
@@ -156,9 +154,8 @@ namespace Snapdragon
                 }
             }
 
-            for (var i = 0; i < game.Middle[side].Count; i++)
+            foreach (var card in game.Middle[side])
             {
-                var card = game.Middle[side][i];
                 if (
                     game.CanMove(
                         card,
@@ -182,9 +179,8 @@ namespace Snapdragon
                 }
             }
 
-            for (var i = 0; i < game.Right[side].Count; i++)
+            foreach (var card in game.Right[side])
             {
-                var card = game.Right[side][i];
                 if (
                     game.CanMove(
                         card,
@@ -228,14 +224,14 @@ namespace Snapdragon
         public static void GetPossibleMoveActionSetsHelper(
             Game game,
             Side side,
-            IReadOnlyList<Card> moveableCards,
-            IReadOnlyList<Card> cardsWithMoveAbilities,
-            IReadOnlyList<Sensor<Card>> sensorsWithMoveAbilities,
-            IReadOnlyList<Card> cardsWithLocationEffectBlocks,
+            IReadOnlyList<ICard> moveableCards,
+            IReadOnlyList<ICard> cardsWithMoveAbilities,
+            IReadOnlyList<Sensor<ICard>> sensorsWithMoveAbilities,
+            IReadOnlyList<ICard> cardsWithLocationEffectBlocks,
             IReadOnlyDictionary<Column, IReadOnlySet<EffectType>> blockedEffectsByColumn,
-            IReadOnlyList<Card> cardsWithCardEffectBlocks,
+            IReadOnlyList<ICard> cardsWithCardEffectBlocks,
             Stack<MoveCardAction> priorMoves,
-            Stack<Card> skippedCards,
+            Stack<ICard> skippedCards,
             List<IReadOnlyList<IPlayerAction>> results
         )
         {
@@ -334,7 +330,7 @@ namespace Snapdragon
         )
         {
             var cardsWithLocationEffectBlocks = game
-                .AllCards.Where(c => c.Ongoing is OngoingBlockLocationEffect<Card>)
+                .AllCards.Where(c => c.Ongoing is OngoingBlockLocationEffect<ICard>)
                 .ToList();
 
             // Every entry in this list is a set of cards we can afford to play
@@ -593,7 +589,7 @@ namespace Snapdragon
         public static (int Left, int Middle, int Right) GetPlayableCardSlots(
             Game game,
             Side side,
-            IReadOnlyList<Card> cardsWithLocationEffectBlocks
+            IReadOnlyList<ICard> cardsWithLocationEffectBlocks
         )
         {
             return (
@@ -607,7 +603,7 @@ namespace Snapdragon
             Game game,
             Side side,
             Column column,
-            IReadOnlyList<Card> cardsWithLocationEffectBlocks
+            IReadOnlyList<ICard> cardsWithLocationEffectBlocks
         )
         {
             var blockedEffects = game.GetBlockedEffects(
@@ -633,20 +629,22 @@ namespace Snapdragon
         ///
         /// Public for testing purposes.
         /// </summary>
-        public static IReadOnlyList<IReadOnlyList<CardInstance>> GetPlayableCardSets(Player player)
-        {
-            return GetPlayableCardSets(player.Energy, player.Hand);
-        }
-
-        private static IReadOnlyList<IReadOnlyList<CardInstance>> GetPlayableCardSets(
-            int energy,
-            IReadOnlyList<CardInstance> hand
+        public static IReadOnlyList<IReadOnlyList<ICardInstance>> GetPlayableCardSets(
+            IPlayerAccessor player
         )
         {
-            var results = new List<IReadOnlyList<CardInstance>>();
+            return GetPlayableCardSets(player.Energy, player.Hand.ToList());
+        }
+
+        private static IReadOnlyList<IReadOnlyList<ICardInstance>> GetPlayableCardSets(
+            int energy,
+            IReadOnlyList<ICardInstance> hand
+        )
+        {
+            var results = new List<IReadOnlyList<ICardInstance>>();
 
             // Can always just play no cards.
-            results.Add(new List<CardInstance>());
+            results.Add(new List<ICardInstance>());
 
             var playableCards = hand.Where(c => c.Cost <= energy).ToList();
 

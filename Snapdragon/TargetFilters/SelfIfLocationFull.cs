@@ -1,8 +1,8 @@
 ﻿namespace Snapdragon.TargetFilters
 {
-    public record SelfIfLocationFull : ICardFilter<Card>
+    public record SelfIfLocationFull : ICardFilter<ICard>
     {
-        public bool Applies(ICard card, Card source, Game game)
+        public bool Applies(ICardInstance card, ICard source, Game game)
         {
             // TODO: Handle locations that restrict the number of cards played
 

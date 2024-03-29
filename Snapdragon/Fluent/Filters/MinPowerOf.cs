@@ -3,9 +3,9 @@
     /// <summary>
     /// A filter that gets all cards from the given set that are tied for minimum Power.
     /// </summary>
-    public record MinPowerOf : IFilter<ICard, object>
+    public record MinPowerOf : IFilter<ICardInstance, object>
     {
-        public IEnumerable<ICard> GetFrom(IEnumerable<ICard> initial, object context, Game game)
+        public IEnumerable<ICardInstance> GetFrom(IEnumerable<ICardInstance> initial, object context, Game game)
         {
             var cards = initial.ToList();
             if (cards.Count == 0)

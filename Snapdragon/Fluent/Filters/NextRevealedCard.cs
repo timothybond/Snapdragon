@@ -3,8 +3,8 @@
 namespace Snapdragon.Fluent.Filters
 {
     public record NextRevealedCard<TContext>(
-        ISingleItemSelector<ICard, TContext> PriorCard,
-        ISingleItemSelector<ICard, TContext>? Ignored = null
+        ISingleItemSelector<ICardInstance, TContext> PriorCard,
+        ISingleItemSelector<ICardInstance, TContext>? Ignored = null
     ) : IEventFilter<CardRevealedEvent, TContext>
     {
         public bool Includes(CardRevealedEvent e, TContext context, Game game)
@@ -30,7 +30,7 @@ namespace Snapdragon.Fluent.Filters
                 .Skip(1);
 
             CardRevealedEvent? nextRevealEvent = null;
-            ICard? mergedInto = null;
+            ICardInstance? mergedInto = null;
 
             foreach (var remainingEvent in eventsAfterPreviousCardRevealed)
             {

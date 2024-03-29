@@ -3,7 +3,7 @@
 namespace Snapdragon.Fluent.EffectBuilders
 {
     public record ReturnDiscardToLocationBuilder<TContext>(
-        ISelector<ICard, TContext> CardSelector,
+        ISelector<ICardInstance, TContext> CardSelector,
         ISingleItemSelector<Location, TContext> LocationSelector
     ) : IEffectBuilder<TContext>
     {
@@ -32,7 +32,7 @@ namespace Snapdragon.Fluent.EffectBuilders
     public static class ReturnDiscardToLocationExtensions
     {
         public static ReturnDiscardToLocationBuilder<TContext> ReturnDiscardTo<TContext>(
-            this ISelector<ICard, TContext> cardSelector,
+            this ISelector<ICardInstance, TContext> cardSelector,
             ISingleItemSelector<Location, TContext> locationSelector
         )
         {

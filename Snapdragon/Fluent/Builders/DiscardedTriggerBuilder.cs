@@ -4,11 +4,11 @@ using Snapdragon.Fluent.Selectors;
 namespace Snapdragon.Fluent.Builders
 {
     public record DiscardedTriggerBuilder
-        : IBuilder<ITriggeredAbility<ICard>, ICard, IEffectBuilder<CardDiscardedEvent, ICard>>
+        : IBuilder<ITriggeredAbility<ICardInstance>, ICardInstance, IEffectBuilder<CardDiscardedEvent, ICardInstance>>
     {
-        public ITriggeredAbility<ICard> Build(IEffectBuilder<CardDiscardedEvent, ICard> outcome)
+        public ITriggeredAbility<ICardInstance> Build(IEffectBuilder<CardDiscardedEvent, ICardInstance> outcome)
         {
-            return new TriggeredAbilityDiscardedOrDestroyed<CardDiscardedEvent, ICard>(
+            return new TriggeredAbilityDiscardedOrDestroyed<CardDiscardedEvent, ICardInstance>(
                 outcome,
                 new Self()
             );
@@ -17,16 +17,16 @@ namespace Snapdragon.Fluent.Builders
 
     public record DestroyedTriggerBuilder
         : IBuilder<
-            ITriggeredAbility<ICard>,
-            ICard,
-            IEffectBuilder<CardDestroyedFromPlayEvent, ICard>
+            ITriggeredAbility<ICardInstance>,
+            ICardInstance,
+            IEffectBuilder<CardDestroyedFromPlayEvent, ICardInstance>
         >
     {
-        public ITriggeredAbility<ICard> Build(
-            IEffectBuilder<CardDestroyedFromPlayEvent, ICard> outcome
+        public ITriggeredAbility<ICardInstance> Build(
+            IEffectBuilder<CardDestroyedFromPlayEvent, ICardInstance> outcome
         )
         {
-            return new TriggeredAbilityDiscardedOrDestroyed<CardDestroyedFromPlayEvent, ICard>(
+            return new TriggeredAbilityDiscardedOrDestroyed<CardDestroyedFromPlayEvent, ICardInstance>(
                 outcome,
                 new Self()
             );
@@ -34,19 +34,19 @@ namespace Snapdragon.Fluent.Builders
     }
 
     public record DiscardedOrDestroyedTriggerBuilder
-        : IBuilder<ITriggeredAbility<ICard>, ICard, IEffectBuilder<Event, ICard>>
+        : IBuilder<ITriggeredAbility<ICardInstance>, ICardInstance, IEffectBuilder<Event, ICardInstance>>
     {
-        public ITriggeredAbility<ICard> Build(IEffectBuilder<Event, ICard> outcome)
+        public ITriggeredAbility<ICardInstance> Build(IEffectBuilder<Event, ICardInstance> outcome)
         {
-            return new TriggeredAbilityDiscardedOrDestroyed<Event, ICard>(
+            return new TriggeredAbilityDiscardedOrDestroyed<Event, ICardInstance>(
                 outcome,
                 new SelfDiscardedOrDestroyed()
             );
         }
 
-        private record SelfDiscardedOrDestroyed() : IEventFilter<Event, ICard>
+        private record SelfDiscardedOrDestroyed() : IEventFilter<Event, ICardInstance>
         {
-            public bool Includes(Event e, ICard context, Game game)
+            public bool Includes(Event e, ICardInstance context, Game game)
             {
                 return (
                         e is CardDestroyedFromPlayEvent cardDestroyed

@@ -2,7 +2,7 @@
 
 namespace Snapdragon.Effects
 {
-    public record MergeSourceIntoTarget(ICard Source, ICard Target) : IEffect
+    public record MergeSourceIntoTarget(ICardInstance Source, ICardInstance Target) : IEffect
     {
         public Game Apply(Game game)
         {
@@ -21,9 +21,9 @@ namespace Snapdragon.Effects
                 throw new InvalidOperationException("Cannot merge cards in different locations.");
             }
 
-            var location = game[source.Column].WithRemovedCard(source);
-            return game.WithLocation(location)
-                .WithModifiedCard(target, c => c with { Power = c.Power + source.Power })
+            var modifiedTarget = target.Base with { Power = target.Base.Power + source.Power };
+            return game.RemoveCard(source)
+                .WithUpdatedCard(modifiedTarget)
                 .WithEvent(new CardMergedEvent(game.Turn, source, target))
                 .WithEvent(new CardRevealedEvent(game.Turn, target));
         }

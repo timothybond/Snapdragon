@@ -1,5 +1,4 @@
-﻿using Snapdragon.Events;
-using Snapdragon.Fluent;
+﻿using Snapdragon.Fluent;
 
 namespace Snapdragon.Effects
 {
@@ -10,7 +9,7 @@ namespace Snapdragon.Effects
     /// <param name="Transform">An optional transform.</param>
     /// <param name="Player">The <see cref="Snapdragon.Player"/> to give the card to.
     /// If unset, defaults to the side of <see cref="Card"/>.</param>
-    public record AddCopyToHand(ICard Card, ICardTransform? Transform = null, Player? Player = null)
+    public record AddCopyToHand(ICardInstance Card, ICardTransform? Transform = null, Player? Player = null)
         : IEffect
     {
         public Game Apply(Game game)
@@ -23,16 +22,13 @@ namespace Snapdragon.Effects
                 return game;
             }
 
-            // TODO: Get the card from wherever it currently is, so the state is up-to-date
-            var card = (this.Transform?.Apply(Card) ?? Card).ToCardInstance() with
+            var card = game.GetCard(Card.Id);
+            if (card == null)
             {
-                State = CardState.InHand,
-                Id = Ids.GetNext<ICard>(),
-                Side = player.Side
-            };
+                return game;
+            }
 
-            player = player with { Hand = player.Hand.Add(card) };
-            return game.WithPlayer(player).WithEvent(new CardAddedToHandEvent(card, game.Turn));
+            return game.WithCopyInHand(card, player.Side, Transform);
         }
     }
 }

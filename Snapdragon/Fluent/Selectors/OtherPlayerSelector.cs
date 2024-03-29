@@ -12,7 +12,7 @@
                 return null;
             }
 
-            return game[initialPlayer.Side.Other()];
+            return initialPlayer.Side == Side.Top ? game.BottomPlayer : game.TopPlayer;
         }
     }
 
@@ -30,7 +30,7 @@
                 return null;
             }
 
-            return game[initialPlayer.Side.Other()];
+            return initialPlayer.Side == Side.Top ? game.BottomPlayer : game.TopPlayer;
         }
     }
 }

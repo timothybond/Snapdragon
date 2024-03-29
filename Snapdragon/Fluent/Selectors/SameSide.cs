@@ -4,7 +4,7 @@
     {
         public Player? GetOrDefault(IObjectWithSide context, Game game)
         {
-            return game[context.Side];
+            return context.Side == Side.Top ? game.TopPlayer : game.BottomPlayer;
         }
     }
 }

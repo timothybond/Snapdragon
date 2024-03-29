@@ -1,6 +1,4 @@
-﻿using System.Collections.Immutable;
-
-namespace Snapdragon.Tests.SnapCardsTest
+﻿namespace Snapdragon.Tests.SnapCardsTest
 {
     public class AmericaChavezTests
     {
@@ -13,11 +11,7 @@ namespace Snapdragon.Tests.SnapCardsTest
             // Enough sample cards that two will still be in the library
             // (note we skipped the initial draw of 3)
             var cardsInLibrary = Enumerable.Repeat(Cards.OneOne, 4);
-            var library = new Library(
-                cardsInLibrary.Select(c => new CardInstance(c, side)).ToImmutableList()
-            );
-
-            game = game.WithPlayer(game[side] with { Library = library });
+            game = game.WithCardsInDeck(side, cardsInLibrary.ToArray());
 
             game = TestHelpers.PlayCards(game, side, column, "America Chavez");
 
@@ -38,11 +32,7 @@ namespace Snapdragon.Tests.SnapCardsTest
             // Enough sample cards that two will still be in the library
             // (note we skipped the initial draw of 3)
             var cardsInLibrary = Enumerable.Repeat(Cards.OneOne, 4);
-            var library = new Library(
-                cardsInLibrary.Select(c => new CardInstance(c, side)).ToImmutableList()
-            );
-
-            game = game.WithPlayer(game[side] with { Library = library });
+            game = game.WithCardsInDeck(side, cardsInLibrary.ToArray());
 
             game = TestHelpers.PlayCards(game, side, column, "America Chavez");
 
@@ -62,12 +52,7 @@ namespace Snapdragon.Tests.SnapCardsTest
 
             // Enough sample cards that two will still be in the library
             var cardsInLibrary = Enumerable.Repeat(Cards.OneOne, 4);
-            var library = new Library(
-                cardsInLibrary.Select(c => new CardInstance(c, side)).ToImmutableList()
-            );
-
-            game = game.WithPlayer(game[side.Other()] with { Library = library });
-
+            game = game.WithCardsInDeck(side.Other(), cardsInLibrary.ToArray());
             game = TestHelpers.PlayCards(game, side, column, "America Chavez");
 
             Assert.That(game[side.Other()].Library.Count, Is.EqualTo(2));

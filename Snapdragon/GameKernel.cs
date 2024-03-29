@@ -11,7 +11,11 @@ namespace Snapdragon
     /// The base constructor should not be used directly.
     /// </summary>
     public record GameKernel(
-        ImmutableDictionary<long, ICard> Cards,
+        int Turn,
+        LocationDefinition LeftLocationDefinition,
+        LocationDefinition MiddleLocationDefinition,
+        LocationDefinition RightLocationDefinition,
+        ImmutableDictionary<long, CardBase> Cards,
         ImmutableDictionary<long, Side> CardSides,
         ImmutableDictionary<long, CardState> CardStates,
         ImmutableDictionary<long, Column?> CardLocations,
@@ -28,18 +32,36 @@ namespace Snapdragon
         ImmutableList<long> BottomHand,
         ImmutableList<long> BottomLibrary,
         ImmutableList<long> BottomDiscards,
-        ImmutableList<long> BottomDestroyed
+        ImmutableList<long> BottomDestroyed,
+        ImmutableDictionary<long, Sensor<ICard>> Sensors,
+        ImmutableDictionary<long, Side> SensorSides,
+        ImmutableDictionary<long, Column> SensorLocations,
+        ImmutableList<long> TopLeftSensors,
+        ImmutableList<long> TopMiddleSensors,
+        ImmutableList<long> TopRightSensors,
+        ImmutableList<long> BottomLeftSensors,
+        ImmutableList<long> BottomMiddleSensors,
+        ImmutableList<long> BottomRightSensors,
+        bool LeftRevealed,
+        bool MiddleRevealed,
+        bool RightRevealed
     )
     {
-        public static GameKernel FromPlayers(Player top, Player bottom)
+        public static GameKernel FromPlayersAndLocations(
+            Player top,
+            Player bottom,
+            LocationDefinition left,
+            LocationDefinition middle,
+            LocationDefinition right
+        )
         {
-            var cards = top
-                .Library.Cards.Concat(bottom.Library.Cards)
-                .Cast<ICard>()
-                .ToImmutableDictionary(c => c.Id);
-            var cardSides = top
-                .Library.Cards.Select(c => (c.Id, Side.Top))
-                .Concat(bottom.Library.Cards.Select(c => (c.Id, Side.Bottom)))
+            var topCards = top.Configuration.Deck.Cards.Select(c => new CardBase(c)).ToList();
+            var bottomCards = bottom.Configuration.Deck.Cards.Select(c => new CardBase(c)).ToList();
+
+            var cards = topCards.Concat(bottomCards).ToImmutableDictionary(c => c.Id);
+            var cardSides = topCards
+                .Select(c => (c.Id, Side.Top))
+                .Concat(bottomCards.Select(c => (c.Id, Side.Bottom)))
                 .ToImmutableDictionary(kp => kp.Id, kp => kp.Item2);
 
             var cardStates = cards.ToImmutableDictionary(
@@ -49,6 +71,10 @@ namespace Snapdragon
             var cardLocations = cards.ToImmutableDictionary(kvp => kvp.Key, kvp => (Column?)null);
 
             return new GameKernel(
+                0,
+                left,
+                middle,
+                right,
                 cards,
                 cardSides,
                 cardStates,
@@ -60,24 +86,69 @@ namespace Snapdragon
                 [],
                 [],
                 [],
-                top.Library.Cards.Select(c => c.Id).ToImmutableList(),
+                topCards.Select(c => c.Id).ToImmutableList(),
                 [],
                 [],
                 [],
-                bottom.Library.Cards.Select(c => c.Id).ToImmutableList(),
+                bottomCards.Select(c => c.Id).ToImmutableList(),
                 [],
-                []
+                [],
+                ImmutableDictionary<long, Sensor<ICard>>.Empty,
+                ImmutableDictionary<long, Side>.Empty,
+                ImmutableDictionary<long, Column>.Empty,
+                [],
+                [],
+                [],
+                [],
+                [],
+                [],
+                false,
+                false,
+                false
             );
         }
 
-        public IEnumerable<ICard> this[Column column, Side side]
+        public IReadOnlyList<ICard> this[Column column, Side side] =>
+            new CardInLocationListReference(this, CardIdsForLocation(column, side));
+
+        public Location this[Column column]
         {
-            get { return CardIdsForLocation(column, side).Select(id => Cards[id]); }
+            get
+            {
+                switch (column)
+                {
+                    case Column.Left:
+                        return new Location(Column.Left, LeftLocationDefinition, this);
+                    case Column.Middle:
+                        return new Location(Column.Middle, MiddleLocationDefinition, this);
+                    case Column.Right:
+                        return new Location(Column.Right, RightLocationDefinition, this);
+                    default:
+                        throw new NotImplementedException();
+                }
+            }
         }
 
-        public ICard this[long cardId]
+        public ICardInstance? this[long cardId]
         {
-            get { return this.Cards[cardId]; }
+            get
+            {
+                var card = this.Cards.GetValueOrDefault(cardId);
+                if (card == null)
+                {
+                    return null;
+                }
+
+                if (
+                    CardStates[cardId] == CardState.InPlay
+                    || CardStates[cardId] == CardState.PlayedButNotRevealed
+                )
+                {
+                    return new Card(card, this);
+                }
+
+                return new CardInstance(card, this);
+            }
         }
 
         #region Public Methods
@@ -103,7 +174,7 @@ namespace Snapdragon
                     cardId = TopLibrary[0];
 
                     return this.RemoveCardFromLibraryUnsafe(cardId, side)
-                        .WithCardInState(cardId, CardState.InHand)
+                        .WithCardInStateUnsafe(cardId, CardState.InHand)
                         .AddCardToHandUnsafe(cardId, side);
 
                 case Side.Bottom:
@@ -117,7 +188,51 @@ namespace Snapdragon
                     cardId = BottomLibrary[0];
 
                     return this.RemoveCardFromLibraryUnsafe(cardId, side)
-                        .WithCardInState(cardId, CardState.InHand)
+                        .WithCardInStateUnsafe(cardId, CardState.InHand)
+                        .AddCardToHandUnsafe(cardId, side);
+                default:
+                    throw new NotImplementedException();
+            }
+        }
+
+        /// <summary>
+        /// Draws a card for the given player, from their opponent's deck.
+        /// </summary>
+        /// <param name="side">Side of the player to draw a card (not the side the card is drawn from).</param>
+        public GameKernel DrawOpponentCard(Side side)
+        {
+            long cardId;
+
+            switch (side)
+            {
+                case Side.Top:
+                    if (BottomLibrary.Count == 0)
+                    {
+                        throw new InvalidOperationException(
+                            "Cannot draw; top player library is empty."
+                        );
+                    }
+
+                    cardId = BottomLibrary[0];
+
+                    return this.RemoveCardFromLibraryUnsafe(cardId, side.Other())
+                        .SetCardSideUnsafe(cardId, side)
+                        .WithCardInStateUnsafe(cardId, CardState.InHand)
+                        .AddCardToHandUnsafe(cardId, side);
+
+                case Side.Bottom:
+                    if (TopLibrary.Count == 0)
+                    {
+                        throw new InvalidOperationException(
+                            "Cannot draw; bottom player library is empty."
+                        );
+                    }
+
+                    cardId = TopLibrary[0];
+
+                    return this.RemoveCardFromLibraryUnsafe(cardId, side.Other())
+                        .SetCardSideUnsafe(cardId, side)
+                        .WithCardInStateUnsafe(cardId, CardState.InHand)
                         .AddCardToHandUnsafe(cardId, side);
                 default:
                     throw new NotImplementedException();
@@ -128,9 +243,18 @@ namespace Snapdragon
         /// Updates the stored record for a card.
         /// </summary>
         /// <param name="card">The new card state to store.</param>
-        public GameKernel WithUpdatedCard(ICard card)
+        public GameKernel WithUpdatedCard(ICardInstance card)
         {
-            return this with { Cards = Cards.SetItem(card.Id, card) };
+            return this with { Cards = Cards.SetItem(card.Id, card.Base) };
+        }
+
+        /// <summary>
+        /// Updates the stored record for a card.
+        /// </summary>
+        /// <param name="card">The new card state to store.</param>
+        public GameKernel WithUpdatedCard(CardBase cardBase)
+        {
+            return this with { Cards = Cards.SetItem(cardBase.Id, cardBase) };
         }
 
         /// <summary>
@@ -183,14 +307,7 @@ namespace Snapdragon
 
             newCollection = newCollection.Add(cardId);
             return this.RemoveCardFromHandUnsafe(cardId, side)
-                .WithCardInState(cardId, CardState.PlayedButNotRevealed)
-                .WithUpdatedCard( // TODO: Cleanup
-                    card.ToCardInstance() with
-                    {
-                        State = CardState.PlayedButNotRevealed,
-                        Column = column
-                    }
-                )
+                .WithCardInStateUnsafe(cardId, CardState.PlayedButNotRevealed)
                 .WithUpdatedLocationCollection(column, side, newCollection);
         }
 
@@ -234,10 +351,19 @@ namespace Snapdragon
                 );
             }
 
-            return this with
+            if (CardLocations[cardId] == null)
             {
-                CardStates = CardStates.SetItem(cardId, CardState.InPlay)
-            };
+                throw new InvalidOperationException(
+                    $"Card {card.Name} ({card.Id}) is in state {CardStates[cardId]} but has no location stored."
+                );
+            }
+
+            return (
+                this with
+                {
+                    CardStates = CardStates.SetItem(cardId, CardState.InPlay),
+                }
+            ).WithUpdatedCard(card with { TurnRevealed = Turn });
         }
 
         /// <summary>
@@ -257,13 +383,13 @@ namespace Snapdragon
             {
                 case Side.Top:
                     return this.RemoveCardFromHandUnsafe(cardId, side)
-                        .WithCardInState(cardId, CardState.Discarded) with
+                        .WithCardInStateUnsafe(cardId, CardState.Discarded) with
                     {
                         TopDiscards = TopDiscards.Add(cardId)
                     };
                 case Side.Bottom:
                     return this.RemoveCardFromHandUnsafe(cardId, side)
-                        .WithCardInState(cardId, CardState.Discarded) with
+                        .WithCardInStateUnsafe(cardId, CardState.Discarded) with
                     {
                         BottomDiscards = BottomDiscards.Add(cardId)
                     };
@@ -288,7 +414,7 @@ namespace Snapdragon
             ValidateSide(cardId, side);
 
             var kernel = this.RemoveCardFromLocationUnsafe(cardId, column, side)
-                .WithCardInState(cardId, CardState.Destroyed);
+                .WithCardInStateUnsafe(cardId, CardState.Destroyed);
 
             switch (side)
             {
@@ -314,7 +440,7 @@ namespace Snapdragon
             ValidateState(cardId, CardState.InHand);
             ValidateSide(cardId, side);
 
-            return this.RemoveCardFromGameUnsafe(cardId);
+            return this.RemoveCardFromGame(cardId);
         }
 
         /// <summary>
@@ -330,7 +456,7 @@ namespace Snapdragon
             ValidateState(cardId, CardState.InLibrary);
             ValidateSide(cardId, side);
 
-            return this.RemoveCardFromGameUnsafe(cardId);
+            return this.RemoveCardFromGame(cardId);
         }
 
         /// <summary>
@@ -379,7 +505,7 @@ namespace Snapdragon
             }
 
             kernel = kernel
-                .WithCardInState(cardId, CardState.InHand)
+                .WithCardInStateUnsafe(cardId, CardState.InHand)
                 .AddCardToHandUnsafe(cardId, side);
 
             return kernel;
@@ -422,7 +548,7 @@ namespace Snapdragon
             ValidateState(cardId, CardState.Discarded);
 
             return this.RemoveCardFromDiscardsUnsafe(cardId, side)
-                .WithCardInState(cardId, CardState.InPlay)
+                .WithCardInStateUnsafe(cardId, CardState.InPlay)
                 .AddCardToLocationUnsafe(cardId, column, side);
         }
 
@@ -439,22 +565,227 @@ namespace Snapdragon
             ValidateState(cardId, CardState.Destroyed);
 
             return this.RemoveCardFromDestroyedUnsafe(cardId, side)
-                .WithCardInState(cardId, CardState.InPlay)
+                .WithCardInStateUnsafe(cardId, CardState.InPlay)
                 .AddCardToLocationUnsafe(cardId, column, side);
         }
 
-        #endregion
+        /// <summary>
+        /// Adds a new card to the game and to the player's hand.
+        /// </summary>
+        /// <param name="cardDefinition">Definition of the card to add.</param>
+        /// <param name="side">Player who will get the added card.</param>
+        /// <param name="newCardId">Generated unique identifier of the added card.</param>
+        public GameKernel AddNewCardToHand(
+            CardDefinition cardDefinition,
+            Side side,
+            out long newCardId
+        )
+        {
+            var cardBase = new CardBase(cardDefinition);
 
-        #region Internal Logic
+            newCardId = cardBase.Id;
+
+            return this.WithNewCardUnsafe(cardBase, side, CardState.InHand)
+                .AddCardToHandUnsafe(cardBase.Id, side);
+        }
 
         /// <summary>
-        /// Internal helper function that removes a card from the game.
+        /// Adds a new card to the game and to the player's library.
+        /// </summary>
+        /// <param name="cardDefinition">Definition of the card to add.</param>
+        /// <param name="side">Player who will get the added card.</param>
+        /// <param name="newCardId">Generated unique identifier of the added card.</param>
+        public GameKernel AddNewCardToLibrary(
+            CardDefinition cardDefinition,
+            Side side,
+            out long newCardId
+        )
+        {
+            var cardBase = new CardBase(cardDefinition);
+
+            newCardId = cardBase.Id;
+
+            return this.WithNewCardUnsafe(cardBase, side, CardState.InLibrary)
+                .AddCardToLibraryUnsafe(cardBase.Id, side);
+        }
+
+        /// <summary>
+        /// Adds a new card to the game and to a specific location.
+        /// </summary>
+        /// <param name="cardDefinition">Definition of the card to add.</param>
+        /// <param name="column">Location of the added card.</param>
+        /// <param name="side">Player who will get the added card.</param>
+        /// <param name="newCardId">Generated unique identifier of the added card.</param>
+        public GameKernel AddNewCardToLocation(
+            CardDefinition cardDefinition,
+            Column column,
+            Side side,
+            out long newCardId
+        )
+        {
+            var cardBase = new CardBase(cardDefinition);
+
+            newCardId = cardBase.Id;
+
+            return this.WithNewCardUnsafe(cardBase, side, CardState.InPlay)
+                .AddCardToLocationUnsafe(cardBase.Id, column, side);
+        }
+
+        /// <summary>
+        /// Adds a copy of an existing card to the game and to a specific location.
+        /// </summary>
+        /// <param name="existingCardId">Unique identifier of the existing card to copy.</param>
+        /// <param name="column">Location of the added card.</param>
+        /// <param name="side">Player who will get the added card.</param>
+        /// <param name="newCardId">Generated unique identifier of the copy.</param>
+        public GameKernel AddCopiedCardToLocation(
+            long existingCardId,
+            Column column,
+            Side side,
+            out long newCardId
+        )
+        {
+            ValidateCardExists(existingCardId);
+
+            var copiedCard = Cards[existingCardId] with { Id = Ids.GetNextCard() };
+            newCardId = copiedCard.Id;
+
+            return this.WithNewCardUnsafe(copiedCard, side, CardState.InPlay)
+                .AddCardToLocationUnsafe(copiedCard.Id, column, side);
+        }
+
+        /// <summary>
+        /// Adds a copy of an existing card to the specified player's hand.
+        /// </summary>
+        /// <param name="existingCardId">Unique identifier of the existing card to copy.</param>
+        /// <param name="side">Player who will get the added card.</param>
+        /// <param name="newCardId">Generated unique identifier of the copy.</param>
+        public GameKernel AddCopiedCardToHand(long existingCardId, Side side, out long newCardId)
+        {
+            ValidateCardExists(existingCardId);
+
+            var copiedCard = Cards[existingCardId] with { Id = Ids.GetNextCard() };
+            newCardId = copiedCard.Id;
+
+            return this.WithNewCardUnsafe(copiedCard, side, CardState.InHand)
+                .AddCardToHandUnsafe(copiedCard.Id, side);
+        }
+
+        public GameKernel RevealLocation(Column column)
+        {
+            // TODO: Consider throwing if it's already revealed
+            switch (column)
+            {
+                case Column.Left:
+                    return this with { LeftRevealed = true };
+                case Column.Middle:
+                    return this with { MiddleRevealed = true };
+                case Column.Right:
+                    return this with { RightRevealed = true };
+                default:
+                    throw new NotImplementedException();
+            }
+        }
+
+        public GameKernel AddSensor(Sensor<ICard> sensor)
+        {
+            if (Sensors.ContainsKey(sensor.Id))
+            {
+                throw new InvalidOperationException($"Sensor {sensor.Id} already exists.");
+            }
+
+            var topLeftSensors = TopLeftSensors;
+            var topMiddleSensors = TopMiddleSensors;
+            var topRightSensors = TopRightSensors;
+            var bottomLeftSensors = BottomLeftSensors;
+            var bottomMiddleSensors = BottomMiddleSensors;
+            var bottomRightSensors = BottomRightSensors;
+
+            // TODO: Make a more succinct implementation
+            switch (sensor.Column)
+            {
+                case Column.Left:
+                    switch (sensor.Side)
+                    {
+                        case Side.Top:
+                            topLeftSensors = topLeftSensors.Add(sensor.Id);
+                            break;
+                        case Side.Bottom:
+                            bottomLeftSensors = bottomLeftSensors.Add(sensor.Id);
+                            break;
+                        default:
+                            throw new NotImplementedException();
+                    }
+                    break;
+                case Column.Middle:
+                    switch (sensor.Side)
+                    {
+                        case Side.Top:
+                            topMiddleSensors = topMiddleSensors.Add(sensor.Id);
+                            break;
+                        case Side.Bottom:
+                            bottomMiddleSensors = bottomMiddleSensors.Add(sensor.Id);
+                            break;
+                        default:
+                            throw new NotImplementedException();
+                    }
+                    break;
+                case Column.Right:
+                    switch (sensor.Side)
+                    {
+                        case Side.Top:
+                            topRightSensors = topRightSensors.Add(sensor.Id);
+                            break;
+                        case Side.Bottom:
+                            bottomRightSensors = bottomRightSensors.Add(sensor.Id);
+                            break;
+                        default:
+                            throw new NotImplementedException();
+                    }
+                    break;
+                default:
+                    throw new NotImplementedException();
+            }
+
+            return this with
+            {
+                Sensors = Sensors.Add(sensor.Id, sensor),
+                SensorSides = SensorSides.Add(sensor.Id, sensor.Side),
+                SensorLocations = SensorLocations.Add(sensor.Id, sensor.Column),
+                TopLeftSensors = topLeftSensors,
+                TopMiddleSensors = topMiddleSensors,
+                TopRightSensors = topRightSensors,
+                BottomLeftSensors = bottomLeftSensors,
+                BottomMiddleSensors = bottomMiddleSensors,
+                BottomRightSensors = bottomRightSensors
+            };
+        }
+
+        public GameKernel DestroySensor(long sensorId, Column column, Side side)
+        {
+            return this.RemoveSensorFromLocationUnsafe(sensorId, column, side) with
+            {
+                Sensors = Sensors.Remove(sensorId),
+                SensorSides = SensorSides.Remove(sensorId),
+                SensorLocations = SensorLocations.Remove(sensorId),
+                TopLeftSensors = TopLeftSensors.Remove(sensorId),
+                TopMiddleSensors = TopMiddleSensors.Remove(sensorId),
+                TopRightSensors = TopRightSensors.Remove(sensorId),
+                BottomLeftSensors = BottomLeftSensors.Remove(sensorId),
+                BottomMiddleSensors = BottomMiddleSensors.Remove(sensorId),
+                BottomRightSensors = BottomRightSensors.Remove(sensorId)
+            };
+        }
+
+        /// <summary>
+        /// Removes a card from the game entirely.
         ///
         /// This is used for cases where items are destroyed from the hand or deck,
-        /// in which case I believe they are unrecoverable.
+        /// in which case I believe they are unrecoverable, as well as cases where
+        /// one card merges with another.
         /// </summary>
         /// <param name="cardId">Unique identifier of the card.</param>
-        private GameKernel RemoveCardFromGameUnsafe(long cardId)
+        public GameKernel RemoveCardFromGame(long cardId)
         {
             return this with
             {
@@ -478,6 +809,10 @@ namespace Snapdragon
                 BottomDestroyed = BottomDestroyed.Remove(cardId)
             };
         }
+
+        #endregion
+
+        #region Internal Logic
 
         /// <summary>
         /// Internal helper function that removes a card from the
@@ -787,9 +1122,77 @@ namespace Snapdragon
         /// <param name="cardId">Unique identifier of the card.</param>
         /// <param name="state">New state to store for the card.</param>
         /// <returns></returns>
-        private GameKernel WithCardInState(long cardId, CardState state)
+        private GameKernel WithCardInStateUnsafe(long cardId, CardState state)
         {
             return this with { CardStates = CardStates.SetItem(cardId, state) };
+        }
+
+        /// <summary>
+        /// Internal helper function that adds a new card to the game,
+        /// including putting it in the three universal collections,
+        /// but no specific collection for its state/location.
+        /// </summary>
+        /// <param name="cardBase">New card to add.</param>
+        private GameKernel WithNewCardUnsafe(CardBase cardBase, Side side, CardState initialState)
+        {
+            return this with
+            {
+                Cards = Cards.Add(cardBase.Id, cardBase),
+                CardSides = CardSides.Add(cardBase.Id, side),
+                CardStates = CardStates.Add(cardBase.Id, initialState),
+                CardLocations = CardLocations.Add(cardBase.Id, null)
+            };
+        }
+
+        /// <summary>
+        /// Internal helper function that removes a sensor from a location.
+        ///
+        /// Should only be used as part of a larger operation as it does not
+        /// add the sensor to any other collection, or destroy it.
+        /// </summary>
+        /// <param name="sensorId">Unique id of the sensor to remove.</param>
+        /// <param name="column">Current location of the sensor.</param>
+        /// <param name="side">Current side of the sensor.</param>
+        private GameKernel RemoveSensorFromLocationUnsafe(long sensorId, Column column, Side side)
+        {
+            ValidateSensorExists(sensorId);
+            ValidateSensorLocation(sensorId, column);
+            ValidateSensorSide(sensorId, side);
+
+            return (column, side) switch
+            {
+                (Column.Left, Side.Top)
+                    => this with
+                    {
+                        TopLeftSensors = TopLeftSensors.Remove(sensorId)
+                    },
+                (Column.Middle, Side.Top)
+                    => this with
+                    {
+                        TopMiddleSensors = TopMiddleSensors.Remove(sensorId)
+                    },
+                (Column.Right, Side.Top)
+                    => this with
+                    {
+                        TopRightSensors = TopRightSensors.Remove(sensorId)
+                    },
+                (Column.Left, Side.Bottom)
+                    => this with
+                    {
+                        BottomLeftSensors = BottomLeftSensors.Remove(sensorId)
+                    },
+                (Column.Middle, Side.Bottom)
+                    => this with
+                    {
+                        BottomMiddleSensors = BottomMiddleSensors.Remove(sensorId)
+                    },
+                (Column.Right, Side.Bottom)
+                    => this with
+                    {
+                        BottomRightSensors = BottomRightSensors.Remove(sensorId)
+                    },
+                (_, _) => throw new NotImplementedException()
+            };
         }
 
         private ImmutableList<long> CardIdsForLocation(Column column, Side side)
@@ -851,6 +1254,32 @@ namespace Snapdragon
 
                 throw new InvalidOperationException(
                     $"Card {card.Name} ({card.Id}) is not in column {column}."
+                );
+            }
+        }
+
+        private void ValidateSensorExists(long sensorId)
+        {
+            if (!Sensors.ContainsKey(sensorId))
+            {
+                throw new InvalidOperationException($"Unknown sensor {sensorId}.");
+            }
+        }
+
+        private void ValidateSensorSide(long sensorId, Side side)
+        {
+            if (SensorSides[sensorId] != side)
+            {
+                throw new InvalidOperationException($"Sensor {sensorId} is not on side {side}.");
+            }
+        }
+
+        private void ValidateSensorLocation(long sensorId, Column column)
+        {
+            if (SensorLocations[sensorId] != column)
+            {
+                throw new InvalidOperationException(
+                    $"Sensor {sensorId} is not in column {column}."
                 );
             }
         }

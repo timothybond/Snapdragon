@@ -1,8 +1,6 @@
-﻿using Snapdragon.Events;
-
-namespace Snapdragon.Effects
+﻿namespace Snapdragon.Effects
 {
-    public record AddCopyToLocation(ICard Card, Column Column, Side? Side = null) : IEffect
+    public record AddCopyToLocation(ICardInstance Card, Column Column, Side? Side = null) : IEffect
     {
         public Game Apply(Game game)
         {
@@ -12,17 +10,14 @@ namespace Snapdragon.Effects
                 return game;
             }
 
-            // TODO: Get current state of card instead of using reference
-            var card = Card.InPlayAt(Column) with
-            {
-                State = CardState.InPlay,
-                Id = Ids.GetNext<ICard>(),
-                Side = Side ?? Card.Side
-            };
+            var card = game.GetCard(Card.Id);
 
-            var location = game[Column].WithCard(card);
-            return game.WithLocation(location)
-                .WithEvent(new CardAddedToLocationEvent(card, Column, game.Turn));
+            if (card == null)
+            {
+                return game;
+            }
+
+            return game.WithCopyInPlay(card, Column, Side ?? Card.Side);
         }
     }
 }

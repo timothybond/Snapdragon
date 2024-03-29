@@ -7,7 +7,7 @@ namespace Snapdragon.Fluent.EffectBuilders
     /// </summary>
     /// <param name="CardSelector">Selector to get affected cards.</param>
     /// <param name="Amount">Amount of power to add (or subtract)</param>
-    public record DiscardBuilder<TContext>(ISelector<ICard, TContext> CardSelector)
+    public record DiscardBuilder<TContext>(ISelector<ICardInstance, TContext> CardSelector)
         : IEffectBuilder<TContext>
     {
         public IEffect Build(TContext context, Game game)

@@ -1,6 +1,4 @@
-﻿using Snapdragon.Events;
-
-namespace Snapdragon.Effects
+﻿namespace Snapdragon.Effects
 {
     /// <summary>
     /// Adds a specific card to the given player's hand.
@@ -16,10 +14,7 @@ namespace Snapdragon.Effects
                 return game;
             }
 
-            var card = new CardInstance(Definition, Side, CardState.InHand);
-
-            return game.WithPlayer(game[Side] with { Hand = game[Side].Hand.Add(card) })
-                .WithEvent(new CardAddedToHandEvent(card, game.Turn));
+            return game.WithNewCardInHand(Definition, Side);
         }
     }
 }

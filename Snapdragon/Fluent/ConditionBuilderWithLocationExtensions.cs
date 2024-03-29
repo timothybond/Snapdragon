@@ -20,7 +20,7 @@ namespace Snapdragon.Fluent
             TContext,
             TOutcome
         >(this IConditionBuilder<TAbility, TContext, TOutcome> builder)
-            where TContext : IObjectWithColumn, ICard
+            where TContext : IObjectWithColumn, ICardInstance
         {
             return builder.WithCondition(new LocationFullCondition<TContext>());
         }

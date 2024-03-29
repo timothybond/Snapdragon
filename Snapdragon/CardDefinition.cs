@@ -1,5 +1,5 @@
-﻿using System.Collections.Immutable;
-using Snapdragon.Fluent;
+﻿using Snapdragon.Fluent;
+using System.Collections.Immutable;
 
 namespace Snapdragon
 {
@@ -7,11 +7,12 @@ namespace Snapdragon
         string Name,
         int Cost,
         int Power,
-        OnReveal<Card>? OnReveal = null,
-        Ongoing<Card>? Ongoing = null,
-        ITriggeredAbility<ICard>? Triggered = null,
-        IMoveAbility<Card>? MoveAbility = null,
+        OnReveal<ICard>? OnReveal = null,
+        Ongoing<ICard>? Ongoing = null,
+        ITriggeredAbility<ICardInstance>? Triggered = null,
+        IMoveAbility<ICard>? MoveAbility = null,
         ImmutableList<EffectType>? Disallowed = null,
         IPlayRestriction? PlayRestriction = null
-    ) { }
+    )
+    { }
 }

@@ -9,15 +9,15 @@ namespace Snapdragon.Fluent.EffectBuilders
     /// <param name="CardSelector">Selector to get affected cards.</param>
     /// <param name="Amount">Amount of power to add (or subtract)</param>
     public record ModifyPowerBuilder<TContext>(
-        ISelector<ICard, TContext> CardSelector,
+        ISelector<ICardInstance, TContext> CardSelector,
         ICalculation<TContext> Amount
     ) : BaseCardEffectBuilder<TContext>(CardSelector)
         where TContext : class
     {
-        public ModifyPowerBuilder(ISelector<ICard, TContext> CardSelector, int Amount)
+        public ModifyPowerBuilder(ISelector<ICardInstance, TContext> CardSelector, int Amount)
             : this(CardSelector, new ConstantValue(Amount)) { }
 
-        protected override IEffect BuildCardEffect(ICard card, TContext context, Game game)
+        protected override IEffect BuildCardEffect(ICardInstance card, TContext context, Game game)
         {
             return new AddPowerToCard(card, Amount.GetValue(context, game));
         }
@@ -26,7 +26,7 @@ namespace Snapdragon.Fluent.EffectBuilders
     public static class ModifyPowerExtensions
     {
         public static ModifyPowerBuilder<TContext> ModifyPower<TContext>(
-            this ISelector<ICard, TContext> cardSelector,
+            this ISelector<ICardInstance, TContext> cardSelector,
             ICalculation<TContext> amount
         )
             where TContext : class
@@ -35,7 +35,7 @@ namespace Snapdragon.Fluent.EffectBuilders
         }
 
         public static ModifyPowerBuilder<TContext> ModifyPower<TContext>(
-            this ISelector<ICard, TContext> cardSelector,
+            this ISelector<ICardInstance, TContext> cardSelector,
             int amount
         )
             where TContext : class
@@ -44,7 +44,7 @@ namespace Snapdragon.Fluent.EffectBuilders
         }
 
         public static ModifyPowerBuilder<TContext> DoublePower<TContext>(
-            this ISingleItemSelector<ICard, TContext> cardSelector
+            this ISingleItemSelector<ICardInstance, TContext> cardSelector
         )
             where TContext : class
         {

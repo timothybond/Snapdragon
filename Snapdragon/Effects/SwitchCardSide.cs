@@ -1,8 +1,6 @@
-﻿using Snapdragon.Events;
-
-namespace Snapdragon.Effects
+﻿namespace Snapdragon.Effects
 {
-    public record SwitchCardSide(Card Card) : IEffect
+    public record SwitchCardSide(ICard Card) : IEffect
     {
         public Game Apply(Game game)
         {
@@ -21,12 +19,7 @@ namespace Snapdragon.Effects
                 return game;
             }
 
-            var modifiedCard = actualCard with { Side = actualCard.Side.Other() };
-
-            location = location.WithRemovedCard(actualCard).WithCard(modifiedCard);
-
-            return game.WithLocation(location)
-                .WithEvent(new CardSwitchedSidesEvent(modifiedCard, game.Turn));
+            return game.SwitchCardSide(actualCard);
         }
     }
 }

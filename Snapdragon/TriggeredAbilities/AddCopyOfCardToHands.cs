@@ -11,7 +11,7 @@ namespace Snapdragon.TriggeredAbilities
             var sides = All.Sides.Where(s => Sides.Applies(s, e, game));
 
             return sides
-                .Select(s => new AddCopiesToHand(e.Card, 1, null, s))
+                .Select(s => new AddCopiesToHand(e.Card, null, s))
                 .Aggregate((IEffect)new NullEffect(), (acc, e) => new AndEffect(acc, e));
         }
     }

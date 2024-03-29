@@ -8,12 +8,12 @@
     /// <param name="EffectBuilder">Builds the main effect to be potentially triggered.</param>
     public class ExpiringTriggeredSensorBuilder<TEvent>(
         int Turns,
-        ITriggerBuilder<Sensor<Card>, TEvent>? TriggerBuilder = null,
-        ISourceTriggeredEffectBuilder<Sensor<Card>, TEvent>? EffectBuilder = null
-    ) : ISensorTriggeredAbilityBuilder<Sensor<Card>, TEvent>
+        ITriggerBuilder<Sensor<ICard>, TEvent>? TriggerBuilder = null,
+        ISourceTriggeredEffectBuilder<Sensor<ICard>, TEvent>? EffectBuilder = null
+    ) : ISensorTriggeredAbilityBuilder<Sensor<ICard>, TEvent>
         where TEvent : Event
     {
-        public ITriggeredAbility<Sensor<Card>> Build(Game game, Sensor<Card> source)
+        public ITriggeredAbility<Sensor<ICard>> Build(Game game, Sensor<ICard> source)
         {
             var expiresAtTurn = game.Turn + Turns;
 

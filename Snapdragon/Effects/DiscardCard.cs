@@ -1,8 +1,6 @@
-﻿using Snapdragon.Events;
-
-namespace Snapdragon.Effects
+﻿namespace Snapdragon.Effects
 {
-    public record DiscardCard(ICard card) : IEffect
+    public record DiscardCard(ICardInstance card) : IEffect
     {
         public Game Apply(Game game)
         {
@@ -15,16 +13,7 @@ namespace Snapdragon.Effects
                 return game;
             }
 
-            var discardedCard = cardInHand with { State = CardState.Discarded };
-
-            player = game[card.Side] with
-            {
-                Hand = hand.Remove(cardInHand),
-                Discards = player.Discards.Add(discardedCard)
-            };
-
-            return game.WithPlayer(player)
-                .WithEvent(new CardDiscardedEvent(game.Turn, discardedCard));
+            return game.WithCardDiscarded(cardInHand);
         }
     }
 }

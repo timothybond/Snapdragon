@@ -2,9 +2,9 @@
 
 namespace Snapdragon.RevealAbilities
 {
-    public record ReturnOneDiscardToHere : IRevealAbility<Card>
+    public record ReturnOneDiscardToHere : IRevealAbility<ICard>
     {
-        public Game Activate(Game game, Card source)
+        public Game Activate(Game game, ICard source)
         {
             if (game[source.Side].Discards.Count == 0)
             {

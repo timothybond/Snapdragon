@@ -4,8 +4,8 @@
     {
         public IEnumerable<Player> Get(object context, Game game)
         {
-            yield return game.Top;
-            yield return game.Bottom;
+            yield return game.TopPlayer;
+            yield return game.BottomPlayer;
         }
     }
 }

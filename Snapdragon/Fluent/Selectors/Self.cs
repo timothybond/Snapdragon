@@ -6,13 +6,13 @@ namespace Snapdragon.Fluent.Selectors
     /// Used as a selector/filter for getting the context card, or events targeting it.
     /// </summary>
     public record Self
-        : WhereCardFilter<ICard>,
-            ISingleItemSelector<ICard, ICard>,
-            IEventFilter<CardEvent, ICard>
+        : WhereCardFilter<ICardInstance>,
+            ISingleItemSelector<ICardInstance, ICardInstance>,
+            IEventFilter<CardEvent, ICardInstance>
     {
-        public ICard? GetOrDefault(ICard context, Game game)
+        public ICardInstance? GetOrDefault(ICardInstance context, Game game)
         {
-            IEnumerable<ICard> toSearch;
+            IEnumerable<ICardInstance> toSearch;
 
             switch (context.State)
             {
@@ -20,7 +20,7 @@ namespace Snapdragon.Fluent.Selectors
                     toSearch = game[context.Side].Hand;
                     break;
                 case CardState.InLibrary:
-                    toSearch = game[context.Side].Library.Cards;
+                    toSearch = game[context.Side].Library;
                     break;
                 case CardState.InPlay:
                     toSearch = game.AllCards;
@@ -40,12 +40,12 @@ namespace Snapdragon.Fluent.Selectors
             return toSearch.SingleOrDefault(c => c.Id == context.Id);
         }
 
-        public bool Includes(CardEvent e, ICard context, Game game)
+        public bool Includes(CardEvent e, ICardInstance context, Game game)
         {
             return e.Card.Id == context.Id;
         }
 
-        protected override bool Includes(ICard card, ICard context)
+        protected override bool Includes(ICardInstance card, ICardInstance context)
         {
             return card.Id == context.Id;
         }

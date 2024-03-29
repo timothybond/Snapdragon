@@ -7,7 +7,7 @@
     public record OnlyCardHere<T> : ICardFilter<T>
         where T : IObjectWithColumn
     {
-        public bool Applies(ICard card, T source, Game game)
+        public bool Applies(ICardInstance card, T source, Game game)
         {
             if (card.Column != source.Column)
             {

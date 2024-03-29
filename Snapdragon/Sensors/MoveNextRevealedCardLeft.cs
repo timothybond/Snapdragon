@@ -4,9 +4,9 @@ using Snapdragon.Events;
 namespace Snapdragon.Sensors
 {
     public class MoveNextRevealedCardLeft
-        : ISourceTriggeredEffectBuilder<Sensor<Card>, CardRevealedEvent>
+        : ISourceTriggeredEffectBuilder<Sensor<ICard>, CardRevealedEvent>
     {
-        public IEffect Build(Game game, CardRevealedEvent e, Sensor<Card> source)
+        public IEffect Build(Game game, CardRevealedEvent e, Sensor<ICard> source)
         {
             var nextRevealEvent = this.GetNextRevealEvent(game, source.Source);
 
@@ -37,10 +37,10 @@ namespace Snapdragon.Sensors
         /// </summary>
         /// <param name="previous">The <see cref="CardInstance"/> after which to search.</param>
         /// <returns></returns>
-        private CardRevealedEvent GetNextRevealEvent(Game game, Card previous)
+        private CardRevealedEvent GetNextRevealEvent(Game game, ICard previous)
         {
             CardRevealedEvent? nextRevealEvent = null;
-            ICard? mergedInto = null;
+            ICardInstance? mergedInto = null;
 
             // Skip all events until the source for this effect is revealed, and then that event as well
             var eventsAfterPreviousCardRevealed = game

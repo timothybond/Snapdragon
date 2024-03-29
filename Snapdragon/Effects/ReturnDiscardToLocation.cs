@@ -1,11 +1,9 @@
-﻿using Snapdragon.Events;
-
-namespace Snapdragon.Effects
+﻿namespace Snapdragon.Effects
 {
     /// <summary>
-    /// Returns a discarded <see cref="ICard"/> to play at a specific <see cref="Column"/>.
+    /// Returns a discarded <see cref="ICardInstance"/> to play at a specific <see cref="Column"/>.
     /// </summary>
-    public record ReturnDiscardToLocation(ICard Card, Column Column) : IEffect
+    public record ReturnDiscardToLocation(ICardInstance Card, Column Column) : IEffect
     {
         public Game Apply(Game game)
         {
@@ -27,13 +25,7 @@ namespace Snapdragon.Effects
                 return game;
             }
 
-            location = location.WithCard(actualCard with { State = CardState.InPlay });
-
-            player = player with { Discards = player.Discards.RemoveAll(c => c.Id == Card.Id) };
-
-            return game.WithPlayer(player)
-                .WithLocation(location)
-                .WithEvent(new CardReturnedToPlay(actualCard, Column, game.Turn));
+            return game.ReturnDiscardToPlay(actualCard, Column);
         }
     }
 }

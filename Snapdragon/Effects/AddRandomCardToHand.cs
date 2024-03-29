@@ -15,9 +15,9 @@
             }
 
             var randomCardDefinition = Random.Of(SnapCards.All.Where(Filter.Applies).ToList());
-            var randomCard = new CardInstance(randomCardDefinition, Side, CardState.InHand);
 
-            return game.WithPlayer(game[Side] with { Hand = game[Side].Hand.Add(randomCard) });
+            return game.WithNewCardInHand(randomCardDefinition, Side);
+
         }
     }
 }

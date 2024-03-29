@@ -2,11 +2,11 @@
 
 namespace Snapdragon.Fluent.EffectBuilders
 {
-    public record MoveToHereBuilder<TContext>(ISelector<ICard, TContext> CardSelector)
+    public record MoveToHereBuilder<TContext>(ISelector<ICardInstance, TContext> CardSelector)
         : BaseCardEffectBuilder<TContext>(CardSelector)
         where TContext : IObjectWithPossibleColumn
     {
-        protected override IEffect BuildCardEffect(ICard card, TContext context, Game game)
+        protected override IEffect BuildCardEffect(ICardInstance card, TContext context, Game game)
         {
             if (context.Column == null)
             {
@@ -19,19 +19,14 @@ namespace Snapdragon.Fluent.EffectBuilders
                 return new NullEffect();
             }
 
-            return new MoveCard(
-                card.InPlayAt(card.Column.Value),
-                card.Column.Value,
-                context.Column.Value,
-                true
-            );
+            return new MoveCard(card, card.Column.Value, context.Column.Value, true);
         }
     }
 
     public static class MoveToHereExtensions
     {
         public static MoveToHereBuilder<TContext> MoveToHere<TContext>(
-            this ISelector<ICard, TContext> cardSelector
+            this ISelector<ICardInstance, TContext> cardSelector
         )
             where TContext : IObjectWithPossibleColumn
         {

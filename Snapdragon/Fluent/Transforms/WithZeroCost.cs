@@ -2,9 +2,9 @@
 {
     public record WithZeroCost : ICardTransform
     {
-        public ICard Apply(ICard card)
+        public CardBase Apply(CardBase card)
         {
-            return card.ToCardInstance() with { Cost = 0 };
+            return card with { Cost = 0 };
         }
     }
 }

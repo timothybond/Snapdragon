@@ -1,7 +1,7 @@
 ﻿namespace Snapdragon.Fluent.Conditions
 {
     public record LocationFullCondition<TContext> : ICondition<TContext>
-        where TContext : ICard, IObjectWithColumn
+        where TContext : ICardInstance, IObjectWithColumn
     {
         public bool IsMet(TContext context, Game game)
         {

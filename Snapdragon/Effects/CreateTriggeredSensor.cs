@@ -1,16 +1,16 @@
 ﻿namespace Snapdragon.Effects
 {
     public record CreateTriggeredSensor(
-        Card Source,
-        ITriggeredAbility<Sensor<Card>> TriggeredAbility
+        ICard Source,
+        ITriggeredAbility<Sensor<ICard>> TriggeredAbility
     ) : IEffect
     {
         public Game Apply(Game game)
         {
             // TODO: Get rid of duplication with CreateSensor reveal ability
 
-            var sensor = new Sensor<Card>(
-                Ids.GetNext<Sensor<Card>>(),
+            var sensor = new Sensor<ICard>(
+                Ids.GetNextSensor(),
                 Source.Column,
                 Source.Side,
                 Source,

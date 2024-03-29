@@ -14,7 +14,7 @@ namespace Snapdragon.Fluent.EventFilters
             return e.Card.Side == context.Side;
         }
 
-        protected override bool Includes(ICard card, IObjectWithSide context)
+        protected override bool Includes(ICardInstance card, IObjectWithSide context)
         {
             return card.Side == context.Side;
         }

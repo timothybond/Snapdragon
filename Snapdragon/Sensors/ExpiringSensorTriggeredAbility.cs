@@ -14,12 +14,12 @@
     /// <param name="Inner"></param>
     public record ExpiringSensorTriggeredAbility<TEvent>(
         int Turn,
-        Sensor<Card> Source,
+        Sensor<ICard> Source,
         TriggeredSensorAbility<TEvent>? Inner
-    ) : ITriggeredAbility<Sensor<Card>>
+    ) : ITriggeredAbility<Sensor<ICard>>
         where TEvent : Event
     {
-        public Game ProcessEvent(Game game, Event e, Sensor<Card> source)
+        public Game ProcessEvent(Game game, Event e, Sensor<ICard> source)
         {
             // Note: We trigger the inner effect first because Jessica Jones triggers on "nothing played"
             if (e is TEvent specificEvent)

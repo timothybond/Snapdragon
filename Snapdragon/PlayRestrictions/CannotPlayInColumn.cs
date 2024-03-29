@@ -2,7 +2,7 @@
 {
     public record CannotPlayInColumn(Column Column) : IPlayRestriction
     {
-        public bool IsBlocked(Game game, Column column, CardInstance source)
+        public bool IsBlocked(Game game, Column column, ICardInstance source)
         {
             return Column == column;
         }

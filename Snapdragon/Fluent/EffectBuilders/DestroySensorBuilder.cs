@@ -3,11 +3,11 @@
     /// <summary>
     /// An effect builder that destroys the sensor that is the context object.
     /// </summary>
-    public record DestroySensorBuilder : IEffectBuilder<Event, Sensor<Card>>
+    public record DestroySensorBuilder : IEffectBuilder<Event, Sensor<ICard>>
     {
-        public IEffect Build(Event e, Sensor<Card> context, Game game)
+        public IEffect Build(Event e, Sensor<ICard> context, Game game)
         {
-            return new Snapdragon.Effects.DestroySensor<Card>(context);
+            return new Snapdragon.Effects.DestroySensor<ICard>(context);
         }
     }
 }

@@ -9,16 +9,5 @@ namespace Snapdragon
     {
         public Deck(ImmutableList<CardDefinition> Cards)
             : this(Cards, Guid.Empty) { }
-
-        public Library ToLibrary(Side side, bool shuffle = true)
-        {
-            var cards = Cards.Select(c => new CardInstance(c, side));
-            if (shuffle)
-            {
-                cards = cards.OrderBy(card => Random.Next());
-            }
-
-            return new Library(cards.ToImmutableList());
-        }
     }
 }

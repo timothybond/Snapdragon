@@ -1,5 +1,4 @@
 ﻿using Snapdragon.Events;
-using System.Collections.Immutable;
 
 namespace Snapdragon.Tests.SnapCardsTest
 {
@@ -9,13 +8,10 @@ namespace Snapdragon.Tests.SnapCardsTest
         [TestCaseSource(typeof(AllSidesAndColumns))]
         public void DiscardsHighestCostCardInHand(Side side, Column column)
         {
-            var game = TestHelpers.NewGame();
-
             // Need to populate some existing cards in the hand
-            var hand = new[] { Cards.OneOne, Cards.ThreeThree, Cards.TwoTwo }
-                .Select(cd => new CardInstance(cd, side, CardState.InHand))
-                .ToImmutableList();
-            game = game.WithPlayer(game[side] with { Hand = hand });
+            var game = TestHelpers
+                .NewGame()
+                .WithCardsInHand(side, Cards.OneOne, Cards.ThreeThree, Cards.TwoTwo);
 
             game = TestHelpers.PlayCards(game, side, column, "Lady Sif");
 
@@ -35,13 +31,16 @@ namespace Snapdragon.Tests.SnapCardsTest
         [TestCaseSource(typeof(AllSidesAndColumns))]
         public void OnlyDiscardsOneCardIfTieForHighestCost(Side side, Column column)
         {
-            var game = TestHelpers.NewGame();
-
             // Need to populate some existing cards in the hand
-            var hand = new[] { Cards.OneOne, Cards.ThreeThree, Cards.ThreeThree, Cards.TwoTwo }
-                .Select(cd => new CardInstance(cd, side, CardState.InHand))
-                .ToImmutableList();
-            game = game.WithPlayer(game[side] with { Hand = hand });
+            var game = TestHelpers
+                .NewGame()
+                .WithCardsInHand(
+                    side,
+                    Cards.OneOne,
+                    Cards.ThreeThree,
+                    Cards.ThreeThree,
+                    Cards.TwoTwo
+                );
 
             game = TestHelpers.PlayCards(game, side, column, "Lady Sif");
 
@@ -62,13 +61,10 @@ namespace Snapdragon.Tests.SnapCardsTest
         [TestCaseSource(typeof(AllSidesAndColumns))]
         public void DoesNotMakeOpponentDiscard(Side side, Column column)
         {
-            var game = TestHelpers.NewGame();
-
             // Need to populate some existing cards in the hand
-            var hand = new[] { Cards.OneOne, Cards.ThreeThree, Cards.TwoTwo }
-                .Select(cd => new CardInstance(cd, side.Other(), CardState.InHand))
-                .ToImmutableList();
-            game = game.WithPlayer(game[side.Other()] with { Hand = hand });
+            var game = TestHelpers
+                .NewGame()
+                .WithCardsInHand(side.Other(), Cards.OneOne, Cards.ThreeThree, Cards.TwoTwo);
 
             game = TestHelpers.PlayCards(game, side, column, "Lady Sif");
 

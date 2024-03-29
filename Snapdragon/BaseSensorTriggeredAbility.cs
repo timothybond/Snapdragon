@@ -2,13 +2,13 @@
 {
     public interface ISensorTriggeredAbility
     {
-        Game ProcessEvent(Game game, Event e, Sensor<Card> source);
+        Game ProcessEvent(Game game, Event e, Sensor<ICard> source);
     }
 
-    public abstract record BaseSensorTriggeredAbility<TEvent> : ITriggeredAbility<Sensor<Card>>
+    public abstract record BaseSensorTriggeredAbility<TEvent> : ITriggeredAbility<Sensor<ICard>>
         where TEvent : Event
     {
-        public Game ProcessEvent(Game game, Event e, Sensor<Card> source)
+        public Game ProcessEvent(Game game, Event e, Sensor<ICard> source)
         {
             if (e is TEvent specificEvent)
             {
@@ -18,6 +18,6 @@
             return game;
         }
 
-        protected abstract Game ProcessEvent(Game game, TEvent e, Sensor<Card> source);
+        protected abstract Game ProcessEvent(Game game, TEvent e, Sensor<ICard> source);
     }
 }

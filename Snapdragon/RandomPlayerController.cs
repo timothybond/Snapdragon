@@ -21,10 +21,10 @@ namespace Snapdragon
             // stops at each point to pick one choice, to avoid enumerating
             // a bunch of possibilities we don't care about.
 
-            var cardsWithMoveAbilities = new List<Card>();
-            var cardsWithLocationEffectBlocks = new List<Card>();
-            var cardsWithCardEffectBlocks = new List<Card>();
-            var sensorsWithMoveAbilities = new List<Sensor<Card>>();
+            var cardsWithMoveAbilities = new List<ICard>();
+            var cardsWithLocationEffectBlocks = new List<ICard>();
+            var cardsWithCardEffectBlocks = new List<ICard>();
+            var sensorsWithMoveAbilities = new List<Sensor<ICard>>();
             var locationsWithLocationEffectBlocks = new List<Location>();
 
             foreach (var card in game.AllCards)
@@ -34,12 +34,15 @@ namespace Snapdragon
                     cardsWithMoveAbilities.Add(card);
                 }
 
-                if (card.Ongoing != null && card.Ongoing is OngoingBlockLocationEffect<Card>)
+                if (
+                    card.Ongoing != null
+                    && card.Ongoing is OngoingBlockLocationEffect<ICard>
+                )
                 {
                     cardsWithLocationEffectBlocks.Add(card);
                 }
 
-                if (card.Ongoing != null && card.Ongoing is OngoingBlockCardEffect<Card>)
+                if (card.Ongoing != null && card.Ongoing is OngoingBlockCardEffect<ICard>)
                 {
                     cardsWithCardEffectBlocks.Add(card);
                 }
@@ -94,7 +97,10 @@ namespace Snapdragon
 
             foreach (var card in game.AllCards)
             {
-                if (card.Ongoing != null && card.Ongoing is OngoingBlockLocationEffect<Card>)
+                if (
+                    card.Ongoing != null
+                    && card.Ongoing is OngoingBlockLocationEffect<ICard>
+                )
                 {
                     cardsWithLocationEffectBlocks.Add(card);
                 }
@@ -160,11 +166,11 @@ namespace Snapdragon
         private static IReadOnlyList<MoveCardAction> GetRandomMoves(
             Game game,
             Side side,
-            IReadOnlyList<Card> cardsWithMoveAbilities,
-            IReadOnlyList<Sensor<Card>> sensorsWithMoveAbilities,
-            IReadOnlyList<Card> cardsWithLocationEffectBlocks,
+            IReadOnlyList<ICard> cardsWithMoveAbilities,
+            IReadOnlyList<Sensor<ICard>> sensorsWithMoveAbilities,
+            IReadOnlyList<ICard> cardsWithLocationEffectBlocks,
             IReadOnlyDictionary<Column, IReadOnlySet<EffectType>> blockedEffectsByColumn,
-            IReadOnlyList<Card> cardsWithCardEffectBlocks
+            IReadOnlyList<ICard> cardsWithCardEffectBlocks
         )
         {
             var moves = new List<MoveCardAction>();
@@ -223,13 +229,13 @@ namespace Snapdragon
         }
 
         private static IReadOnlyList<Column> PotentialNewColumns(
-            Card card,
+            ICard card,
             Game game,
-            IReadOnlyList<Card> cardsWithMoveAbilities,
-            IReadOnlyList<Sensor<Card>> sensorsWithMoveAbilities,
-            IReadOnlyList<Card> cardsWithLocationEffectBlocks,
+            IReadOnlyList<ICard> cardsWithMoveAbilities,
+            IReadOnlyList<Sensor<ICard>> sensorsWithMoveAbilities,
+            IReadOnlyList<ICard> cardsWithLocationEffectBlocks,
             IReadOnlyDictionary<Column, IReadOnlySet<EffectType>> blockedEffectsByColumn,
-            IReadOnlyList<Card> cardsWithCardEffectBlocks
+            IReadOnlyList<ICard> cardsWithCardEffectBlocks
         )
         {
             return card
@@ -248,16 +254,16 @@ namespace Snapdragon
                 .ToList();
         }
 
-        private static List<Card> GetMoveableCards(
+        private static List<ICard> GetMoveableCards(
             Game game,
             Side side,
-            IReadOnlyList<Card> cardsWithMoveAbilities,
-            IReadOnlyList<Sensor<Card>> sensorsWithMoveAbilities,
+            IReadOnlyList<ICard> cardsWithMoveAbilities,
+            IReadOnlyList<Sensor<ICard>> sensorsWithMoveAbilities,
             IReadOnlyDictionary<Column, IReadOnlySet<EffectType>> blockedEffectsByColumn,
-            IReadOnlyList<Card> cardsWithCardEffectBlocks
+            IReadOnlyList<ICard> cardsWithCardEffectBlocks
         )
         {
-            var result = new List<Card>();
+            var result = new List<ICard>();
 
             var allCards = game.Left[side].Concat(game.Middle[side]).Concat(game.Right[side]);
 
@@ -285,7 +291,7 @@ namespace Snapdragon
         }
 
         private static IReadOnlyList<PlayCardAction> GetPlayCardActions(
-            IReadOnlyList<CardInstance> cards,
+            IReadOnlyList<ICardInstance> cards,
             IReadOnlyList<Column> columns,
             Side side
         )

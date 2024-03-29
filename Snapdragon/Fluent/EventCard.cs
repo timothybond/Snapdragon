@@ -17,7 +17,7 @@ namespace Snapdragon.Fluent
         /// Technically this does the same thing as <see cref="Here"/> but it provides type info in
         /// a more succinct way in some contexts.
         /// </summary>
-        public static IEventFilter<CardEvent, Sensor<Card>> AtSensor => new HereFilter();
+        public static IEventFilter<CardEvent, Sensor<ICard>> AtSensor => new HereFilter();
 
         /// <summary>
         /// Filters events to those on the same side as the contex item.
@@ -32,7 +32,7 @@ namespace Snapdragon.Fluent
         /// <summary>
         /// Filters events to those on different cards than the contex item.
         /// </summary>
-        public static IEventFilter<CardEvent, ICard> OtherCards => new OtherCardsFilter();
+        public static IEventFilter<CardEvent, ICardInstance> OtherCards => new OtherCardsFilter();
 
         public static ISingleItemSelector<Player, CardEvent, object> Player =>
             new EventCardSide<object>();
@@ -40,8 +40,8 @@ namespace Snapdragon.Fluent
         /// <summary>
         /// Filters events to those that specifically involve the context card.
         /// </summary>
-        public static IEventFilter<CardEvent, ICard> Self => new Self();
+        public static IEventFilter<CardEvent, ICardInstance> Self => new Self();
 
-        public static ISingleItemSelector<ICard, CardEvent, object> Get => new EventCardSelector();
+        public static ISingleItemSelector<ICardInstance, CardEvent, object> Get => new EventCardSelector();
     }
 }

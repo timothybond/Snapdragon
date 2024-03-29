@@ -2,12 +2,12 @@
 
 namespace Snapdragon.Fluent.EffectBuilders
 {
-    public record SwitchCardSideBuilder<TContext>(ISelector<ICard, TContext> CardSelector)
+    public record SwitchCardSideBuilder<TContext>(ISelector<ICardInstance, TContext> CardSelector)
         : BaseCardEffectBuilder<TContext>(CardSelector)
     {
-        protected override IEffect BuildCardEffect(ICard card, TContext context, Game game)
+        protected override IEffect BuildCardEffect(ICardInstance card, TContext context, Game game)
         {
-            if (card is Card inPlayCard)
+            if (card is ICard inPlayCard)
             {
                 return new SwitchCardSide(inPlayCard);
             }
@@ -22,7 +22,7 @@ namespace Snapdragon.Fluent.EffectBuilders
     public static class SwitchSidesExtensions
     {
         public static SwitchCardSideBuilder<TContext> SwitchSides<TContext>(
-            this ISelector<ICard, TContext> cardSelector
+            this ISelector<ICardInstance, TContext> cardSelector
         )
             where TContext : class
         {

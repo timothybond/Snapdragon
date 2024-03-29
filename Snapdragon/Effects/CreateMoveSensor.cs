@@ -1,15 +1,15 @@
 ﻿namespace Snapdragon.Effects
 {
     public record CreateMoveSensor(
-        Card Source,
-        IMoveAbility<Sensor<Card>> MoveAbility,
-        ITriggeredAbility<Sensor<Card>>? TriggeredAbility = null
+        ICard Source,
+        IMoveAbility<Sensor<ICard>> MoveAbility,
+        ITriggeredAbility<Sensor<ICard>>? TriggeredAbility = null
     ) : IEffect
     {
         public Game Apply(Game game)
         {
-            var sensor = new Sensor<Card>(
-                Ids.GetNext<Sensor<Card>>(),
+            var sensor = new Sensor<ICard>(
+                Ids.GetNextSensor(),
                 Source.Column,
                 Source.Side,
                 Source,

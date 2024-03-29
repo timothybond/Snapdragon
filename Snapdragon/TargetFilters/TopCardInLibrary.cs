@@ -2,7 +2,7 @@
 {
     public record TopCardInLibrary<T> : ICardFilter<T>
     {
-        public bool Applies(ICard card, T source, Game game)
+        public bool Applies(ICardInstance card, T source, Game game)
         {
             var library = game[card.Side].Library;
 

@@ -4,7 +4,7 @@
         : ICardFilter<IObjectWithPossibleColumn>,
             ILocationFilter<IObjectWithPossibleColumn>
     {
-        public bool Applies(ICard card, IObjectWithPossibleColumn source, Game game)
+        public bool Applies(ICardInstance card, IObjectWithPossibleColumn source, Game game)
         {
             return (card.Column == source.Column);
         }

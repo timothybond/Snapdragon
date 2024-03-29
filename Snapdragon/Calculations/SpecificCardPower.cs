@@ -1,6 +1,6 @@
 ﻿namespace Snapdragon.Calculations
 {
-    public record SpecificCardPower(ICard Card) : ICalculation
+    public record SpecificCardPower(ICardInstance Card) : ICalculation
     {
         public int GetValue(Game game)
         {

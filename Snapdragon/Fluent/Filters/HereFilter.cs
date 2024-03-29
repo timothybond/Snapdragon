@@ -12,7 +12,7 @@
             IEventFilter<CardEvent, IObjectWithPossibleColumn>,
             ISingleItemSelector<Location, IObjectWithPossibleColumn>
     {
-        protected override bool Includes(ICard card, IObjectWithPossibleColumn context)
+        protected override bool Includes(ICardInstance card, IObjectWithPossibleColumn context)
         {
             return card.Column == context.Column;
         }

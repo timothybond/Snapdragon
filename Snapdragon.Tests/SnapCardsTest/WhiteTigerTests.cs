@@ -8,7 +8,7 @@
         {
             var game = TestHelpers.PlayCards(side, column, "White Tiger");
 
-            var cards = new List<Card>();
+            var cards = new List<ICard>();
             foreach (var location in game.Locations)
             {
                 if (location.Column != column)

@@ -1,5 +1,4 @@
-﻿using System.Collections.Immutable;
-using Snapdragon.Events;
+﻿using Snapdragon.Events;
 using Snapdragon.Fluent;
 using Snapdragon.Fluent.EffectBuilders;
 using Snapdragon.Fluent.Filters;
@@ -10,6 +9,7 @@ using Snapdragon.PlayRestrictions;
 using Snapdragon.RevealAbilities;
 using Snapdragon.TargetFilters;
 using Snapdragon.Triggers;
+using System.Collections.Immutable;
 
 namespace Snapdragon
 {
@@ -50,7 +50,7 @@ namespace Snapdragon
                 "Agent 13",
                 1,
                 2,
-                OnReveal.AddToHand(new RandomSingleItem<CardDefinition, Card>(), My.Self)
+                OnReveal.AddToHand(new RandomSingleItem<CardDefinition, ICard>(), My.Self) // TODO: Simplify
             ),
             new("Blade", 1, 3, OnReveal.Discard(My.Hand.Last())),
             new(
@@ -107,7 +107,7 @@ namespace Snapdragon
                 1,
                 2,
                 OnReveal.Build(
-                    new OtherLocations<Card>().AddCard(
+                    new OtherLocations<ICard>().AddCard(
                         new CardDefinition("Squirrel", 1, 1),
                         My.Self
                     )
@@ -276,7 +276,7 @@ namespace Snapdragon
                 5,
                 1,
                 OnReveal.Build(
-                    new OtherLocations<Card>()
+                    new OtherLocations<ICard>()
                         .WithOpenSlots(My.Self)
                         .GetRandom()
                         .AddCard(new CardDefinition("Tiger Spirit", 5, 8))

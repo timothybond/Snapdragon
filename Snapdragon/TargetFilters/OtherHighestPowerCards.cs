@@ -4,9 +4,9 @@
     /// A filter that gets all of the cards on the same side that are tied for the highest power,
     /// ignoring the triggering card. (I.e., for Doctor Strange's power.)
     /// </summary>
-    public class OtherHighestPowerCards : ICardFilter<Card>
+    public class OtherHighestPowerCards : ICardFilter<ICard>
     {
-        public bool Applies(ICard card, Card source, Game game)
+        public bool Applies(ICardInstance card, ICard source, Game game)
         {
             // These are sort of redundant but will speed it up (not that that likely matters).
             if (card.Side != source.Side)

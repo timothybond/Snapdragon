@@ -1,9 +1,9 @@
 ﻿namespace Snapdragon.Effects
 {
     /// <summary>
-    /// Returns a discarded <see cref="ICard"/> to play at a random <see cref="Column"/>.
+    /// Returns a discarded <see cref="ICardInstance"/> to play at a random <see cref="Column"/>.
     /// </summary>
-    public record ReturnDiscardToRandomLocation(ICard Card) : IEffect
+    public record ReturnDiscardToRandomLocation(ICardInstance Card) : IEffect
     {
         public Game Apply(Game game)
         {

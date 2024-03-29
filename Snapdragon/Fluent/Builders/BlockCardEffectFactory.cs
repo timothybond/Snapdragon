@@ -3,7 +3,7 @@
 namespace Snapdragon.Fluent.Builders
 {
     public record BlockCardEffectFactory<TContext>(
-        ISelector<ICard, TContext> Selector,
+        ISelector<ICardInstance, TContext> Selector,
         params EffectType[] EffectTypes
     ) : IOngoingAbilityFactory<TContext>
     {

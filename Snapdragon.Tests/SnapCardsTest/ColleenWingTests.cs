@@ -1,5 +1,4 @@
-﻿using System.Collections.Immutable;
-using Snapdragon.Events;
+﻿using Snapdragon.Events;
 
 namespace Snapdragon.Tests.SnapCardsTest
 {
@@ -12,10 +11,7 @@ namespace Snapdragon.Tests.SnapCardsTest
             var game = TestHelpers.NewGame();
 
             // Need to populate some existing cards in the hand
-            var hand = new[] { Cards.OneOne, Cards.ThreeThree, Cards.TwoTwo }
-                .Select(cd => new CardInstance(cd, side, CardState.InHand))
-                .ToImmutableList();
-            game = game.WithPlayer(game[side] with { Hand = hand });
+            game = game.WithCardsInHand(side, Cards.OneOne, Cards.ThreeThree, Cards.TwoTwo);
 
             game = TestHelpers.PlayCards(game, side, column, "Colleen Wing");
 
@@ -38,10 +34,13 @@ namespace Snapdragon.Tests.SnapCardsTest
             var game = TestHelpers.NewGame();
 
             // Need to populate some existing cards in the hand
-            var hand = new[] { Cards.OneOne, Cards.OneOne, Cards.ThreeThree, Cards.TwoTwo }
-                .Select(cd => new CardInstance(cd, side, CardState.InHand))
-                .ToImmutableList();
-            game = game.WithPlayer(game[side] with { Hand = hand });
+            game = game.WithCardsInHand(
+                side,
+                Cards.OneOne,
+                Cards.OneOne,
+                Cards.ThreeThree,
+                Cards.TwoTwo
+            );
 
             game = TestHelpers.PlayCards(game, side, column, "Colleen Wing");
 
@@ -65,10 +64,7 @@ namespace Snapdragon.Tests.SnapCardsTest
             var game = TestHelpers.NewGame();
 
             // Need to populate some existing cards in the hand
-            var hand = new[] { Cards.OneOne, Cards.ThreeThree, Cards.TwoTwo }
-                .Select(cd => new CardInstance(cd, side.Other(), CardState.InHand))
-                .ToImmutableList();
-            game = game.WithPlayer(game[side.Other()] with { Hand = hand });
+            game = game.WithCardsInHand(side.Other(), Cards.OneOne, Cards.ThreeThree, Cards.TwoTwo);
 
             game = TestHelpers.PlayCards(game, side, column, "Colleen Wing");
 

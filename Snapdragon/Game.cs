@@ -1,18 +1,16 @@
-﻿using System.Collections.Immutable;
-using Snapdragon.Events;
+﻿using Snapdragon.Events;
 using Snapdragon.Fluent;
+using Snapdragon.GameKernelAccessors;
 using Snapdragon.OngoingAbilities;
+using System.Collections.Immutable;
 
 namespace Snapdragon
 {
     public record Game(
         Guid Id,
-        int Turn,
-        Location Left,
-        Location Middle,
-        Location Right,
-        Player Top,
-        Player Bottom,
+        GameKernel Kernel,
+        Player TopPlayer,
+        Player BottomPlayer,
         Side FirstRevealed,
         ImmutableList<Event> PastEvents,
         ImmutableList<Event> NewEvents,
@@ -20,32 +18,25 @@ namespace Snapdragon
         bool GameOver = false
     )
     {
+        private TopPlayerAccessor _topPlayer = null;
+        private BottomPlayerAccessor _bottomPlayer = null;
+
         #region Accessors
 
+        public int Turn => Kernel.Turn;
+
+        public IPlayerAccessor Top => new TopPlayerAccessor(this, TopPlayer);
+
+        public IPlayerAccessor Bottom => new BottomPlayerAccessor(this, BottomPlayer);
+
         /// <summary>
-        /// Gets the <see cref="Location"/> in the given <see cref="Column"/>.
-        public Location this[Column column]
-        {
-            get
-            {
-                switch (column)
-                {
-                    case Column.Left:
-                        return Left;
-                    case Column.Middle:
-                        return Middle;
-                    case Column.Right:
-                        return Right;
-                    default:
-                        throw new NotImplementedException();
-                }
-            }
-        }
+        /// Gets the <see cref="Location"/> for the given <see cref="Column"/>.
+        public Location this[Column column] => Kernel[column];
 
         /// <summary>
         /// Gets the <see cref="Player"/> on the given <see cref="Side"/>.
         /// </summary>
-        public Player this[Side side]
+        public IPlayerAccessor this[Side side]
         {
             get
             {
@@ -61,35 +52,41 @@ namespace Snapdragon
             }
         }
 
+        public Location Left => Kernel[Column.Left];
+
+        public Location Middle => Kernel[Column.Middle];
+
+        public Location Right => Kernel[Column.Right];
+
         public IEnumerable<Location> Locations
         {
             get
             {
-                yield return Left;
-                yield return Middle;
-                yield return Right;
+                yield return Kernel[Column.Left];
+                yield return Kernel[Column.Middle];
+                yield return Kernel[Column.Right];
             }
         }
 
         /// <summary>
-        /// Gets all <see cref="CardInstance"/>s that have been played and revealed.
+        /// Gets all <see cref="ICard"/>s that have been played and revealed.
         /// </summary>
-        public IEnumerable<Card> AllCards =>
-            this
-                .Left.AllCards.Concat(this.Middle.AllCards)
-                .Concat(this.Right.AllCards)
-                .Where(c => c.State == CardState.InPlay);
+        public IEnumerable<ICard> AllCards =>
+            this.Locations.SelectMany(l => l.AllCards).Where(c => c.State == CardState.InPlay);
 
         /// <summary>
         /// Gets all <see cref="CardInstance"/>s that have been played, whether or not they are revealed.
         /// </summary>
-        public IEnumerable<Card> AllCardsIncludingUnrevealed =>
-            this.Left.AllCards.Concat(this.Middle.AllCards).Concat(this.Right.AllCards);
+        public IEnumerable<ICard> AllCardsIncludingUnrevealed =>
+            this.Locations.SelectMany(l => l.AllCards);
 
-        public IEnumerable<Sensor<Card>> AllSensors =>
-            this.Left.Sensors.Concat(this.Middle.Sensors).Concat(this.Right.Sensors);
+        public IEnumerable<Sensor<ICard>> AllSensors =>
+            this.Locations.SelectMany(l => l.AllSensors);
 
-        public IEnumerable<(Ongoing<Card> Ability, Card Source)> GetCardOngoingAbilities()
+        public IEnumerable<(
+            Ongoing<ICard> Ability,
+            ICard Source
+        )> GetCardOngoingAbilities()
         {
             foreach (var column in All.Columns)
             {
@@ -120,10 +117,15 @@ namespace Snapdragon
             }
         }
 
+        public ICardInstance? GetCard(long cardId)
+        {
+            return Kernel[cardId];
+        }
+
         public IReadOnlySet<EffectType> GetBlockedEffects(
             Column column,
             Side side,
-            IReadOnlyList<Card>? cardsWithLocationEffectBlocks = null,
+            IReadOnlyList<ICard>? cardsWithLocationEffectBlocks = null,
             IReadOnlyList<Location>? locationsWithLocationEffectBlocks = null
         )
         {
@@ -132,7 +134,10 @@ namespace Snapdragon
 
             foreach (var source in cardsWithLocationEffectBlocks ?? AllCards)
             {
-                if (source.Ongoing is OngoingBlockLocationEffect<Card> blockLocationEffect)
+                if (
+                    source.Ongoing
+                    is OngoingBlockLocationEffect<ICard> blockLocationEffect
+                )
                 {
                     // TODO: see if we can reduce the redundancy here
                     if (
@@ -180,9 +185,9 @@ namespace Snapdragon
         /// Optional parameters are passed in for optimization (primarily for ControllerUtilities).
         /// </summary>
         public IReadOnlySet<EffectType> GetBlockedEffects(
-            Card card,
+            ICard card,
             IReadOnlyDictionary<Column, IReadOnlySet<EffectType>>? blockedEffectsByColumn = null,
-            IReadOnlyList<Card>? cardsWithCardEffectBlocks = null
+            IReadOnlyList<ICard>? cardsWithCardEffectBlocks = null
         )
         {
             var set = new HashSet<EffectType>();
@@ -202,7 +207,7 @@ namespace Snapdragon
 
             foreach (var source in cardsWithCardEffectBlocks ?? AllCards)
             {
-                if (source.Ongoing is OngoingBlockCardEffect<Card> blockCardEffect)
+                if (source.Ongoing is OngoingBlockCardEffect<ICard> blockCardEffect)
                 {
                     // TODO: see if we can reduce the redundancy here
                     if (blockCardEffect.Selector.Get(source, this).Any(c => c.Id == card.Id))
@@ -236,12 +241,12 @@ namespace Snapdragon
         /// which - WARNING - MUST already be for the correct side.
         /// </summary>
         public bool CanMove(
-            Card card,
+            ICard card,
             Column destination,
             IReadOnlyDictionary<Column, IReadOnlySet<EffectType>>? blockedEffectsByColumn = null,
-            IReadOnlyList<Card>? cardsWithMoveAbilities = null,
-            IReadOnlyList<Sensor<Card>>? sensorsWithMoveAbilities = null,
-            IReadOnlyList<Card>? cardsWithCardEffectBlocks = null
+            IReadOnlyList<ICard>? cardsWithMoveAbilities = null,
+            IReadOnlyList<Sensor<ICard>>? sensorsWithMoveAbilities = null,
+            IReadOnlyList<ICard>? cardsWithCardEffectBlocks = null
         )
         {
             // Note: This weird scope exists because I didn't feel like keeping around two references to the same thing,
@@ -320,9 +325,9 @@ namespace Snapdragon
             switch (player.Side)
             {
                 case Side.Top:
-                    return this with { Top = player };
+                    return this with { TopPlayer = player };
                 case Side.Bottom:
-                    return this with { Bottom = player };
+                    return this with { BottomPlayer = player };
                 default:
                     throw new NotImplementedException();
             }
@@ -335,79 +340,154 @@ namespace Snapdragon
             // TODO: Check for any blocks on drawing cards
             if (player.Library.Count > 0 && player.Hand.Count < Max.HandSize)
             {
-                player = player.DrawCard();
-                return this.WithPlayer(player)
-                    .WithEvent(new CardDrawnEvent(Turn, player.Hand.Last()));
+                var game = this with { Kernel = Kernel.DrawCard(side) };
+                game = game.WithEvent(new CardDrawnEvent(Turn, game[player.Side].Hand.Last()));
+
+                return game;
             }
 
             return this;
         }
 
-        /// <summary>
-        /// Gets a modified state that includes the passed-in <see cref="Location"/> as appropriate.
-        /// </summary>
-        public Game WithLocation(Location location)
+        public Game DrawOpponentCard(Side side)
         {
-            switch (location.Column)
+            var player = this[side];
+
+            // TODO: Check for any blocks on drawing cards
+            if (player.Library.Count > 0 && player.Hand.Count < Max.HandSize)
             {
-                case Column.Left:
-                    return this with { Left = location };
-                case Column.Middle:
-                    return this with { Middle = location };
-                case Column.Right:
-                    return this with { Right = location };
-                default:
-                    throw new NotImplementedException();
+                var game = this with { Kernel = Kernel.DrawOpponentCard(side) };
+                game = game.WithEvent(new CardDrawnEvent(Turn, game[player.Side].Hand.Last()));
+                return game;
             }
+
+            return this;
         }
 
         public Game WithRevealedLocation(Column column)
         {
-            var location = this[column] with { Revealed = true };
-
-            var game = this.WithLocation(location)
-                .WithEvent(new LocationRevealedEvent(this.Turn, location));
-
+            var game = this with { Kernel = Kernel.RevealLocation(column) };
+            var location = game[column];
             if (location.Definition.OnReveal != null)
             {
                 game = location.Definition.OnReveal.Apply(location, game).Apply(game);
             }
-
-            return game;
+            return game.WithEvent(new LocationRevealedEvent(game.Turn, game[column]));
         }
 
-        /// <summary>
-        /// Gets a modified state with the given <see cref="Sensor{Card}"/>.  Note that unlike <see
-        /// cref="WithCard(CardInstance)"/>, this adds a new Sensor rather than modifying an existing one.
-        /// </summary>
-        public Game WithSensor(Sensor<Card> sensor)
+        public Game WithNewCardInPlay(CardDefinition cardDefinition, Column column, Side side)
         {
-            var location = this[sensor.Column];
+            // TODO: Raise an event for this
+            return this with
+            {
+                Kernel = Kernel.AddNewCardToLocation(
+                    cardDefinition,
+                    column,
+                    side,
+                    out long newCardId
+                )
+            };
+        }
 
-            return this.WithLocation(location.WithSensor(sensor));
+        public Game WithNewCardInHand(CardDefinition cardDefinition, Side side)
+        {
+            var game = this with
+            {
+                Kernel = Kernel.AddNewCardToHand(cardDefinition, side, out long newCardId)
+            };
+
+            return game.WithEvent(new CardAddedToHandEvent(game.GetCard(newCardId), game.Turn));
+        }
+
+        public Game WithCopyInPlay(ICardInstance card, Column column, Side side)
+        {
+            var game = this with
+            {
+                Kernel = Kernel.AddCopiedCardToLocation(card.Id, column, side, out long newCardId)
+            };
+
+            return game; // TODO: Add event for card being placed here
+        }
+
+        public Game WithCopyInHand(ICardInstance card, Side side, ICardTransform? transform)
+        {
+            var game = this with
+            {
+                Kernel = Kernel.AddCopiedCardToHand(card.Id, side, out long newCardId)
+            };
+
+            var newCard = game.GetCard(newCardId);
+            if (transform != null)
+            {
+                var transformedCard = transform.Apply(newCard.Base);
+                game = game.WithUpdatedCard(transformedCard);
+            }
+
+            return game.WithEvent(new CardAddedToHandEvent(game.GetCard(newCardId), game.Turn));
+        }
+
+        public Game WithCardDiscarded(ICardInstance card)
+        {
+            card = Kernel[card.Id];
+            if (card == null)
+            {
+                throw new InvalidOperationException($"Card {card.Name} ({card.Id}) not found.");
+            }
+
+            var game = this with { Kernel = Kernel.DiscardCard(card.Id, card.Side) };
+            return game.WithEvent(new CardDiscardedEvent(game.Turn, card));
+        }
+
+        public Game DestroyCardInPlay(ICardInstance card)
+        {
+            var actualCard = Kernel[card.Id] as ICard;
+            if (actualCard == null)
+            {
+                throw new InvalidOperationException(
+                    $"Card {card.Name} ({card.Id}) not found in any location."
+                );
+            }
+
+            var game = this with
+            {
+                Kernel = Kernel.DestroyCardFromPlay(
+                    actualCard.Id,
+                    actualCard.Column,
+                    actualCard.Side
+                )
+            };
+
+            return game.WithEvent(new CardDestroyedFromPlayEvent(game.Turn, actualCard));
         }
 
         /// <summary>
-        /// Gets a modified state with the given <see cref="Sensor{Card}"/>.  Note that unlike <see
-        /// cref="WithCard(CardInstance)"/>, this adds a new Sensor rather than modifying an existing one.
+        /// Gets a modified state with the given <see cref="Sensor{ICardInLocation}"/> added.
+        /// </summary>
+        public Game WithSensor(Sensor<ICard> sensor)
+        {
+            return this with { Kernel = Kernel.AddSensor(sensor) };
+        }
+
+        /// <summary>
+        /// Gets a modified state with the given <see cref="Sensor{ICardInLocation}"/> removed.
         /// </summary>
         public Game WithSensorDeleted(long sensorId)
         {
+            var sensor =
+                Kernel.Sensors.GetValueOrDefault(sensorId)
+                ?? throw new InvalidOperationException($"Sensor {sensorId} not found.");
+
             return this with
             {
-                Left = this.Left.WithSensorDeleted(sensorId),
-                Middle = this.Middle.WithSensorDeleted(sensorId),
-                Right = this.Right.WithSensorDeleted(sensorId),
+                Kernel = Kernel.DestroySensor(sensor.Id, sensor.Column, sensor.Side)
             };
         }
 
         /// <summary>
-        /// Gets a modified state with the given <see cref="CardInstance"/>s updated.  Currently only suitable for cards in
-        /// play, with attributes (typically PowerAdjustment) changed. Cannot handle moved cards, destroyed cards, etc.
+        /// Gets a modified state with the given <see cref="CardBase"/>s updated (in place).
+        /// Cannot handle moved cards, destroyed cards, etc.
         /// </summary>
-        /// <param name="card"></param>
-        /// <returns></returns>
-        public Game WithUpdatedCards(IEnumerable<Card> cards)
+        public Game WithUpdatedCards(IEnumerable<CardBase> cards)
         {
             // TODO: Determine if this needs to be optimized
             var game = this;
@@ -421,89 +501,61 @@ namespace Snapdragon
         }
 
         /// <summary>
-        /// Gets a modified state with the given <see cref="CardInstance"/> updated.  Currently only suitable for cards in play,
-        /// with attributes (typically PowerAdjustment) changed. Cannot handle moved cards, destroyed cards, etc.
+        /// Gets a modified state with the given <see cref="ICardInstance"/> updated (in place).
+        /// Cannot handle moved cards, destroyed cards, etc.
         /// </summary>
-        /// <param name="card"></param>
-        /// <returns></returns>
-        public Game WithUpdatedCard(Card card)
+        public Game WithUpdatedCard(ICardInstance card)
         {
-            var location = this[card.Column];
-            var newCards = location[card.Side]
-                .Select(c => c.Id == card.Id ? card : c)
-                .ToImmutableList();
-
-            location = location with
-            {
-                TopPlayerCards = card.Side == Side.Top ? newCards : location.TopPlayerCards,
-                BottomPlayerCards =
-                    card.Side == Side.Bottom ? newCards : location.BottomPlayerCards,
-            };
-
-            return this.WithLocation(location);
+            return this with { Kernel = Kernel.WithUpdatedCard(card) };
         }
 
         /// <summary>
-        /// Gets a modified state that applies some change to a <see cref="CardInstance"/> (in place).  Moves or side changes
-        /// need to be handled elsewhere.
+        /// Gets a modified state with the given <see cref="CardBase"/> updated (in place).
+        /// Cannot handle moved cards, destroyed cards, etc.
         /// </summary>
-        /// <param name="currentCard">The existing card to be modified.</param>
-        /// <param name="modifier">The modification to perform on the existing card.</param>
-        /// <param name="postModifyTransform">
-        /// Any change to the <see cref="Game"/> to follow the modification (typically, this will be used to raise
-        /// events, like <see cref="CardRevealedEvent"/>).
-        /// </param>
-        public Game WithModifiedCard(
-            Card currentCard,
-            Func<Card, Card> modifier,
-            Func<Game, Card, Game>? postModifyTransform = null
-        )
+        public Game WithUpdatedCard(CardBase card)
         {
-            var location = this[currentCard.Column];
-            var side = currentCard.Side;
+            return this with { Kernel = Kernel.WithUpdatedCard(card) };
+        }
 
-            var currentCardsForSide = this[currentCard.Column][side];
+        public Game SwitchCardSide(ICard card)
+        {
+            var game = this with { Kernel = Kernel.SwitchCardSide(card.Id, card.Side) };
+            var modifiedCard = game.GetCard(card.Id);
+            return game.WithEvent(new CardSwitchedSidesEvent(modifiedCard, game.Turn));
+        }
 
-            // Cards still need to be placed in the same order (I think)
-            var newCardsForSide = new List<Card>();
+        public Game ReturnCardToHand(ICardInstance card)
+        {
+            // TODO: Raise an event for this
+            return this with { Kernel = Kernel.ReturnCardToHand(card.Id, card.Side) };
+        }
 
-            var newCard = modifier(currentCard);
-
-            for (var i = 0; i < currentCardsForSide.Count; i++)
+        public Game ReturnDiscardToPlay(ICardInstance card, Column column)
+        {
+            // TODO: Raise an event for this
+            return this with
             {
-                if (currentCardsForSide[i].Id == currentCard.Id)
-                {
-                    newCardsForSide.Add(newCard);
-                }
-                else
-                {
-                    newCardsForSide.Add(currentCardsForSide[i]);
-                }
-            }
+                Kernel = Kernel.ReturnDiscardToLocation(card.Id, column, card.Side)
+            };
+        }
 
-            switch (newCard.Side)
+        public Game ReturnDestroyedToPlay(ICardInstance card, Column column)
+        {
+            // TODO: Raise an event for this
+            return this with
             {
-                case Side.Top:
-                    location = location with { TopPlayerCards = newCardsForSide.ToImmutableList() };
-                    break;
-                case Side.Bottom:
-                    location = location with
-                    {
-                        BottomPlayerCards = newCardsForSide.ToImmutableList()
-                    };
-                    break;
-                default:
-                    throw new NotImplementedException();
-            }
+                Kernel = Kernel.ReturnDestroyedToLocation(card.Id, column, card.Side)
+            };
+        }
 
-            var newGame = this.WithLocation(location);
-
-            if (postModifyTransform != null)
-            {
-                newGame = postModifyTransform(newGame, newCard);
-            }
-
-            return newGame;
+        /// <summary>
+        /// Removes the card from the game entirely. At the moment this is ONLY intended for card merges.
+        /// </summary>
+        /// <param name="card">Card to remove.</param>
+        public Game RemoveCard(ICardInstance card)
+        {
+            return this with { Kernel = Kernel.RemoveCardFromGame(card.Id) };
         }
 
         #endregion
@@ -676,32 +728,30 @@ namespace Snapdragon
         /// <summary>
         /// Helper function that reveals a single card, then processes any triggered events.
         /// </summary>
-        private Game RevealCard(Card card)
+        private Game RevealCard(ICard card)
         {
-            var game = this.WithModifiedCard(
-                card,
-                c => c with { State = CardState.InPlay, TurnRevealed = this.Turn },
-                (g, c) =>
-                {
-                    if (c.OnReveal != null)
-                    {
-                        g = c.OnReveal.Apply(c, g).Apply(g);
+            var game = this with { Kernel = Kernel.RevealCard(card.Id) };
 
-                        // This is to ensure that cards that get modified by their own reveal
-                        // abilities get attached to the reveal event in their modified state.
-                        //
-                        // I'm not totally sold on whether this is the right solution.
-                        // In some cases we proactively re-fetch the card by ID when performing
-                        // effects, but that isn't always true (hence me making this change).
-                        //
-                        // Also, the null coalesce operator is because Hulkbuster.
-                        c = g.AllCards.SingleOrDefault(x => x.Id == c.Id) ?? c;
-                    }
-                    g = g.WithEvent(new CardRevealedEvent(g.Turn, c));
+            // Note this is guaranteed to be valid based on the chekcs in Kernel.RevealCard(...).
+            card = (ICard)Kernel[card.Id];
 
-                    return g;
-                }
-            );
+            if (card.OnReveal != null)
+            {
+                game = card.OnReveal.Apply(card, game).Apply(game);
+
+                // This is to ensure that cards that get modified by their own reveal
+                // abilities get attached to the reveal event in their modified state,
+                // which may or may not be super useful at this point.
+                //
+                // The null coalesce operator is because of Hulkbuster.
+                var revealedCard = (ICard)Kernel[card.Id] ?? card;
+
+                game = game.WithEvent(new CardRevealedEvent(game.Turn, revealedCard));
+            }
+            else
+            {
+                game = game.WithEvent(new CardRevealedEvent(game.Turn, card));
+            }
 
             return game.ProcessEvents();
         }
@@ -719,17 +769,17 @@ namespace Snapdragon
             // Note the check for Games going over is in PlaySingleTurn
             var game = this with
             {
-                Turn = this.Turn + 1
+                Kernel = Kernel with { Turn = Kernel.Turn + 1 }
             };
             game = game.RevealLocation();
             game = game.ProcessEvents();
 
             // Each Player draws a card, and gets an amount of energy equal to the turn count
             game = game.DrawCard(Side.Top).DrawCard(Side.Bottom);
-            var topPlayer = game.Top with { Energy = game.Turn };
-            var bottomPlayer = game.Bottom with { Energy = game.Turn };
+            var topPlayer = game.TopPlayer with { Energy = game.Turn };
+            var bottomPlayer = game.BottomPlayer with { Energy = game.Turn };
 
-            game = game with { Top = topPlayer, Bottom = bottomPlayer };
+            game = game with { TopPlayer = topPlayer, BottomPlayer = bottomPlayer };
 
             Logger.LogHands(game);
 
@@ -812,63 +862,56 @@ namespace Snapdragon
             // TODO: Determine if we need to stack-order events for triggers, any other ordering constraints
 
             // All this stuff is unrolled and not using helper accessors in an effort to avoid allocations / boost performance
-            for (var i = 0; i < originalState.Left.TopPlayerCards.Count; i++)
+            foreach (var cardWithTrigger in originalState.Left.TopCards)
             {
-                var cardWithTrigger = originalState.Left.TopPlayerCards[i];
-                if (cardWithTrigger.Triggered != null)
+                if (cardWithTrigger.State == CardState.InPlay && cardWithTrigger.Triggered != null)
                 {
                     game = cardWithTrigger.Triggered.ProcessEvent(game, nextEvent, cardWithTrigger);
                 }
             }
 
-            for (var i = 0; i < originalState.Left.BottomPlayerCards.Count; i++)
+            foreach (var cardWithTrigger in originalState.Left.BottomCards)
             {
-                var cardWithTrigger = originalState.Left.BottomPlayerCards[i];
-                if (cardWithTrigger.Triggered != null)
+                if (cardWithTrigger.State == CardState.InPlay && cardWithTrigger.Triggered != null)
                 {
                     game = cardWithTrigger.Triggered.ProcessEvent(game, nextEvent, cardWithTrigger);
                 }
             }
 
-            for (var i = 0; i < originalState.Middle.TopPlayerCards.Count; i++)
+            foreach (var cardWithTrigger in originalState.Middle.TopCards)
             {
-                var cardWithTrigger = originalState.Middle.TopPlayerCards[i];
-                if (cardWithTrigger.Triggered != null)
+                if (cardWithTrigger.State == CardState.InPlay && cardWithTrigger.Triggered != null)
                 {
                     game = cardWithTrigger.Triggered.ProcessEvent(game, nextEvent, cardWithTrigger);
                 }
             }
 
-            for (var i = 0; i < originalState.Middle.BottomPlayerCards.Count; i++)
+            foreach (var cardWithTrigger in originalState.Middle.BottomCards)
             {
-                var cardWithTrigger = originalState.Middle.BottomPlayerCards[i];
-                if (cardWithTrigger.Triggered != null)
+                if (cardWithTrigger.State == CardState.InPlay && cardWithTrigger.Triggered != null)
                 {
                     game = cardWithTrigger.Triggered.ProcessEvent(game, nextEvent, cardWithTrigger);
                 }
             }
 
-            for (var i = 0; i < originalState.Right.TopPlayerCards.Count; i++)
+            foreach (var cardWithTrigger in originalState.Right.TopCards)
             {
-                var cardWithTrigger = originalState.Right.TopPlayerCards[i];
-                if (cardWithTrigger.Triggered != null)
+                if (cardWithTrigger.State == CardState.InPlay && cardWithTrigger.Triggered != null)
                 {
                     game = cardWithTrigger.Triggered.ProcessEvent(game, nextEvent, cardWithTrigger);
                 }
             }
 
-            for (var i = 0; i < originalState.Right.BottomPlayerCards.Count; i++)
+            foreach (var cardWithTrigger in originalState.Right.BottomCards)
             {
-                var cardWithTrigger = originalState.Right.BottomPlayerCards[i];
-                if (cardWithTrigger.Triggered != null)
+                if (cardWithTrigger.State == CardState.InPlay && cardWithTrigger.Triggered != null)
                 {
                     game = cardWithTrigger.Triggered.ProcessEvent(game, nextEvent, cardWithTrigger);
                 }
             }
 
-            for (var i = 0; i < originalState.Top.Discards.Count; i++)
+            foreach (var discardedOrDestroyedCard in originalState.Top.Discards)
             {
-                var discardedOrDestroyedCard = originalState.Top.Discards[i];
                 if (discardedOrDestroyedCard.Triggered?.DiscardedOrDestroyed() ?? false)
                 {
                     game = discardedOrDestroyedCard.Triggered.ProcessEvent(
@@ -879,9 +922,8 @@ namespace Snapdragon
                 }
             }
 
-            for (var i = 0; i < originalState.Top.Destroyed.Count; i++)
+            foreach (var discardedOrDestroyedCard in originalState.Top.Destroyed)
             {
-                var discardedOrDestroyedCard = originalState.Top.Destroyed[i];
                 if (discardedOrDestroyedCard.Triggered != null)
                 {
                     if (discardedOrDestroyedCard.Triggered.DiscardedOrDestroyed())
@@ -895,9 +937,8 @@ namespace Snapdragon
                 }
             }
 
-            for (var i = 0; i < originalState.Bottom.Discards.Count; i++)
+            foreach (var discardedOrDestroyedCard in originalState.Bottom.Discards)
             {
-                var discardedOrDestroyedCard = originalState.Bottom.Discards[i];
                 if (discardedOrDestroyedCard.Triggered?.DiscardedOrDestroyed() ?? false)
                 {
                     game = discardedOrDestroyedCard.Triggered.ProcessEvent(
@@ -908,9 +949,8 @@ namespace Snapdragon
                 }
             }
 
-            for (var i = 0; i < originalState.Bottom.Destroyed.Count; i++)
+            foreach (var discardedOrDestroyedCard in originalState.Bottom.Destroyed)
             {
-                var discardedOrDestroyedCard = originalState.Bottom.Destroyed[i];
                 if (discardedOrDestroyedCard.Triggered != null)
                 {
                     if (discardedOrDestroyedCard.Triggered.DiscardedOrDestroyed())
@@ -924,9 +964,8 @@ namespace Snapdragon
                 }
             }
 
-            for (var i = 0; i < originalState.Top.Hand.Count; i++)
+            foreach (var cardInHand in originalState.Top.Hand)
             {
-                var cardInHand = originalState.Top.Hand[i];
                 if (cardInHand.Triggered != null)
                 {
                     if (cardInHand.Triggered.InHand())
@@ -936,9 +975,8 @@ namespace Snapdragon
                 }
             }
 
-            for (var i = 0; i < originalState.Bottom.Hand.Count; i++)
+            foreach (var cardInHand in originalState.Bottom.Hand)
             {
-                var cardInHand = originalState.Bottom.Hand[i];
                 if (cardInHand.Triggered != null)
                 {
                     if (cardInHand.Triggered.InHand())
@@ -948,9 +986,8 @@ namespace Snapdragon
                 }
             }
 
-            for (var i = 0; i < originalState.Top.Library.Cards.Count; i++)
+            foreach (var cardInLibrary in originalState.Top.Library)
             {
-                var cardInLibrary = originalState.Top.Library.Cards[i];
                 if (cardInLibrary.Triggered != null)
                 {
                     if (cardInLibrary.Triggered.InDeck())
@@ -962,9 +999,8 @@ namespace Snapdragon
                 }
             }
 
-            for (var i = 0; i < originalState.Bottom.Library.Cards.Count; i++)
+            foreach (var cardInLibrary in originalState.Bottom.Library)
             {
-                var cardInLibrary = originalState.Bottom.Library.Cards[i];
                 if (cardInLibrary.Triggered != null)
                 {
                     if (cardInLibrary.Triggered.InDeck())
@@ -992,13 +1028,29 @@ namespace Snapdragon
             return game;
         }
 
+        public Game PlayCard(ICardInstance card, Column column)
+        {
+            var game = this with { Kernel = Kernel.PlayCard(card.Id, column, card.Side) };
+            card = game.Kernel[card.Id];
+
+            return game.WithEvent(new CardPlayedEvent(this.Turn, card));
+        }
+
+        public Game MoveCard(ICard card, Column to)
+        {
+            var game = this with { Kernel = Kernel.MoveCard(card.Id, card.Side, card.Column, to) };
+            game = game.WithEvent(new CardMovedEvent(game.Turn, Kernel[card.Id], card.Column, to));
+
+            return game;
+        }
+
         public Game RecalculateOngoingEffects()
         {
             var ongoingCardAbilities = this.GetCardOngoingAbilities().ToList();
             var ongoingLocationAbilities = this.GetLocationOngoingAbilities().ToList();
 
             var recalculatedCards = this.AllCards.Select(c =>
-                c with
+                c.Base with
                 {
                     PowerAdjustment = this.GetPowerAdjustment(
                         c,
@@ -1017,8 +1069,11 @@ namespace Snapdragon
         /// based on the pased-in list of all active ongoing abilities
         /// </summary>
         private int? GetPowerAdjustment(
-            Card card,
-            IReadOnlyList<(Ongoing<Card> Ability, Card Source)> ongoingCardAbilities,
+            ICard card,
+            IReadOnlyList<(
+                Ongoing<ICard> Ability,
+                ICard Source
+            )> ongoingCardAbilities,
             IReadOnlyList<(Ongoing<Location> Ability, Location Source)> ongoingLocationAbilities,
             Game game
         )
@@ -1028,7 +1083,7 @@ namespace Snapdragon
 
             foreach (var ongoing in ongoingCardAbilities)
             {
-                if (ongoing.Ability is OngoingAdjustPower<Card> adjustPower)
+                if (ongoing.Ability is OngoingAdjustPower<ICard> adjustPower)
                 {
                     // TODO: Reduce redundancy here
                     if (adjustPower.Selector.Get(ongoing.Source, this).Any(c => c.Id == card.Id))
@@ -1077,7 +1132,9 @@ namespace Snapdragon
                 // Now apply any ongoing effects that ADD power to a location (e.g. Mister Fantastic, Klaw)
                 foreach (var card in this.AllCards)
                 {
-                    if (card.Ongoing is OngoingAdjustLocationPower<Card> addLocationPower)
+                    if (
+                        card.Ongoing is OngoingAdjustLocationPower<ICard> addLocationPower
+                    )
                     {
                         if (
                             addLocationPower

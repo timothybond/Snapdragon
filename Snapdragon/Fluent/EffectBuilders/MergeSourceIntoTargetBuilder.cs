@@ -3,8 +3,8 @@
 namespace Snapdragon.Fluent.EffectBuilders
 {
     public record MergeSourceIntoTargetBuilder<TContext>(
-        ISingleItemSelector<ICard, TContext> Source,
-        ISingleItemSelector<ICard, TContext> Target
+        ISingleItemSelector<ICardInstance, TContext> Source,
+        ISingleItemSelector<ICardInstance, TContext> Target
     ) : IEffectBuilder<TContext>
     {
         public IEffect Build(TContext context, Game game)
@@ -24,8 +24,8 @@ namespace Snapdragon.Fluent.EffectBuilders
     public static class MergeSourceIntoTargetExtensions
     {
         public static MergeSourceIntoTargetBuilder<TContext> MergeInto<TContext>(
-            this ISingleItemSelector<ICard, TContext> source,
-            ISingleItemSelector<ICard, TContext> target
+            this ISingleItemSelector<ICardInstance, TContext> source,
+            ISingleItemSelector<ICardInstance, TContext> target
         )
         {
             return new MergeSourceIntoTargetBuilder<TContext>(source, target);

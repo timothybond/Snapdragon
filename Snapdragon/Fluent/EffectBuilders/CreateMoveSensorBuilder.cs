@@ -4,12 +4,12 @@ using Snapdragon.Fluent.Builders;
 namespace Snapdragon.Fluent.EffectBuilders
 {
     public record CreateMoveSensorBuilder(
-        IMoveAbilityFactory<Sensor<Card>> MoveAbilityFactory,
-        ICondition<Sensor<Card>> Condition,
+        IMoveAbilityFactory<Sensor<ICard>> MoveAbilityFactory,
+        ICondition<Sensor<ICard>> Condition,
         int? expiringAfterTurns = null
-    ) : IEffectBuilder<Card>
+    ) : IEffectBuilder<ICard>
     {
-        public IEffect Build(Card context, Game game)
+        public IEffect Build(ICard context, Game game)
         {
             if (expiringAfterTurns != null)
             {
@@ -26,7 +26,10 @@ namespace Snapdragon.Fluent.EffectBuilders
             }
             else
             {
-                return new Snapdragon.Effects.CreateMoveSensor(context, MoveAbilityFactory.Build(Condition));
+                return new Snapdragon.Effects.CreateMoveSensor(
+                    context,
+                    MoveAbilityFactory.Build(Condition)
+                );
             }
         }
     }

@@ -1,7 +1,7 @@
 ﻿namespace Snapdragon.Fluent
 {
     /// <summary>
-    /// Performs a modification to an <see cref="ICard"/>.
+    /// Performs a modification to an <see cref="ICardInstance"/>.
     ///
     /// Because of some quirks of the current types, this will transform it to a
     /// <see cref="CardInstance"/>, but this should be safe as anybody using it
@@ -9,6 +9,6 @@
     /// </summary>
     public interface ICardTransform
     {
-        ICard Apply(ICard card);
+        CardBase Apply(CardBase card);
     }
 }

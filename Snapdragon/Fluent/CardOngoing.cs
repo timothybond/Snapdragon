@@ -2,7 +2,7 @@
 
 namespace Snapdragon.Fluent
 {
-    public record CardOngoing : OngoingBuilder<Card>
+    public record CardOngoing : OngoingBuilder<ICard>
     {
         public CardOngoing()
             : base() { }

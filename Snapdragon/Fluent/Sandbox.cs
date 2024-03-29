@@ -27,7 +27,7 @@ namespace Snapdragon.Fluent
             var bladeOnReveal = new CardRevealed().Discard(My.Hand.Last());
             var modokOnReveal = new CardRevealed().Discard(My.Hand);
 
-            ISelector<ICard, ICard> selector = new Self();
+            ISelector<ICardInstance, ICardInstance> selector = new Self();
 
             var humanTorchTrigger = When.InPlayAnd<CardMovedEvent>()
                 .Where(EventCard.Self)

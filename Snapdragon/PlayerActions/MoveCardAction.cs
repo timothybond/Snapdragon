@@ -1,6 +1,7 @@
 ﻿namespace Snapdragon.PlayerActions
 {
-    public record MoveCardAction(Side Side, Card Card, Column From, Column To) : IPlayerAction
+    public record MoveCardAction(Side Side, ICard Card, Column From, Column To)
+        : IPlayerAction
     {
         public Game Apply(Game game)
         {

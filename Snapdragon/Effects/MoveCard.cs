@@ -1,6 +1,4 @@
-﻿using Snapdragon.Events;
-
-namespace Snapdragon.Effects
+﻿namespace Snapdragon.Effects
 {
     /// <summary>
     /// Moves a <see cref="Card"/> from one <see cref="Column"/> to another.
@@ -13,11 +11,11 @@ namespace Snapdragon.Effects
     /// where some instantly-triggered effect (usually a reveal effect)
     /// moves things rather than a <see cref="PlayerActions.MoveCardAction"/>.
     /// </summary>
-    public record MoveCard(Card Card, Column From, Column To, bool Forced = false) : IEffect
+    public record MoveCard(ICardInstance Card, Column From, Column To, bool Forced = false) : IEffect
     {
         public Game Apply(Game game)
         {
-            var actualCard = game.AllCards.SingleOrDefault(c => c.Id == Card.Id);
+            var actualCard = game.Kernel[Card.Id] as ICard;
 
             if (actualCard == null)
             {
@@ -70,13 +68,7 @@ namespace Snapdragon.Effects
                 return game;
             }
 
-            oldLocation = oldLocation.WithRemovedCard(actualCard);
-            actualCard = actualCard with { Column = newLocation.Column };
-            newLocation = newLocation.WithCard(actualCard);
-
-            return game.WithLocation(oldLocation)
-                .WithLocation(newLocation)
-                .WithEvent(new CardMovedEvent(game.Turn, actualCard, From, To));
+            return game.MoveCard(actualCard, To);
         }
     }
 }

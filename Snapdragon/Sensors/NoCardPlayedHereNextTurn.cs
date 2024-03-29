@@ -3,9 +3,9 @@ using Snapdragon.Triggers;
 
 namespace Snapdragon.Sensors
 {
-    public record NoCardPlayedHereNextTurn : ITriggerBuilder<Sensor<Card>, TurnEndedEvent>
+    public record NoCardPlayedHereNextTurn : ITriggerBuilder<Sensor<ICard>, TurnEndedEvent>
     {
-        public ITrigger<TurnEndedEvent> Build(Game game, Sensor<Card> source)
+        public ITrigger<TurnEndedEvent> Build(Game game, Sensor<ICard> source)
         {
             var location = source.Column;
             var side = source.Side;

@@ -3,7 +3,7 @@
 namespace Snapdragon.Fluent.EffectBuilders
 {
     public record CopyToHandBuilder<TContext>(
-        ISingleItemSelector<ICard, TContext> CardSelector,
+        ISingleItemSelector<ICardInstance, TContext> CardSelector,
         ICardTransform? Transform = null,
         ISelector<Player, TContext>? PlayerSelector = null
     ) : IEffectBuilder<TContext>
@@ -18,7 +18,8 @@ namespace Snapdragon.Fluent.EffectBuilders
             }
 
             var players =
-                PlayerSelector?.Get(context, game).ToList() ?? new List<Player> { game[card.Side] };
+                PlayerSelector?.Get(context, game).ToList()
+                ?? new List<Player> { card.Side == Side.Top ? game.TopPlayer : game.BottomPlayer };
 
             if (players.Count == 0)
             {
@@ -35,7 +36,7 @@ namespace Snapdragon.Fluent.EffectBuilders
     }
 
     public record CopyToHandBuilder<TEvent, TContext>(
-        ISingleItemSelector<ICard, TEvent, TContext> CardSelector,
+        ISingleItemSelector<ICardInstance, TEvent, TContext> CardSelector,
         ICardTransform? Transform = null,
         ISelector<Player, TEvent, TContext>? PlayerSelector = null
     ) : IEffectBuilder<TEvent, TContext>
@@ -52,7 +53,7 @@ namespace Snapdragon.Fluent.EffectBuilders
 
             var players =
                 PlayerSelector?.Get(e, context, game).ToList()
-                ?? new List<Player> { game[card.Side] };
+                ?? new List<Player> { card.Side == Side.Top ? game.TopPlayer : game.BottomPlayer };
 
             if (players.Count == 0)
             {
@@ -71,7 +72,7 @@ namespace Snapdragon.Fluent.EffectBuilders
     public static class CopyToHandExtensions
     {
         public static CopyToHandBuilder<TContext> CopyToHand<TContext>(
-            this ISingleItemSelector<ICard, TContext> cardSelector,
+            this ISingleItemSelector<ICardInstance, TContext> cardSelector,
             ICardTransform? transform = null
         )
             where TContext : class
@@ -80,7 +81,7 @@ namespace Snapdragon.Fluent.EffectBuilders
         }
 
         public static CopyToHandBuilder<TContext> CopyToHand<TContext>(
-            this ISingleItemSelector<ICard, TContext> cardSelector,
+            this ISingleItemSelector<ICardInstance, TContext> cardSelector,
             ISelector<Player, TContext> playerSelector,
             ICardTransform? transform = null
         )
@@ -90,7 +91,7 @@ namespace Snapdragon.Fluent.EffectBuilders
         }
 
         public static CopyToHandBuilder<TEvent, TContext> CopyToHand<TEvent, TContext>(
-            this ISingleItemSelector<ICard, TEvent, TContext> cardSelector,
+            this ISingleItemSelector<ICardInstance, TEvent, TContext> cardSelector,
             ICardTransform? transform = null
         )
             where TContext : class
@@ -100,7 +101,7 @@ namespace Snapdragon.Fluent.EffectBuilders
         }
 
         public static CopyToHandBuilder<TEvent, TContext> CopyToHand<TEvent, TContext>(
-            this ISingleItemSelector<ICard, TEvent, TContext> cardSelector,
+            this ISingleItemSelector<ICardInstance, TEvent, TContext> cardSelector,
             ISelector<Player, TEvent, TContext> playerSelector,
             ICardTransform? transform = null
         )

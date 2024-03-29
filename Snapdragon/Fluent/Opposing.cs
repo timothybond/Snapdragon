@@ -8,20 +8,20 @@ namespace Snapdragon.Fluent
         public static readonly ISingleItemSelector<Player, IObjectWithSide> Player =
             new OtherPlayerSelector<IObjectWithSide>(new SameSide());
 
-        public static readonly ISelector<ICard, IObjectWithSide> Cards = new RevealedCardsForSide(
+        public static readonly ISelector<ICardInstance, IObjectWithSide> Cards = new RevealedCardsForSide(
             true
         );
 
-        public static readonly ISelector<Card, IObjectWithSide> CardsIncludingUnrevealed =
+        public static readonly ISelector<ICard, IObjectWithSide> CardsIncludingUnrevealed =
             new RevealedAndUnrevealedCards().ForPlayer(Player);
 
-        public static readonly ISelector<ICard, IObjectWithSide> Hand = new HandForSide(true);
+        public static readonly ISelector<ICardInstance, IObjectWithSide> Hand = new HandForSide(true);
 
-        public static readonly ISelector<ICard, IObjectWithSide> Discards = new DiscardedForSide(
+        public static readonly ISelector<ICardInstance, IObjectWithSide> Discards = new DiscardedForSide(
             true
         );
 
-        public static readonly ISelector<ICard, IObjectWithSide> Destroyed = new DestroyedForSide(
+        public static readonly ISelector<ICardInstance, IObjectWithSide> Destroyed = new DestroyedForSide(
             true
         );
     }

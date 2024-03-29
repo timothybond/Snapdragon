@@ -1,84 +1,42 @@
-﻿using System.Collections.Immutable;
-using Snapdragon.Fluent;
+﻿using Snapdragon.Fluent;
+using System.Collections.Immutable;
 
 namespace Snapdragon
 {
-    // TODO: See if I can come up with a better name for this type
     /// <summary>
-    /// Represents a specific card in the context of a <see cref="Game"/>, but potentially still in a
-    /// <see cref="Player"/>'s <see cref="Player.Hand"/> or <see cref="Player.Library"/>.
+    /// The combination of the core attributes of a <see cref="CardBase"/> and a reference to a <see cref="GameKernel"/>
+    /// that allows us to retrieve the ephemeral attributes from that <see cref="GameKernel"/>.
+    ///
+    /// Note that because both <see cref="CardBase"/> and <see cref="GameKernel"/> can only be altered
+    /// by creating new instances, the values of this object are unreliable whenever anything changes.
+    ///
+    /// However, it is by design fairly low effort to create a new one of these after any change.
     /// </summary>
-    public record CardInstance(
-        long Id,
-        CardDefinition Definition,
-        string Name,
-        int Cost,
-        int Power,
-        CardState State,
-        Side Side,
-        Column? Column,
-        int? PowerAdjustment,
-        OnReveal<Card>? OnReveal = null,
-        Ongoing<Card>? Ongoing = null,
-        ITriggeredAbility<ICard>? Triggered = null,
-        IMoveAbility<Card>? MoveAbility = null,
-        ImmutableList<EffectType>? Disallowed = null,
-        IPlayRestriction? PlayRestriction = null
-    ) : ICard
+    public record CardInstance(CardBase Base, GameKernel Kernel) : ICardInstance
     {
-        public CardInstance(
-            CardDefinition definition,
-            Side side,
-            CardState state = CardState.InLibrary
-        )
-            : this(
-                Ids.GetNext<ICard>(),
-                definition,
-                definition.Name,
-                definition.Cost,
-                definition.Power,
-                state,
-                side,
-                null,
-                null,
-                definition.OnReveal,
-                definition.Ongoing,
-                definition.Triggered,
-                definition.MoveAbility,
-                definition.Disallowed,
-                definition.PlayRestriction
-            ) { }
+        public long Id => Base.Id;
+        public CardDefinition Definition => Base.Definition;
+        public string Name => Base.Name;
+        public int Cost => Base.Cost;
+        public int Power => Base.Power;
+        public int? PowerAdjustment => Base.PowerAdjustment;
+        public OnReveal<ICard>? OnReveal => Base.OnReveal;
+        public Ongoing<ICard>? Ongoing => Base.Ongoing;
+        public ITriggeredAbility<ICardInstance>? Triggered => Base.Triggered;
+        public IMoveAbility<ICard>? MoveAbility => Base.MoveAbility;
+        public ImmutableList<EffectType>? Disallowed => Base.Disallowed;
+        public IPlayRestriction? PlayRestriction => Base.PlayRestriction;
+        public int? TurnRevealed => Base.TurnRevealed;
 
         public int AdjustedPower => this.Power + (this.PowerAdjustment ?? 0);
 
-        public int? TurnRevealed => null;
+        public CardState State => Kernel.CardStates[this.Id];
+        public Side Side => Kernel.CardSides[this.Id];
+        public Column? Column => Kernel.CardLocations[this.Id];
 
         public override string ToString()
         {
             return $"{Name} ({Id}) {Cost}E {AdjustedPower}P";
         }
-
-        public Card InPlayAt(Column column)
-        {
-            return new Card(
-                Id,
-                Definition,
-                Name,
-                Cost,
-                Power,
-                State,
-                Side,
-                column,
-                PowerAdjustment,
-                OnReveal,
-                Ongoing,
-                Triggered,
-                MoveAbility,
-                Disallowed,
-                PlayRestriction
-            );
-        }
-
-        public CardInstance ToCardInstance() => this;
     }
 }

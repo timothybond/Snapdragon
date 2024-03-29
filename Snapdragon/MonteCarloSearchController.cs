@@ -88,8 +88,8 @@
 
             game = game with
             {
-                Top = game.Top.WithController(topController),
-                Bottom = game.Bottom.WithController(bottomController),
+                TopPlayer = game.TopPlayer.WithController(topController),
+                BottomPlayer = game.BottomPlayer.WithController(bottomController),
                 Logger = new NullLogger()
             };
 

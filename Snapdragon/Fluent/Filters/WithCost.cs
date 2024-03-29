@@ -10,7 +10,7 @@
             return initial.Where(cd => cd.Cost == Cost);
         }
 
-        protected override bool Includes(ICard card, object context)
+        protected override bool Includes(ICardInstance card, object context)
         {
             return card.Cost == Cost;
         }

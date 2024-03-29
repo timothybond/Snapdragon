@@ -8,10 +8,10 @@ namespace Snapdragon.Fluent
 {
     public static class When
     {
-        public static TriggerBuilder<TEvent, ICard> InPlayAnd<TEvent>()
+        public static TriggerBuilder<TEvent, ICardInstance> InPlayAnd<TEvent>()
             where TEvent : Event
         {
-            return new TriggerBuilder<TEvent, ICard>();
+            return new TriggerBuilder<TEvent, ICardInstance>();
         }
 
         public static TriggerBuilder<TEvent, Location> RevealedAnd<TEvent>()
@@ -27,13 +27,13 @@ namespace Snapdragon.Fluent
         public static DiscardedOrDestroyedTriggerBuilder DiscardedOrDestroyed =>
             new DiscardedOrDestroyedTriggerBuilder();
 
-        public static OnReveal<Card> NextCardRevealed(
-            IEffectBuilder<CardRevealedEvent, Sensor<Card>> outcome
+        public static OnReveal<ICard> NextCardRevealed(
+            IEffectBuilder<CardRevealedEvent, Sensor<ICard>> outcome
         )
         {
             var trigger = Sensor
                 .InPlayAnd<CardRevealedEvent>()
-                .Where(new NextRevealedCard<Sensor<Card>>(new SourceCard(), new SourceCard()))
+                .Where(new NextRevealedCard<Sensor<ICard>>(new SourceCard(), new SourceCard()))
                 .Build(outcome);
 
             return new CardRevealed().Build(new CreateTriggeredSensorBuilder(trigger));
@@ -41,19 +41,19 @@ namespace Snapdragon.Fluent
 
         public static class CardSensor
         {
-            public static TriggerBuilder<TEvent, Sensor<Card>> InPlayAnd<TEvent>()
+            public static TriggerBuilder<TEvent, Sensor<ICard>> InPlayAnd<TEvent>()
                 where TEvent : Event
             {
-                return new TriggerBuilder<TEvent, Sensor<Card>>();
+                return new TriggerBuilder<TEvent, Sensor<ICard>>();
             }
         }
 
         public static class Sensor
         {
-            public static TriggerBuilder<TEvent, Sensor<Card>> InPlayAnd<TEvent>()
+            public static TriggerBuilder<TEvent, Sensor<ICard>> InPlayAnd<TEvent>()
                 where TEvent : Event
             {
-                return new TriggerBuilder<TEvent, Sensor<Card>>();
+                return new TriggerBuilder<TEvent, Sensor<ICard>>();
             }
         }
     }

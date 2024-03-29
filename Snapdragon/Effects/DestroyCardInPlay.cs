@@ -1,8 +1,6 @@
-﻿using Snapdragon.Events;
-
-namespace Snapdragon.Effects
+﻿namespace Snapdragon.Effects
 {
-    public record DestroyCardInPlay(ICard Card) : IEffect
+    public record DestroyCardInPlay(ICardInstance Card) : IEffect
     {
         public Game Apply(Game game)
         {
@@ -18,23 +16,7 @@ namespace Snapdragon.Effects
                 return game;
             }
 
-            var location = game[card.Column];
-            location = location.WithoutCard(card);
-
-            var player = game[card.Side];
-            player = player with
-            {
-                Destroyed = player.Destroyed.Add(
-                    card.ToCardInstance() with
-                    {
-                        State = CardState.Destroyed
-                    }
-                )
-            };
-
-            return game.WithLocation(location)
-                .WithPlayer(player)
-                .WithEvent(new CardDestroyedFromPlayEvent(game.Turn, card));
+            return game.DestroyCardInPlay(card);
         }
     }
 }

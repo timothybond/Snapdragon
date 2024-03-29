@@ -10,8 +10,8 @@
         }
 
         public Game CreateGame(
-            PlayerConfiguration topPlayer,
-            PlayerConfiguration bottomPlayer,
+            PlayerConfiguration topPlayerConfig,
+            PlayerConfiguration bottomPlayerConfig,
             bool shuffle = true,
             Side? firstRevealed = null,
             ISnapdragonRepository? repository = null,
@@ -30,16 +30,22 @@
 
             var firstRevealedOrRandom = firstRevealed ?? Random.Side();
 
+            var topPlayer = topPlayerConfig.ToPlayer(Side.Top);
+            var bottomPlayer = bottomPlayerConfig.ToPlayer(Side.Bottom);
+
             // TODO: Specify different Locations, with effects
             // TODO: Handle card abilities that put them in a specific draw order
             var game = new Game(
                 Guid.NewGuid(),
-                0,
-                new Location(Column.Left, locationDefinitions.Left),
-                new Location(Column.Middle, locationDefinitions.Middle),
-                new Location(Column.Right, locationDefinitions.Right),
-                topPlayer.ToPlayer(Side.Top, shuffle),
-                bottomPlayer.ToPlayer(Side.Bottom, shuffle),
+                GameKernel.FromPlayersAndLocations(
+                    topPlayer,
+                    bottomPlayer,
+                    locationDefinitions.Left,
+                    locationDefinitions.Middle,
+                    locationDefinitions.Right
+                ),
+                topPlayer,
+                bottomPlayer,
                 firstRevealedOrRandom,
                 [],
                 [],

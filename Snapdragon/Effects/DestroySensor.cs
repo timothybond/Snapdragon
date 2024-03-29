@@ -4,7 +4,7 @@
     {
         public Game Apply(Game game)
         {
-            return game.WithLocation(game[sensor.Column].WithSensorDeleted(sensor.Id));
+            return game.WithSensorDeleted(sensor.Id);
         }
     }
 }

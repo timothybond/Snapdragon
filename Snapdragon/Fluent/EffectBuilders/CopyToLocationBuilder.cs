@@ -5,11 +5,11 @@ namespace Snapdragon.Fluent.EffectBuilders
 {
     // TODO: See if I can get rid of this extra reference to CardMovedEvent
     public record CopyToLocationBuilder<TContext>(
-        ISelector<ICard, TContext> CardSelector,
+        ISelector<ICardInstance, TContext> CardSelector,
         ISelector<Location, TContext> LocationSelector,
         ISingleItemSelector<Player, TContext>? PlayerSelector = null
     ) : IEffectBuilder<TContext>
-        where TContext : ICard
+        where TContext : ICardInstance
     {
         public IEffect Build(TContext context, Game game)
         {
@@ -38,11 +38,11 @@ namespace Snapdragon.Fluent.EffectBuilders
 
     // TODO: See if I can get rid of this extra reference to CardMovedEvent
     public record CopyToLocationEventBuilder<TContext>(
-        ISelector<ICard, CardMovedEvent, TContext> CardSelector,
+        ISelector<ICardInstance, CardMovedEvent, TContext> CardSelector,
         ISelector<Location, CardMovedEvent, TContext> LocationSelector,
         ISingleItemSelector<Player, CardMovedEvent, TContext>? PlayerSelector = null
     ) : IEffectBuilder<CardMovedEvent, TContext>
-        where TContext : ICard
+        where TContext : ICardInstance
     {
         public IEffect Build(CardMovedEvent e, TContext context, Game game)
         {
@@ -72,21 +72,21 @@ namespace Snapdragon.Fluent.EffectBuilders
     public static class CopyToLocationExtensions
     {
         public static CopyToLocationEventBuilder<TContext> CopyToLocation<TContext>(
-            this ISelector<ICard, CardMovedEvent, TContext> cardSelector,
+            this ISelector<ICardInstance, CardMovedEvent, TContext> cardSelector,
             ISelector<Location, CardMovedEvent, TContext> locationSelector,
             ISingleItemSelector<Player, CardMovedEvent, TContext>? playerSelector = null
         )
-            where TContext : class, ICard
+            where TContext : class, ICardInstance
         {
             return new CopyToLocationEventBuilder<TContext>(cardSelector, locationSelector);
         }
 
         public static CopyToLocationBuilder<TContext> CopyToLocation<TContext>(
-            this ISelector<ICard, TContext> cardSelector,
+            this ISelector<ICardInstance, TContext> cardSelector,
             ISelector<Location, TContext> locationSelector,
             ISingleItemSelector<Player, TContext>? playerSelector = null
         )
-            where TContext : class, ICard
+            where TContext : class, ICardInstance
         {
             return new CopyToLocationBuilder<TContext>(
                 cardSelector,

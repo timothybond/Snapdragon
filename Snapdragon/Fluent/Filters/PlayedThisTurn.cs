@@ -2,9 +2,9 @@
 
 namespace Snapdragon.Fluent.Filters
 {
-    public record PlayedThisTurn<TContext> : IFilter<ICard, TContext>
+    public record PlayedThisTurn<TContext> : IFilter<ICardInstance, TContext>
     {
-        public IEnumerable<ICard> GetFrom(IEnumerable<ICard> initial, TContext context, Game game)
+        public IEnumerable<ICardInstance> GetFrom(IEnumerable<ICardInstance> initial, TContext context, Game game)
         {
             var cardsPlayedThisTurn = game
                 .PastEvents.Concat(game.NewEvents)

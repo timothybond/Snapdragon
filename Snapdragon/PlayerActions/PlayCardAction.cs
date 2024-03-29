@@ -1,8 +1,6 @@
-﻿using Snapdragon.Events;
-
-namespace Snapdragon.PlayerActions
+﻿namespace Snapdragon.PlayerActions
 {
-    public record PlayCardAction(Side Side, CardInstance Card, Column Column) : IPlayerAction
+    public record PlayCardAction(Side Side, ICardInstance Card, Column Column) : IPlayerAction
     {
         public Game Apply(Game game)
         {
@@ -32,9 +30,11 @@ namespace Snapdragon.PlayerActions
                 );
             }
 
+            // TODO: Consolidate these objects
             var player = game[Side];
+            var playerState = Side == Side.Top ? game.TopPlayer : game.BottomPlayer;
 
-            if (!player.Hand.Contains(Card))
+            if (!player.Hand.Any(c => c.Id == Card.Id))
             {
                 throw new InvalidOperationException(
                     "Tried to play a card that wasn't in the player's hand."
@@ -49,19 +49,12 @@ namespace Snapdragon.PlayerActions
             }
 
             // TODO: Consider making an IEffect for this
-            var newPlayerState = player with
+            var newPlayerState = playerState with
             {
-                Energy = player.Energy - Card.Cost,
-                Hand = player.Hand.Remove(Card)
+                Energy = player.Energy - Card.Cost
             };
 
-            var newCard = Card with { State = CardState.PlayedButNotRevealed, Column = Column };
-
-            var newLocationState = location.WithCard(newCard);
-
-            return game.WithPlayer(newPlayerState)
-                .WithLocation(newLocationState)
-                .WithEvent(new CardPlayedEvent(game.Turn, newCard));
+            return game.WithPlayer(newPlayerState).PlayCard(Card, Column);
         }
 
         public override string ToString()

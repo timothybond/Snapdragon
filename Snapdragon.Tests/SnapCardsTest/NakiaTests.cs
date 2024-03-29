@@ -49,7 +49,7 @@
 
             // Note this will play to turn 3, drawing Iron Man and Kraven but not Misty Knight and Blade
 
-            var cardsInDeck = game[side].Library.Cards;
+            var cardsInDeck = game[side].Library;
             Assert.That(cardsInDeck, Has.Exactly(2).Items);
 
             Assert.That(cardsInDeck[0].Name, Is.EqualTo("Misty Knight"));

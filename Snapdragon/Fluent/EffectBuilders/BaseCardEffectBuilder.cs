@@ -2,7 +2,7 @@
 
 namespace Snapdragon.Fluent.EffectBuilders
 {
-    public abstract record BaseCardEffectBuilder<TContext>(ISelector<ICard, TContext> CardSelector)
+    public abstract record BaseCardEffectBuilder<TContext>(ISelector<ICardInstance, TContext> CardSelector)
         : IEffectBuilder<TContext>
     {
         public IEffect Build(TContext context, Game game)
@@ -25,11 +25,11 @@ namespace Snapdragon.Fluent.EffectBuilders
             return new AndEffect(effects);
         }
 
-        protected abstract IEffect BuildCardEffect(ICard card, TContext context, Game game);
+        protected abstract IEffect BuildCardEffect(ICardInstance card, TContext context, Game game);
     }
 
     public abstract record BaseCardEffectBuilder<TEvent, TContext>(
-        ISelector<ICard, TEvent, TContext> CardSelector
+        ISelector<ICardInstance, TEvent, TContext> CardSelector
     ) : IEffectBuilder<TEvent, TContext>
         where TEvent : Event
     {
@@ -54,7 +54,7 @@ namespace Snapdragon.Fluent.EffectBuilders
         }
 
         protected abstract IEffect BuildCardEffect(
-            ICard card,
+            ICardInstance card,
             TEvent e,
             TContext context,
             Game game

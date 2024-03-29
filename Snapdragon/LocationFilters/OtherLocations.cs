@@ -1,8 +1,8 @@
 ﻿namespace Snapdragon.LocationFilters
 {
-    public record OtherLocations : ILocationFilter<Card>, ILocationFilter<Location>
+    public record OtherLocations : ILocationFilter<ICard>, ILocationFilter<Location>
     {
-        public bool Applies(Location location, Card source, Game game)
+        public bool Applies(Location location, ICard source, Game game)
         {
             return location.Column != source.Column;
         }

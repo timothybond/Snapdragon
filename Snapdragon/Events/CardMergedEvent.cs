@@ -1,6 +1,6 @@
 ﻿namespace Snapdragon.Events
 {
-    public record CardMergedEvent(int Turn, ICard Merged, ICard Target)
+    public record CardMergedEvent(int Turn, ICardInstance Merged, ICardInstance Target)
         : Event(EventType.CardMerged, Turn)
     {
         public override string ToString()

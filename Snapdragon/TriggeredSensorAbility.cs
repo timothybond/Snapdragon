@@ -2,11 +2,11 @@
 {
     public record TriggeredSensorAbility<TEvent>(
         ITrigger<TEvent> Trigger,
-        ISourceTriggeredEffectBuilder<Sensor<Card>, TEvent> EffectBuilder
+        ISourceTriggeredEffectBuilder<Sensor<ICard>, TEvent> EffectBuilder
     ) : BaseSensorTriggeredAbility<TEvent>
         where TEvent : Event
     {
-        protected override Game ProcessEvent(Game game, TEvent e, Sensor<Card> source)
+        protected override Game ProcessEvent(Game game, TEvent e, Sensor<ICard> source)
         {
             if (this.Trigger.IsMet(e, game))
             {

@@ -42,6 +42,7 @@ namespace Snapdragon.Fluent.EffectBuilders
             ISingleItemFilter<CardDefinition, TContext> cardDefinitionFilter,
             ISelector<Player, TContext> playerSelector
         )
+            where TContext : class
         {
             return builder.Build(
                 new AddCardToHandBuilder<TContext>(

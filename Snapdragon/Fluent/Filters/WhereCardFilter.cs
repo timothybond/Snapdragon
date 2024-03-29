@@ -7,13 +7,13 @@
     /// that require the other potential choices for context.)
     /// </summary>
     /// <typeparam name="TContext"></typeparam>
-    public abstract record WhereCardFilter<TContext> : IFilter<ICard, TContext>
+    public abstract record WhereCardFilter<TContext> : IFilter<ICardInstance, TContext>
     {
-        public IEnumerable<ICard> GetFrom(IEnumerable<ICard> initial, TContext context, Game game)
+        public IEnumerable<ICardInstance> GetFrom(IEnumerable<ICardInstance> initial, TContext context, Game game)
         {
             return initial.Where(c => Includes(c, context));
         }
 
-        protected abstract bool Includes(ICard card, TContext context);
+        protected abstract bool Includes(ICardInstance card, TContext context);
     }
 }

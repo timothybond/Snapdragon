@@ -6,12 +6,12 @@ namespace Snapdragon.Fluent
 {
     public static class NextTurn
     {
-        public static OnReveal<Card> CanMoveHere()
+        public static OnReveal<ICard> CanMoveHere()
         {
             return new CardRevealed().Build(
                 new CreateMoveSensorBuilder(
-                    new CanMoveToHereFactory<Sensor<Card>>(),
-                    new TurnAfterReveal<Sensor<Card>>()
+                    new CanMoveToHereFactory<Sensor<ICard>>(),
+                    new TurnAfterReveal<Sensor<ICard>>()
                 )
             );
         }

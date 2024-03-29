@@ -8,5 +8,6 @@ namespace Snapdragon
         Ongoing<Location>? Ongoing = null,
         ITriggeredAbility<Location>? Triggered = null,
         IMoveAbility<Location>? MoveAbility = null
-    ) { }
+    )
+    { }
 }

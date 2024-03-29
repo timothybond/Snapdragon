@@ -3,9 +3,9 @@
 namespace Snapdragon.Sensors
 {
     public record GiveParentPowerBuilder<TEvent>(int Amount)
-        : ISourceTriggeredEffectBuilder<Sensor<Card>, TEvent>
+        : ISourceTriggeredEffectBuilder<Sensor<ICard>, TEvent>
     {
-        public IEffect Build(Game game, TEvent e, Sensor<Card> source)
+        public IEffect Build(Game game, TEvent e, Sensor<ICard> source)
         {
             return new AddPowerToCard(source.Source, Amount);
         }

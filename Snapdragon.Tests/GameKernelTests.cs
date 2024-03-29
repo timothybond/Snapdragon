@@ -907,7 +907,74 @@ namespace Snapdragon.Tests
 
         #endregion
 
+        #region RevealLocation
+
+        [Test]
+        [TestCase(Column.Left)]
+        [TestCase(Column.Middle)]
+        [TestCase(Column.Right)]
+        public void LocationsStartUnrevealed(Column column)
+        {
+            var kernel = BuildKernel();
+
+            Assert.That(LocationRevealed(column, kernel), Is.False);
+        }
+
+        [Test]
+        [TestCase(Column.Left)]
+        [TestCase(Column.Middle)]
+        [TestCase(Column.Right)]
+        public void SetsLocationRevealedFlag(Column column)
+        {
+            var kernel = BuildKernel();
+
+            kernel = kernel.RevealLocation(column);
+
+            Assert.That(LocationRevealed(column, kernel), Is.True);
+        }
+
+        [Test]
+        [TestCase(Column.Left)]
+        [TestCase(Column.Middle)]
+        [TestCase(Column.Right)]
+        public void DoesNotSetsLocationRevealedFlagForOtherLocations(Column column)
+        {
+            var kernel = BuildKernel();
+
+            kernel = kernel.RevealLocation(column);
+
+            foreach (var otherColumn in column.Others())
+            {
+                Assert.That(LocationRevealed(otherColumn, kernel), Is.False);
+            }
+        }
+
+        #endregion
+
+        #region AddSensorToLocation
+
+        #endregion
+
+        #region DestroySensor
+
+        #endregion
+
         #region Helper Functions
+
+        public static bool LocationRevealed(Column column, GameKernel kernel)
+        {
+            switch (column)
+            {
+                case Column.Left:
+                    return kernel.LeftRevealed;
+                case Column.Middle:
+                    return kernel.MiddleRevealed;
+                case Column.Right:
+                    return kernel.RightRevealed;
+                default:
+                    throw new InvalidOperationException();
+            }
+        }
 
         private static IReadOnlyList<string> CardsForSide(Side side)
         {
@@ -991,10 +1058,16 @@ namespace Snapdragon.Tests
                 new MonteCarloSearchController(5)
             );
 
-            var topPlayer = new Player(topConfig, Side.Top, false);
-            var bottomPlayer = new Player(bottomConfig, Side.Bottom, false);
+            var topPlayer = new Player(topConfig, Side.Top, 0);
+            var bottomPlayer = new Player(bottomConfig, Side.Bottom, 0);
 
-            return GameKernel.FromPlayers(topPlayer, bottomPlayer);
+            return GameKernel.FromPlayersAndLocations(
+                topPlayer,
+                bottomPlayer,
+                SnapLocations.ByName["Ruins"],
+                SnapLocations.ByName["Ruins"],
+                SnapLocations.ByName["Ruins"]
+            );
         }
 
         private static Deck GetDeck(params string[] cardNames)

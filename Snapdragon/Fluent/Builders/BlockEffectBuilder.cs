@@ -27,7 +27,7 @@ namespace Snapdragon.Fluent.Builders
             );
         }
 
-        public Ongoing<TContext> ForCards(ISelector<ICard, TContext> cardSelector)
+        public Ongoing<TContext> ForCards(ISelector<ICardInstance, TContext> cardSelector)
         {
             return OngoingBuilder.Build(
                 new BlockCardEffectFactory<TContext>(cardSelector, EffectTypes)

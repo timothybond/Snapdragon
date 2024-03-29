@@ -7,11 +7,11 @@
     ///
     /// Does not affect the opponent.
     /// </summary>
-    public class DiscardCard(ICardFilter<Card>? Filter = null) : IRevealAbility<Card>
+    public class DiscardCard(ICardFilter<ICard>? Filter = null) : IRevealAbility<ICard>
     {
-        public Game Activate(Game game, Card source)
+        public Game Activate(Game game, ICard source)
         {
-            List<CardInstance> applicableCards;
+            List<ICardInstance> applicableCards;
 
             if (Filter == null)
             {

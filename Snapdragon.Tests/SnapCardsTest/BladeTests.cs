@@ -1,5 +1,4 @@
-﻿using System.Collections.Immutable;
-using Snapdragon.Events;
+﻿using Snapdragon.Events;
 
 namespace Snapdragon.Tests.SnapCardsTest
 {
@@ -9,36 +8,28 @@ namespace Snapdragon.Tests.SnapCardsTest
         [TestCaseSource(typeof(AllSidesAndColumns))]
         public void DiscardsLastCardInHand(Side side, Column column)
         {
-            var game = TestHelpers.NewGame();
-
-            // Need to populate some existing cards in the hand
-            var hand = new[] { Cards.OneOne, Cards.ThreeThree, Cards.TwoTwo }
-                .Select(cd => new CardInstance(cd, side, CardState.InHand))
-                .ToImmutableList();
-            game = game.WithPlayer(game[side] with { Hand = hand });
+            var game = TestHelpers
+                .NewGame()
+                .WithCardsInHand(side, "Misty Knight", "Ant Man", "Medusa");
 
             game = TestHelpers.PlayCards(game, side, column, "Blade");
 
             Assert.That(game[side].Hand.Count, Is.EqualTo(2));
-            Assert.That(game[side].Hand.Last().Name, Is.EqualTo(Cards.ThreeThree.Name));
+            Assert.That(game[side].Hand.Last().Name, Is.EqualTo("Ant Man"));
 
             var discardEvent = game.PastEvents.OfType<CardDiscardedEvent>().SingleOrDefault();
 
             Assert.That(discardEvent, Is.Not.Null);
-            Assert.That(discardEvent.Card.Name, Is.EqualTo(Cards.TwoTwo.Name));
+            Assert.That(discardEvent.Card.Name, Is.EqualTo("Medusa"));
         }
 
         [Test]
         [TestCaseSource(typeof(AllSidesAndColumns))]
         public void DoesNotMakeOpponentDiscard(Side side, Column column)
         {
-            var game = TestHelpers.NewGame();
-
-            // Need to populate some existing cards in the hand
-            var hand = new[] { Cards.OneOne, Cards.ThreeThree, Cards.TwoTwo }
-                .Select(cd => new CardInstance(cd, side.Other(), CardState.InHand))
-                .ToImmutableList();
-            game = game.WithPlayer(game[side.Other()] with { Hand = hand });
+            var game = TestHelpers
+                .NewGame()
+                .WithCardsInHand(side.Other(), "Misty Knight", "Ant Man", "Medusa");
 
             game = TestHelpers.PlayCards(game, side, column, "Blade");
 

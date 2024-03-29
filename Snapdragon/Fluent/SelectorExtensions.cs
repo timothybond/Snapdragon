@@ -11,82 +11,82 @@ namespace Snapdragon.Fluent
         /// <summary>
         /// Gets only those cards that are at the context <see cref="Location"/>.
         ///
-        /// Note this is equivalent to <see cref="Here{TContext}(ISelector{ICard, TContext})"/>,
+        /// Note this is equivalent to <see cref="Here{TContext}(ISelector{ICardInstance, TContext})"/>,
         /// but that function can only be invoked on selectors that already have an appropriate
         /// context, which isn't always the case (such as anything that retrieves all cards
         /// regardless of the context and therefore has <see cref="object"/> as its context type).
         /// </summary>
-        public static ISelector<ICard, Location> AtLocation(this ISelector<ICard, object> selector)
+        public static ISelector<ICardInstance, Location> AtLocation(this ISelector<ICardInstance, object> selector)
         {
-            return new FilteredSelector<ICard, Location>(selector, new HereFilter());
+            return new FilteredSelector<ICardInstance, Location>(selector, new HereFilter());
         }
 
-        public static ISelector<ICard, TContext> PlayedThisTurn<TContext>(
-            this ISelector<ICard, TContext> selector
+        public static ISelector<ICardInstance, TContext> PlayedThisTurn<TContext>(
+            this ISelector<ICardInstance, TContext> selector
         )
         {
-            return new FilteredSelector<ICard, TContext>(selector, new PlayedThisTurn<TContext>());
+            return new FilteredSelector<ICardInstance, TContext>(selector, new PlayedThisTurn<TContext>());
         }
 
-        public static ISelector<ICard, TContext> Here<TContext>(
-            this ISelector<ICard, TContext> selector
+        public static ISelector<ICardInstance, TContext> Here<TContext>(
+            this ISelector<ICardInstance, TContext> selector
         )
             where TContext : class, IObjectWithPossibleColumn
         {
-            return new FilteredSelector<ICard, TContext>(selector, new HereFilter());
+            return new FilteredSelector<ICardInstance, TContext>(selector, new HereFilter());
         }
 
-        public static ISelector<ICard, TContext> WithMaxPower<TContext>(
-            this ISelector<ICard, TContext> selector
+        public static ISelector<ICardInstance, TContext> WithMaxPower<TContext>(
+            this ISelector<ICardInstance, TContext> selector
         )
             where TContext : class
         {
-            return new FilteredSelector<ICard, TContext>(selector, new MaxPowerOf());
+            return new FilteredSelector<ICardInstance, TContext>(selector, new MaxPowerOf());
         }
 
-        public static ISelector<ICard, TContext> WithMinPower<TContext>(
-            this ISelector<ICard, TContext> selector
+        public static ISelector<ICardInstance, TContext> WithMinPower<TContext>(
+            this ISelector<ICardInstance, TContext> selector
         )
             where TContext : class
         {
-            return new FilteredSelector<ICard, TContext>(selector, new MinPowerOf());
+            return new FilteredSelector<ICardInstance, TContext>(selector, new MinPowerOf());
         }
 
-        public static ISelector<ICard, TContext> WithMaxCost<TContext>(
-            this ISelector<ICard, TContext> selector
+        public static ISelector<ICardInstance, TContext> WithMaxCost<TContext>(
+            this ISelector<ICardInstance, TContext> selector
         )
             where TContext : class
         {
-            return new FilteredSelector<ICard, TContext>(selector, new MaxCostOf());
+            return new FilteredSelector<ICardInstance, TContext>(selector, new MaxCostOf());
         }
 
-        public static ISelector<ICard, TContext> WithMinCost<TContext>(
-            this ISelector<ICard, TContext> selector
+        public static ISelector<ICardInstance, TContext> WithMinCost<TContext>(
+            this ISelector<ICardInstance, TContext> selector
         )
             where TContext : class
         {
-            return new FilteredSelector<ICard, TContext>(selector, new MinCostOf());
+            return new FilteredSelector<ICardInstance, TContext>(selector, new MinCostOf());
         }
 
-        public static ISelector<ICard, TContext> WithCost<TContext>(
-            this ISelector<ICard, TContext> selector,
+        public static ISelector<ICardInstance, TContext> WithCost<TContext>(
+            this ISelector<ICardInstance, TContext> selector,
             int cost
         )
             where TContext : class
         {
-            return new FilteredSelector<ICard, TContext>(selector, new WithCost(cost));
+            return new FilteredSelector<ICardInstance, TContext>(selector, new WithCost(cost));
         }
 
-        public static ISelector<ICard, TContext> WithOngoingAbilities<TContext>(
-            this ISelector<ICard, TContext> selector
+        public static ISelector<ICardInstance, TContext> WithOngoingAbilities<TContext>(
+            this ISelector<ICardInstance, TContext> selector
         )
             where TContext : class
         {
-            return new FilteredSelector<ICard, TContext>(selector, new WithOngoingAbilities());
+            return new FilteredSelector<ICardInstance, TContext>(selector, new WithOngoingAbilities());
         }
 
         public static CardPower<TContext> Power<TContext>(
-            this ISingleItemSelector<ICard, TContext> selector
+            this ISingleItemSelector<ICardInstance, TContext> selector
         )
             where TContext : class
         {
@@ -156,20 +156,20 @@ namespace Snapdragon.Fluent
             );
         }
 
-        public static ISingleItemSelector<ICard, TContext> First<TContext>(
-            this ISelector<ICard, TContext> selector
+        public static ISingleItemSelector<ICardInstance, TContext> First<TContext>(
+            this ISelector<ICardInstance, TContext> selector
         )
             where TContext : class
         {
-            return new FilteredSingleItemSelector<ICard, TContext>(selector, new FirstOf<ICard>());
+            return new FilteredSingleItemSelector<ICardInstance, TContext>(selector, new FirstOf<ICardInstance>());
         }
 
-        public static ISingleItemSelector<ICard, TContext> Last<TContext>(
-            this ISelector<ICard, TContext> selector
+        public static ISingleItemSelector<ICardInstance, TContext> Last<TContext>(
+            this ISelector<ICardInstance, TContext> selector
         )
             where TContext : class
         {
-            return new FilteredSingleItemSelector<ICard, TContext>(selector, new LastOf<ICard>());
+            return new FilteredSingleItemSelector<ICardInstance, TContext>(selector, new LastOf<ICardInstance>());
         }
 
         public static ISingleItemSelector<TSelected, TContext> GetRandom<TSelected, TContext>(

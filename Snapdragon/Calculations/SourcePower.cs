@@ -1,8 +1,8 @@
 ﻿namespace Snapdragon.Calculations
 {
-    public record SourcePower(int Value) : IPowerCalculation<CardInstance>
+    public record SourcePower(int Value) : IPowerCalculation<ICardInstance>
     {
-        public int GetValue(Game game, CardInstance source, ICard target)
+        public int GetValue(Game game, ICardInstance source, ICardInstance target)
         {
             return source.Power;
         }

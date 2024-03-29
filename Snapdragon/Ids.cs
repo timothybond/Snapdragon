@@ -2,24 +2,29 @@
 {
     public static class Ids
     {
-        private static Dictionary<string, long> currentMaxIds = new Dictionary<string, long>();
+        private const string Card = "Card";
+        private const string Sensor = "Sensor";
 
-        public static long GetNext<T>()
+        private static Dictionary<string, long> currentMaxIds = new Dictionary<string, long>
         {
-            var name = typeof(T).AssemblyQualifiedName;
+            { Card, 0 },
+            { Sensor, 0 }
+        };
 
-            if (name == null)
-            {
-                throw new ArgumentNullException($"Could not get type name for type: {typeof(T)}");
-            }
+        public static long GetNextCard()
+        {
+            return GetNext(Card);
+        }
 
+        public static long GetNextSensor()
+        {
+            return GetNext(Sensor);
+        }
+
+        private static long GetNext(string name)
+        {
             lock (currentMaxIds)
             {
-                if (!currentMaxIds.ContainsKey(name))
-                {
-                    currentMaxIds[name] = 0;
-                }
-
                 currentMaxIds[name] = currentMaxIds[name] + 1;
 
                 return currentMaxIds[name];

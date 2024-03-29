@@ -1,6 +1,6 @@
 ﻿namespace Snapdragon.Fluent.Builders
 {
-    public record AdjustPowerFactory<TContext>(ISelector<ICard, TContext> Selector, int Amount)
+    public record AdjustPowerFactory<TContext>(ISelector<ICardInstance, TContext> Selector, int Amount)
         : IOngoingAbilityFactory<TContext>
     {
         public Ongoing<TContext> Build(ICondition<TContext>? condition = null)

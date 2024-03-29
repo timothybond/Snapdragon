@@ -1,6 +1,4 @@
-﻿using Snapdragon.Events;
-
-namespace Snapdragon.Effects
+﻿namespace Snapdragon.Effects
 {
     /// <summary>
     /// Moves a <see cref="Card"/> left by one location.
@@ -13,7 +11,7 @@ namespace Snapdragon.Effects
     /// - There is no check for move abilities, because it is assumed this comes
     ///   from another effect (like setting "Forced" on <see cref="MoveCard"/>).
     /// </summary>
-    public record MoveCardLeft(Card Card) : IEffect
+    public record MoveCardLeft(ICard Card) : IEffect
     {
         public Game Apply(Game game)
         {
@@ -42,7 +40,7 @@ namespace Snapdragon.Effects
             }
 
             // TODO: handle restrictions on number of cards
-            if (game[destination][Card.Side].Count >= Max.CardsPerLocation)
+            if (game[destination][actualCard.Side].Count >= Max.CardsPerLocation)
             {
                 return game;
             }
@@ -72,13 +70,7 @@ namespace Snapdragon.Effects
                 return game;
             }
 
-            oldLocation = oldLocation.WithRemovedCard(actualCard);
-            actualCard = actualCard with { Column = newLocation.Column };
-            newLocation = newLocation.WithCard(actualCard);
-
-            return game.WithLocation(oldLocation)
-                .WithLocation(newLocation)
-                .WithEvent(new CardMovedEvent(game.Turn, actualCard, from, destination));
+            return game.MoveCard(actualCard, destination);
         }
     }
 }

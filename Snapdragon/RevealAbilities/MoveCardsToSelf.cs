@@ -1,8 +1,8 @@
 ﻿namespace Snapdragon.RevealAbilities
 {
-    public record MoveCardsToSelf(ICardFilter<Card> Filter) : IRevealAbility<Card>
+    public record MoveCardsToSelf(ICardFilter<ICard> Filter) : IRevealAbility<ICard>
     {
-        public Game Activate(Game game, Card source)
+        public Game Activate(Game game, ICard source)
         {
             var cardsToMove = game.AllCards.Where(c =>
                 Filter.Applies(c, source, game) && c.Column != source.Column

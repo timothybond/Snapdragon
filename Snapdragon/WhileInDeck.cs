@@ -12,7 +12,7 @@
         public override bool WhenInDeck => true;
         public override bool WhenDiscardedOrDestroyed => false;
 
-        protected override Game ProcessEvent(Game game, TEvent e, ICard source)
+        protected override Game ProcessEvent(Game game, TEvent e, ICardInstance source)
         {
             return Inner.ProcessEvent(game, e, source);
         }

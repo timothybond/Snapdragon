@@ -7,7 +7,7 @@
             return Value;
         }
 
-        public int GetValue(Game game, object source, ICard target)
+        public int GetValue(Game game, object source, ICardInstance target)
         {
             return Value;
         }
