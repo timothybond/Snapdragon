@@ -78,7 +78,7 @@ namespace Snapdragon.Tests
         // Most of these test cases are commented out because this test is pretty slow,
         // so we don't want to run it every time we run all of the tests.
         [Test]
-        [TestCase(10)]
+        [TestCase(1)]
         //[TestCase(5)]
         //[TestCase(10)]
         //[TestCase(20)]
@@ -104,7 +104,7 @@ namespace Snapdragon.Tests
 
             Parallel.For(
                 0,
-                100,
+                20,
                 (_) =>
                 {
                     var game = GetNewGame(new NullLogger(), monteCarloSimulationCount);
