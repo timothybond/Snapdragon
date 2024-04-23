@@ -1,14 +1,14 @@
 ﻿using System.Collections;
 using System.Collections.Immutable;
 
-namespace Snapdragon
+namespace Snapdragon.GameAccessors
 {
     public struct SensorListReference : IReadOnlyList<Sensor<ICard>>
     {
         public SensorListReference(GameKernel kernel, ImmutableList<long> inner)
         {
-            this.Kernel = kernel;
-            this.Inner = inner;
+            Kernel = kernel;
+            Inner = inner;
         }
 
         GameKernel Kernel { get; }

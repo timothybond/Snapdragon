@@ -1,5 +1,6 @@
 ﻿using Snapdragon.Events;
 using Snapdragon.Fluent;
+using Snapdragon.GameAccessors;
 using Snapdragon.GameKernelAccessors;
 using Snapdragon.OngoingAbilities;
 using System.Collections.Immutable;
@@ -18,9 +19,6 @@ namespace Snapdragon
         bool GameOver = false
     )
     {
-        private TopPlayerAccessor _topPlayer = null;
-        private BottomPlayerAccessor _bottomPlayer = null;
-
         #region Accessors
 
         public int Turn => Kernel.Turn;
@@ -83,10 +81,7 @@ namespace Snapdragon
         public IEnumerable<Sensor<ICard>> AllSensors =>
             this.Locations.SelectMany(l => l.AllSensors);
 
-        public IEnumerable<(
-            Ongoing<ICard> Ability,
-            ICard Source
-        )> GetCardOngoingAbilities()
+        public IEnumerable<(Ongoing<ICard> Ability, ICard Source)> GetCardOngoingAbilities()
         {
             foreach (var column in All.Columns)
             {
@@ -134,10 +129,7 @@ namespace Snapdragon
 
             foreach (var source in cardsWithLocationEffectBlocks ?? AllCards)
             {
-                if (
-                    source.Ongoing
-                    is OngoingBlockLocationEffect<ICard> blockLocationEffect
-                )
+                if (source.Ongoing is OngoingBlockLocationEffect<ICard> blockLocationEffect)
                 {
                     // TODO: see if we can reduce the redundancy here
                     if (
@@ -380,12 +372,7 @@ namespace Snapdragon
             // TODO: Raise an event for this
             return this with
             {
-                Kernel = Kernel.AddNewCardToLocation(
-                    cardDefinition,
-                    column,
-                    side,
-                    out long newCardId
-                )
+                Kernel = Kernel.AddNewCardToLocation(cardDefinition, column, side, out long _)
             };
         }
 
@@ -403,7 +390,7 @@ namespace Snapdragon
         {
             var game = this with
             {
-                Kernel = Kernel.AddCopiedCardToLocation(card.Id, column, side, out long newCardId)
+                Kernel = Kernel.AddCopiedCardToLocation(card.Id, column, side, out long _)
             };
 
             return game; // TODO: Add event for card being placed here
@@ -1070,10 +1057,7 @@ namespace Snapdragon
         /// </summary>
         private int? GetPowerAdjustment(
             ICard card,
-            IReadOnlyList<(
-                Ongoing<ICard> Ability,
-                ICard Source
-            )> ongoingCardAbilities,
+            IReadOnlyList<(Ongoing<ICard> Ability, ICard Source)> ongoingCardAbilities,
             IReadOnlyList<(Ongoing<Location> Ability, Location Source)> ongoingLocationAbilities,
             Game game
         )
@@ -1132,9 +1116,7 @@ namespace Snapdragon
                 // Now apply any ongoing effects that ADD power to a location (e.g. Mister Fantastic, Klaw)
                 foreach (var card in this.AllCards)
                 {
-                    if (
-                        card.Ongoing is OngoingAdjustLocationPower<ICard> addLocationPower
-                    )
+                    if (card.Ongoing is OngoingAdjustLocationPower<ICard> addLocationPower)
                     {
                         if (
                             addLocationPower

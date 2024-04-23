@@ -1,4 +1,6 @@
-﻿namespace Snapdragon
+﻿using Snapdragon.GameAccessors;
+
+namespace Snapdragon
 {
     /// The combination of a <see cref="LocationDefinition"/>, <see cref="Column"/> and a reference to a
     /// <see cref="GameKernel"/> that allows us to retrieve the ephemeral attributes from that <see cref="GameKernel"/>.

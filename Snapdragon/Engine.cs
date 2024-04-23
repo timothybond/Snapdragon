@@ -1,4 +1,6 @@
-﻿namespace Snapdragon
+﻿using Snapdragon.GameAccessors;
+
+namespace Snapdragon
 {
     public class Engine
     {

@@ -1,7 +1,4 @@
-﻿using System.Data.Common;
-using Snapdragon.TargetFilters;
-
-namespace Snapdragon.Tests.SnapCardsTest
+﻿namespace Snapdragon.Tests.SnapCardsTest
 {
     public class MedusaTests
     {

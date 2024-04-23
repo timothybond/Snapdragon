@@ -8,23 +8,6 @@
         public TriggerBuilder()
             : base(new TriggerFactory()) { }
 
-        //public TriggerBuilderConditionBuilder<TEvent, TContext> If
-        //{
-        //    get { return new TriggerBuilderConditionBuilder<TEvent, TContext>(null); }
-        //}
-
-        //public ITriggeredAbility<TContext> Build(IEffectBuilder<TEvent, TContext> outcome)
-        //{
-        //    return new TriggeredAbility<TEvent, TContext>(outcome, null);
-        //}
-
-        //public TriggerBuilderWithFilter<TEvent, TContext> Where(
-        //    IEventFilter<TEvent, TContext> eventFilter
-        //)
-        //{
-        //    return new TriggerBuilderWithFilter<TEvent, TContext>(eventFilter);
-        //}
-
         private class TriggerFactory
             : IResultFactory<
                 ITriggeredAbility<TContext>,

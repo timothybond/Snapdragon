@@ -1,7 +1,7 @@
 ﻿using System.Collections.Immutable;
 using System.Diagnostics;
 
-namespace Snapdragon
+namespace Snapdragon.GameAccessors
 {
     /// <summary>
     /// An object that stores some core details of the game state.
@@ -133,7 +133,7 @@ namespace Snapdragon
         {
             get
             {
-                var card = this.Cards.GetValueOrDefault(cardId);
+                var card = Cards.GetValueOrDefault(cardId);
                 if (card == null)
                 {
                     return null;
@@ -173,7 +173,7 @@ namespace Snapdragon
 
                     cardId = TopLibrary[0];
 
-                    return this.RemoveCardFromLibraryUnsafe(cardId, side)
+                    return RemoveCardFromLibraryUnsafe(cardId, side)
                         .WithCardInStateUnsafe(cardId, CardState.InHand)
                         .AddCardToHandUnsafe(cardId, side);
 
@@ -187,7 +187,7 @@ namespace Snapdragon
 
                     cardId = BottomLibrary[0];
 
-                    return this.RemoveCardFromLibraryUnsafe(cardId, side)
+                    return RemoveCardFromLibraryUnsafe(cardId, side)
                         .WithCardInStateUnsafe(cardId, CardState.InHand)
                         .AddCardToHandUnsafe(cardId, side);
                 default:
@@ -215,7 +215,7 @@ namespace Snapdragon
 
                     cardId = BottomLibrary[0];
 
-                    return this.RemoveCardFromLibraryUnsafe(cardId, side.Other())
+                    return RemoveCardFromLibraryUnsafe(cardId, side.Other())
                         .SetCardSideUnsafe(cardId, side)
                         .WithCardInStateUnsafe(cardId, CardState.InHand)
                         .AddCardToHandUnsafe(cardId, side);
@@ -230,7 +230,7 @@ namespace Snapdragon
 
                     cardId = TopLibrary[0];
 
-                    return this.RemoveCardFromLibraryUnsafe(cardId, side.Other())
+                    return RemoveCardFromLibraryUnsafe(cardId, side.Other())
                         .SetCardSideUnsafe(cardId, side)
                         .WithCardInStateUnsafe(cardId, CardState.InHand)
                         .AddCardToHandUnsafe(cardId, side);
@@ -306,7 +306,7 @@ namespace Snapdragon
             }
 
             newCollection = newCollection.Add(cardId);
-            return this.RemoveCardFromHandUnsafe(cardId, side)
+            return RemoveCardFromHandUnsafe(cardId, side)
                 .WithCardInStateUnsafe(cardId, CardState.PlayedButNotRevealed)
                 .WithUpdatedLocationCollection(column, side, newCollection);
         }
@@ -327,7 +327,7 @@ namespace Snapdragon
             ValidateState(cardId, CardState.InPlay, CardState.PlayedButNotRevealed);
             ValidateLocation(cardId, from);
 
-            return this.RemoveCardFromLocationUnsafe(cardId, from, side)
+            return RemoveCardFromLocationUnsafe(cardId, from, side)
                 .AddCardToLocationUnsafe(cardId, to, side);
         }
 
@@ -382,13 +382,13 @@ namespace Snapdragon
             switch (side)
             {
                 case Side.Top:
-                    return this.RemoveCardFromHandUnsafe(cardId, side)
+                    return RemoveCardFromHandUnsafe(cardId, side)
                         .WithCardInStateUnsafe(cardId, CardState.Discarded) with
                     {
                         TopDiscards = TopDiscards.Add(cardId)
                     };
                 case Side.Bottom:
-                    return this.RemoveCardFromHandUnsafe(cardId, side)
+                    return RemoveCardFromHandUnsafe(cardId, side)
                         .WithCardInStateUnsafe(cardId, CardState.Discarded) with
                     {
                         BottomDiscards = BottomDiscards.Add(cardId)
@@ -413,7 +413,7 @@ namespace Snapdragon
             ValidateLocation(cardId, column);
             ValidateSide(cardId, side);
 
-            var kernel = this.RemoveCardFromLocationUnsafe(cardId, column, side)
+            var kernel = RemoveCardFromLocationUnsafe(cardId, column, side)
                 .WithCardInStateUnsafe(cardId, CardState.Destroyed);
 
             switch (side)
@@ -440,7 +440,7 @@ namespace Snapdragon
             ValidateState(cardId, CardState.InHand);
             ValidateSide(cardId, side);
 
-            return this.RemoveCardFromGame(cardId);
+            return RemoveCardFromGame(cardId);
         }
 
         /// <summary>
@@ -456,7 +456,7 @@ namespace Snapdragon
             ValidateState(cardId, CardState.InLibrary);
             ValidateSide(cardId, side);
 
-            return this.RemoveCardFromGame(cardId);
+            return RemoveCardFromGame(cardId);
         }
 
         /// <summary>
@@ -530,7 +530,7 @@ namespace Snapdragon
                     $"Card {card.Name} ({card.Id}) is in state {CardStates[cardId]} but has no location."
                 );
 
-            return this.RemoveCardFromLocationUnsafe(cardId, column, currentSide)
+            return RemoveCardFromLocationUnsafe(cardId, column, currentSide)
                 .SetCardSideUnsafe(cardId, currentSide.Other())
                 .AddCardToLocationUnsafe(cardId, column, currentSide.Other());
         }
@@ -547,7 +547,7 @@ namespace Snapdragon
             ValidateSide(cardId, side);
             ValidateState(cardId, CardState.Discarded);
 
-            return this.RemoveCardFromDiscardsUnsafe(cardId, side)
+            return RemoveCardFromDiscardsUnsafe(cardId, side)
                 .WithCardInStateUnsafe(cardId, CardState.InPlay)
                 .AddCardToLocationUnsafe(cardId, column, side);
         }
@@ -564,7 +564,7 @@ namespace Snapdragon
             ValidateSide(cardId, side);
             ValidateState(cardId, CardState.Destroyed);
 
-            return this.RemoveCardFromDestroyedUnsafe(cardId, side)
+            return RemoveCardFromDestroyedUnsafe(cardId, side)
                 .WithCardInStateUnsafe(cardId, CardState.InPlay)
                 .AddCardToLocationUnsafe(cardId, column, side);
         }
@@ -585,7 +585,7 @@ namespace Snapdragon
 
             newCardId = cardBase.Id;
 
-            return this.WithNewCardUnsafe(cardBase, side, CardState.InHand)
+            return WithNewCardUnsafe(cardBase, side, CardState.InHand)
                 .AddCardToHandUnsafe(cardBase.Id, side);
         }
 
@@ -605,7 +605,7 @@ namespace Snapdragon
 
             newCardId = cardBase.Id;
 
-            return this.WithNewCardUnsafe(cardBase, side, CardState.InLibrary)
+            return WithNewCardUnsafe(cardBase, side, CardState.InLibrary)
                 .AddCardToLibraryUnsafe(cardBase.Id, side);
         }
 
@@ -627,7 +627,7 @@ namespace Snapdragon
 
             newCardId = cardBase.Id;
 
-            return this.WithNewCardUnsafe(cardBase, side, CardState.InPlay)
+            return WithNewCardUnsafe(cardBase, side, CardState.InPlay)
                 .AddCardToLocationUnsafe(cardBase.Id, column, side);
         }
 
@@ -644,7 +644,7 @@ namespace Snapdragon
             var copiedCard = Cards[existingCardId] with { Id = Ids.GetNextCard() };
             newCardId = copiedCard.Id;
 
-            return this.WithNewCardUnsafe(copiedCard, side, CardState.InHand)
+            return WithNewCardUnsafe(copiedCard, side, CardState.InHand)
                 .AddCardToHandUnsafe(copiedCard.Id, side);
         }
 
@@ -667,7 +667,7 @@ namespace Snapdragon
             var copiedCard = Cards[existingCardId] with { Id = Ids.GetNextCard() };
             newCardId = copiedCard.Id;
 
-            return this.WithNewCardUnsafe(copiedCard, side, CardState.InPlay)
+            return WithNewCardUnsafe(copiedCard, side, CardState.InPlay)
                 .AddCardToLocationUnsafe(copiedCard.Id, column, side);
         }
 
@@ -763,7 +763,7 @@ namespace Snapdragon
 
         public GameKernel DestroySensor(long sensorId, Column column, Side side)
         {
-            return this.RemoveSensorFromLocationUnsafe(sensorId, column, side) with
+            return RemoveSensorFromLocationUnsafe(sensorId, column, side) with
             {
                 Sensors = Sensors.Remove(sensorId),
                 SensorSides = SensorSides.Remove(sensorId),
@@ -980,7 +980,7 @@ namespace Snapdragon
 
             var existingCards = CardIdsForLocation(column, side);
 
-            return this.WithUpdatedLocationCollection(column, side, existingCards.Add(cardId));
+            return WithUpdatedLocationCollection(column, side, existingCards.Add(cardId));
         }
 
         /// <summary>
@@ -1065,7 +1065,7 @@ namespace Snapdragon
                 );
             }
 
-            var newCardLocationsBuilder = this.CardLocations.ToBuilder();
+            var newCardLocationsBuilder = CardLocations.ToBuilder();
 
             foreach (var cardId in newLocationItems)
             {

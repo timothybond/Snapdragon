@@ -1,4 +1,5 @@
-﻿using Snapdragon.Events;
+﻿using System.Collections.Immutable;
+using Snapdragon.Events;
 using Snapdragon.Fluent;
 using Snapdragon.Fluent.EffectBuilders;
 using Snapdragon.Fluent.Filters;
@@ -6,10 +7,6 @@ using Snapdragon.Fluent.Selectors;
 using Snapdragon.Fluent.Transforms;
 using Snapdragon.MoveAbilities;
 using Snapdragon.PlayRestrictions;
-using Snapdragon.RevealAbilities;
-using Snapdragon.TargetFilters;
-using Snapdragon.Triggers;
-using System.Collections.Immutable;
 
 namespace Snapdragon
 {
