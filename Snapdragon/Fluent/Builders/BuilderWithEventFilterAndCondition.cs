@@ -20,7 +20,7 @@
             }
         }
 
-        public TAbility Build(TOutcome outcome)
+        public TAbility Then(TOutcome outcome)
         {
             return Factory.Build(outcome, EventFilter, Condition);
         }

@@ -1,5 +1,4 @@
-﻿using System.Collections.Immutable;
-using Snapdragon.CardEffectEventBuilders;
+﻿using Snapdragon.CardEffectEventBuilders;
 using Snapdragon.Events;
 using Snapdragon.Fluent;
 using Snapdragon.Fluent.EffectBuilders;
@@ -7,6 +6,7 @@ using Snapdragon.Fluent.Filters;
 using Snapdragon.Fluent.Selectors;
 using Snapdragon.TriggeredAbilities;
 using Snapdragon.TriggeredEffects;
+using System.Collections.Immutable;
 
 namespace Snapdragon
 {
@@ -33,11 +33,11 @@ namespace Snapdragon
         {
             new LocationDefinition(
                 "Camp Lehigh",
-                OnReveal.Build(new BothSides().AddToHand(PossibleCards.WithCost(3).GetRandom()))
+                OnReveal.Then(new BothSides().AddToHand(PossibleCards.WithCost(3).GetRandom()))
             ),
             new LocationDefinition(
                 "Central Park",
-                OnReveal.Build(
+                OnReveal.Then(
                     new AllLocations().AddCard(
                         new CardDefinition("Squirrel", 1, 1),
                         new BothSides()
@@ -49,7 +49,7 @@ namespace Snapdragon
                 null,
                 null,
                 When.RevealedAnd<CardRevealedEvent>()
-                    .Build(EventCard.Get.CopyToHand(EventCard.Player))
+                    .Then(EventCard.Get.CopyToHand(EventCard.Player))
             ),
             new("Death's Domain", null, null, new OnCardRevealedHere(new DestroyCardInPlay())),
             new LocationDefinition(
@@ -64,7 +64,7 @@ namespace Snapdragon
                 null,
                 null,
                 When.RevealedAnd<CardRevealedEvent>()
-                    .Build(EventCard.Get.CopyToHand(EventCard.Player.Other()))
+                    .Then(EventCard.Get.CopyToHand(EventCard.Player.Other()))
             ),
             new LocationDefinition(
                 "Muir Island",

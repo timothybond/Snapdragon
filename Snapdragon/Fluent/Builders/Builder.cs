@@ -9,7 +9,7 @@
             get { return new ConditionBuilder<TAbility, TContext, TOutcome>(Factory); }
         }
 
-        public virtual TAbility Build(TOutcome outcome)
+        public virtual TAbility Then(TOutcome outcome)
         {
             return Factory.Build(outcome);
         }
@@ -35,7 +35,7 @@
             );
         }
 
-        public virtual TAbility Build(TOutcome outcome)
+        public virtual TAbility Then(TOutcome outcome)
         {
             return Factory.Build(outcome);
         }

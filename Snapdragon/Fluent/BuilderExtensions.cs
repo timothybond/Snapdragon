@@ -19,7 +19,7 @@ namespace Snapdragon.Fluent
         )
             where TContext : class
         {
-            return builder.Build(new ModifyPowerBuilder<TContext>(cardSelector, amount));
+            return builder.Then(new ModifyPowerBuilder<TContext>(cardSelector, amount));
         }
 
         /// <summary>
@@ -36,7 +36,7 @@ namespace Snapdragon.Fluent
         )
             where TContext : class
         {
-            return builder.Build(new ModifyPowerBuilder<TContext>(cardSelector, amount));
+            return builder.Then(new ModifyPowerBuilder<TContext>(cardSelector, amount));
         }
 
         /// <summary>
@@ -54,7 +54,7 @@ namespace Snapdragon.Fluent
             where TEvent : Event
             where TContext : class
         {
-            return builder.Build(new ModifyPowerBuilder<TContext>(cardSelector, amount));
+            return builder.Then(new ModifyPowerBuilder<TContext>(cardSelector, amount));
         }
 
         /// <summary>
@@ -72,7 +72,7 @@ namespace Snapdragon.Fluent
             where TEvent : Event
             where TContext : class
         {
-            return builder.Build(new ModifyPowerBuilder<TContext>(cardSelector, amount));
+            return builder.Then(new ModifyPowerBuilder<TContext>(cardSelector, amount));
         }
 
         /// <summary>
@@ -89,7 +89,7 @@ namespace Snapdragon.Fluent
             where TEvent : Event
             where TContext : class
         {
-            return builder.Build(
+            return builder.Then(
                 new ModifyPowerBuilder<TContext>(cardSelector, cardSelector.Power())
             );
         }
@@ -105,7 +105,7 @@ namespace Snapdragon.Fluent
             ISelector<ICardInstance, TContext> cardSelector
         )
         {
-            return builder.Build(new DiscardBuilder<TContext>(cardSelector));
+            return builder.Then(new DiscardBuilder<TContext>(cardSelector));
         }
 
         /// <summary>
@@ -119,7 +119,7 @@ namespace Snapdragon.Fluent
             ISelector<ICardInstance, TContext> cardSelector
         )
         {
-            return builder.Build(new DestroyBuilder<TContext>(cardSelector));
+            return builder.Then(new DestroyBuilder<TContext>(cardSelector));
         }
     }
 }

@@ -25,9 +25,9 @@ namespace Snapdragon.Fluent.Builders
                 .If.PastEvent()
                 .OfType<TFilteredEventType>()
                 .Where(eventFilter.And(new CurrentTurnFilter()))
-                .Build(outcome.And(new DestroySensorBuilder()));
+                .Then(outcome.And(new DestroySensorBuilder()));
 
-            return new CardRevealed().Build(new CreateTriggeredSensorBuilder(trigger));
+            return new CardRevealed().Then(new CreateTriggeredSensorBuilder(trigger));
         }
     }
 }

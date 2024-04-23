@@ -2,7 +2,7 @@
 {
     public interface IBuilder<TAbility, TContext, TOutcome>
     {
-        TAbility Build(TOutcome outcome);
+        TAbility Then(TOutcome outcome);
     }
 
     public interface IBuilder<TAbility, TEvent, TContext, TOutcome>

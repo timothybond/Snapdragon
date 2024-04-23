@@ -8,7 +8,7 @@ namespace Snapdragon.Fluent
     {
         public static OnReveal<ICard> CanMoveHere()
         {
-            return new CardRevealed().Build(
+            return new CardRevealed().Then(
                 new CreateMoveSensorBuilder(
                     new CanMoveToHereFactory<Sensor<ICard>>(),
                     new TurnAfterReveal<Sensor<ICard>>()

@@ -34,9 +34,9 @@ namespace Snapdragon.Fluent
             var trigger = Sensor
                 .InPlayAnd<CardRevealedEvent>()
                 .Where(new NextRevealedCard<Sensor<ICard>>(new SourceCard(), new SourceCard()))
-                .Build(outcome);
+                .Then(outcome);
 
-            return new CardRevealed().Build(new CreateTriggeredSensorBuilder(trigger));
+            return new CardRevealed().Then(new CreateTriggeredSensorBuilder(trigger));
         }
 
         public static class CardSensor

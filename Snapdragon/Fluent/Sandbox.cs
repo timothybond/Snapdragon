@@ -11,13 +11,13 @@ namespace Snapdragon.Fluent
         {
             var medusaOnReveal = new CardRevealed()
                 .If.InColumn(Column.Middle)
-                .Build(new Self().ModifyPower(3));
+                .Then(new Self().ModifyPower(3));
 
             var rocketRaccoonOnReveal = new CardRevealed()
                 .If.PastEvent()
                 .OfType<CardRevealedEvent>()
                 .Where(EventCard.SameSide.And(EventCard.Here))
-                .Build(new Self().ModifyPower(2));
+                .Then(new Self().ModifyPower(2));
 
             var ironheartOnReveal = new CardRevealed().ModifyPower(My.Cards.GetRandom(3), 2);
 
@@ -31,33 +31,33 @@ namespace Snapdragon.Fluent
 
             var humanTorchTrigger = When.InPlayAnd<CardMovedEvent>()
                 .Where(EventCard.Self)
-                .Build(new Self().DoublePower());
+                .Then(new Self().DoublePower());
 
             var vultureTrigger = When.InPlayAnd<CardMovedEvent>()
                 .Where(EventCard.Self)
-                .Build(new Self().ModifyPower(5));
+                .Then(new Self().ModifyPower(5));
 
             var bishopTrigger = When.InPlayAnd<CardRevealedEvent>()
                 .Where(EventCard.SameSide)
-                .Build(new Self().ModifyPower(1));
+                .Then(new Self().ModifyPower(1));
 
             var angelaTrigger = When.InPlayAnd<CardRevealedEvent>()
                 .Where(EventCard.SameSide.And(EventCard.Here))
-                .Build(new Self().ModifyPower(1));
+                .Then(new Self().ModifyPower(1));
 
             var kravenTrigger = When.InPlayAnd<CardMovedEvent>()
                 .Where(Moved.ToHere)
-                .Build(new Self().ModifyPower(2));
+                .Then(new Self().ModifyPower(2));
 
-            var apocalypseTrigger = When.Discarded.Build(
+            var apocalypseTrigger = When.Discarded.Then(
                 new Self().ModifyPower(4).And(new Self().ReturnToHand())
             );
 
             var multipleManTrigger = When.InPlayAnd<CardMovedEvent>()
                 .Where(EventCard.Self)
-                .Build(new Self().CopyToLocation(At.PriorLocation));
+                .Then(new Self().CopyToLocation(At.PriorLocation));
 
-            var swarmTrigger = When.Discarded.Build(
+            var swarmTrigger = When.Discarded.Then(
                 new Self().CopyToHand(new WithZeroCost()).Times(2)
             );
 
@@ -91,7 +91,7 @@ namespace Snapdragon.Fluent
             var revealedCardsHere = new RevealedCards().AtLocation();
 
             var cloningVatsTrigger = When.RevealedAnd<CardRevealedEvent>()
-                .Build(EventCard.Get.CopyToHand());
+                .Then(EventCard.Get.CopyToHand());
         }
     }
 }

@@ -15,7 +15,7 @@
             }
         }
 
-        public virtual IMoveAbility<TContext> Build(IMoveAbilityFactory<TContext> outcome)
+        public virtual IMoveAbility<TContext> Then(IMoveAbilityFactory<TContext> outcome)
         {
             return outcome.Build();
         }

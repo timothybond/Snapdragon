@@ -17,7 +17,7 @@
             }
         }
 
-        public virtual Ongoing<TContext> Build(IOngoingAbilityFactory<TContext> outcome)
+        public virtual Ongoing<TContext> Then(IOngoingAbilityFactory<TContext> outcome)
         {
             return outcome.Build();
         }

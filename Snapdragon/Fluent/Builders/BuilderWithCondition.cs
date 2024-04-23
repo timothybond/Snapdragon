@@ -7,7 +7,7 @@
         : Builder<TAbility, TContext, TOutcome>(Factory),
             IBuilderWithCondition<TAbility, TContext, TOutcome>
     {
-        public override TAbility Build(TOutcome outcome)
+        public override TAbility Then(TOutcome outcome)
         {
             return Factory.Build(outcome, Condition);
         }
@@ -31,7 +31,7 @@
         : Builder<TAbility, TEvent, TContext, TOutcome>(Factory),
             IBuilderWithCondition<TAbility, TEvent, TContext, TOutcome> where TEvent : Event
     {
-        public override TAbility Build(TOutcome outcome)
+        public override TAbility Then(TOutcome outcome)
         {
             return Factory.Build(outcome, null, Condition);
         }

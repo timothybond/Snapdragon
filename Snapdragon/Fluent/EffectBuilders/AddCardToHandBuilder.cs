@@ -44,7 +44,7 @@ namespace Snapdragon.Fluent.EffectBuilders
         )
             where TContext : class
         {
-            return builder.Build(
+            return builder.Then(
                 new AddCardToHandBuilder<TContext>(
                     new FilteredSingleItemSelector<CardDefinition, TContext>(
                         new SnapCardsSelector<TContext>(),

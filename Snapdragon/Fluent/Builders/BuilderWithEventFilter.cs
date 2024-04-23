@@ -8,7 +8,7 @@
             IBuilder<TAbility, TContext, TOutcome>
         where TEvent : Event
     {
-        public override TAbility Build(TOutcome outcome)
+        public override TAbility Then(TOutcome outcome)
         {
             return Factory.Build(outcome, EventFilter);
         }

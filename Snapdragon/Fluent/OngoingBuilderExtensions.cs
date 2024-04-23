@@ -10,7 +10,7 @@ namespace Snapdragon.Fluent
             int amount
         )
         {
-            return builder.Build(new AdjustPowerFactory<TContext>(selector, amount));
+            return builder.Then(new AdjustPowerFactory<TContext>(selector, amount));
         }
 
         public static Ongoing<TContext> AdjustLocationPower<TContext>(
@@ -19,7 +19,7 @@ namespace Snapdragon.Fluent
             int amount
         )
         {
-            return builder.Build(new AdjustLocationPowerFactory<TContext>(selector, amount));
+            return builder.Then(new AdjustLocationPowerFactory<TContext>(selector, amount));
         }
 
         public static BlockEffectBuilder<TContext> Block<TContext>(

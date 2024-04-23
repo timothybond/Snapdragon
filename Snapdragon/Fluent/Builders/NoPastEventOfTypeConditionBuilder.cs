@@ -7,11 +7,11 @@ namespace Snapdragon.Fluent.Builders
     ) : IBuilder<TAbility, TContext, TOutcome>
         where TEvent : Event
     {
-        public TAbility Build(TOutcome outcome)
+        public TAbility Then(TOutcome outcome)
         {
             return PriorBuilder
                 .WithCondition(new PastEventCondition<TEvent, TContext>())
-                .Build(outcome);
+                .Then(outcome);
         }
 
         public IBuilderWithCondition<TAbility, TContext, TOutcome> Where(
@@ -37,7 +37,7 @@ namespace Snapdragon.Fluent.Builders
         {
             return PriorBuilder
                 .WithCondition(new NoPastEventCondition<TPastEvent, TContext>())
-                .Build(outcome);
+                .Then(outcome);
         }
 
         public IBuilderWithCondition<TAbility, TEvent, TContext, TOutcome> Where(

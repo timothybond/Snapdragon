@@ -18,7 +18,7 @@ namespace Snapdragon.Fluent.Builders
             ISelector<Player, TContext> playerSelector
         )
         {
-            return OngoingBuilder.Build(
+            return OngoingBuilder.Then(
                 new BlockLocationEffectFactory<TContext>(
                     locationSelector,
                     playerSelector,
@@ -29,7 +29,7 @@ namespace Snapdragon.Fluent.Builders
 
         public Ongoing<TContext> ForCards(ISelector<ICardInstance, TContext> cardSelector)
         {
-            return OngoingBuilder.Build(
+            return OngoingBuilder.Then(
                 new BlockCardEffectFactory<TContext>(cardSelector, EffectTypes)
             );
         }
