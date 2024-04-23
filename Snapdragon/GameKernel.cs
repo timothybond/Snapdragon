@@ -632,6 +632,23 @@ namespace Snapdragon
         }
 
         /// <summary>
+        /// Adds a copy of an existing card to the specified player's hand.
+        /// </summary>
+        /// <param name="existingCardId">Unique identifier of the existing card to copy.</param>
+        /// <param name="side">Player who will get the added card.</param>
+        /// <param name="newCardId">Generated unique identifier of the copy.</param>
+        public GameKernel AddCopiedCardToHand(long existingCardId, Side side, out long newCardId)
+        {
+            ValidateCardExists(existingCardId);
+
+            var copiedCard = Cards[existingCardId] with { Id = Ids.GetNextCard() };
+            newCardId = copiedCard.Id;
+
+            return this.WithNewCardUnsafe(copiedCard, side, CardState.InHand)
+                .AddCardToHandUnsafe(copiedCard.Id, side);
+        }
+
+        /// <summary>
         /// Adds a copy of an existing card to the game and to a specific location.
         /// </summary>
         /// <param name="existingCardId">Unique identifier of the existing card to copy.</param>
@@ -652,23 +669,6 @@ namespace Snapdragon
 
             return this.WithNewCardUnsafe(copiedCard, side, CardState.InPlay)
                 .AddCardToLocationUnsafe(copiedCard.Id, column, side);
-        }
-
-        /// <summary>
-        /// Adds a copy of an existing card to the specified player's hand.
-        /// </summary>
-        /// <param name="existingCardId">Unique identifier of the existing card to copy.</param>
-        /// <param name="side">Player who will get the added card.</param>
-        /// <param name="newCardId">Generated unique identifier of the copy.</param>
-        public GameKernel AddCopiedCardToHand(long existingCardId, Side side, out long newCardId)
-        {
-            ValidateCardExists(existingCardId);
-
-            var copiedCard = Cards[existingCardId] with { Id = Ids.GetNextCard() };
-            newCardId = copiedCard.Id;
-
-            return this.WithNewCardUnsafe(copiedCard, side, CardState.InHand)
-                .AddCardToHandUnsafe(copiedCard.Id, side);
         }
 
         public GameKernel RevealLocation(Column column)

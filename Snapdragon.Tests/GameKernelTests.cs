@@ -6,8 +6,8 @@ namespace Snapdragon.Tests
     {
         private static readonly IReadOnlyList<string> TopCards = new List<string>
         {
-            "Ka-Zar",
             "Squirrel Girl",
+            "Ka-Zar",
             "Blue Marvel",
             "Ant Man",
             "Hawkeye",
@@ -22,12 +22,12 @@ namespace Snapdragon.Tests
 
         private static readonly IReadOnlyList<string> BottomCards = new List<string>
         {
-            "Vulture",
+            "Iron Fist",
             "Human Torch",
+            "Vulture",
             "Doctor Strange",
             "Multiple Man",
             "Kraven",
-            "Iron Fist",
             "Cloak",
             "Heimdall",
             "Medusa",
@@ -97,6 +97,84 @@ namespace Snapdragon.Tests
             }
 
             Assert.Throws<InvalidOperationException>(() => kernel.DrawCard(side));
+        }
+
+        #endregion
+
+        #region DrawOpponentCard
+
+        [Test]
+        [TestCase(Side.Top)]
+        [TestCase(Side.Bottom)]
+        public void DrawOpponentCard_AddsCardToHand(Side side)
+        {
+            // See BuildKernel for card order
+            var kernel = BuildKernel();
+
+            kernel = kernel.DrawOpponentCard(side);
+
+            var hand = GetHand(side, kernel);
+
+            Assert.That(hand, Has.Exactly(1).Items);
+            Assert.That(kernel.Cards[hand[0]].Name, Is.EqualTo(CardsForSide(side.Other())[0]));
+        }
+
+        [Test]
+        [TestCase(Side.Top)]
+        [TestCase(Side.Bottom)]
+        public void DrawOpponentCard_RemovesFromLibrary(Side side)
+        {
+            var kernel = BuildKernel();
+
+            kernel = kernel.DrawOpponentCard(side);
+
+            var library = GetLibrary(side.Other(), kernel);
+
+            Assert.That(library, Has.Exactly(11).Items);
+        }
+
+        [Test]
+        [TestCase(Side.Top)]
+        [TestCase(Side.Bottom)]
+        public void DrawOpponentCard_UpdatesStateToInHand(Side side)
+        {
+            var kernel = BuildKernel();
+
+            kernel = kernel.DrawOpponentCard(side);
+
+            var hand = GetHand(side, kernel);
+            Assert.That(kernel.CardStates[hand[0]], Is.EqualTo(CardState.InHand));
+        }
+
+        [Test]
+        [TestCase(Side.Top)]
+        [TestCase(Side.Bottom)]
+        public void DrawOpponentCard_UpdatesSide(Side side)
+        {
+            var kernel = BuildKernel();
+
+            kernel = kernel.DrawOpponentCard(side);
+
+            var hand = GetHand(side, kernel);
+            var card = kernel[hand.Single()];
+
+            Assert.That(card?.Side, Is.EqualTo(side));
+        }
+
+        [Test]
+        [TestCase(Side.Top)]
+        [TestCase(Side.Bottom)]
+        public void DrawOpponentCard_ThrowErrorOnEmptyLibrary(Side side)
+        {
+            var kernel = BuildKernel();
+
+            // Draw the whole deck first
+            for (var i = 0; i < 12; i++)
+            {
+                kernel = kernel.DrawCard(side.Other());
+            }
+
+            Assert.Throws<InvalidOperationException>(() => kernel.DrawOpponentCard(side));
         }
 
         #endregion
@@ -175,45 +253,6 @@ namespace Snapdragon.Tests
 
         #endregion
 
-        #region RevealCard
-
-        [Test]
-        [TestCaseSource(typeof(AllSidesAndColumns))]
-        public void RevealCard_SetsStateToInPlay(Side side, Column column)
-        {
-            var kernel = BuildKernel();
-            kernel = kernel.DrawCard(side);
-
-            var hand = GetHand(side, kernel);
-            kernel = kernel.PlayCard(hand[0], column, side).RevealCard(hand[0]);
-
-            Assert.That(kernel.CardStates[hand[0]], Is.EqualTo(CardState.InPlay));
-        }
-
-        [Test]
-        [TestCase(Side.Top)]
-        [TestCase(Side.Bottom)]
-        public void RevealCard_ThrowErrorForCardInHand(Side side)
-        {
-            var kernel = BuildKernel().DrawCard(side);
-
-            var hand = GetHand(side, kernel);
-            Assert.Throws<InvalidOperationException>(() => kernel.RevealCard(hand[0]));
-        }
-
-        [Test]
-        [TestCase(Side.Top)]
-        [TestCase(Side.Bottom)]
-        public void RevealCard_ThrowErrorForCardInLibrary(Side side)
-        {
-            var kernel = BuildKernel();
-
-            var library = GetLibrary(side, kernel);
-            Assert.Throws<InvalidOperationException>(() => kernel.RevealCard(library[0]));
-        }
-
-        #endregion
-
         #region MoveCard
 
         [Test]
@@ -262,6 +301,45 @@ namespace Snapdragon.Tests
             Assert.Throws<InvalidOperationException>(
                 () => kernel.MoveCard(hand[0], side, wrongColumn, newColumn)
             );
+        }
+
+        #endregion
+
+        #region RevealCard
+
+        [Test]
+        [TestCaseSource(typeof(AllSidesAndColumns))]
+        public void RevealCard_SetsStateToInPlay(Side side, Column column)
+        {
+            var kernel = BuildKernel();
+            kernel = kernel.DrawCard(side);
+
+            var hand = GetHand(side, kernel);
+            kernel = kernel.PlayCard(hand[0], column, side).RevealCard(hand[0]);
+
+            Assert.That(kernel.CardStates[hand[0]], Is.EqualTo(CardState.InPlay));
+        }
+
+        [Test]
+        [TestCase(Side.Top)]
+        [TestCase(Side.Bottom)]
+        public void RevealCard_ThrowErrorForCardInHand(Side side)
+        {
+            var kernel = BuildKernel().DrawCard(side);
+
+            var hand = GetHand(side, kernel);
+            Assert.Throws<InvalidOperationException>(() => kernel.RevealCard(hand[0]));
+        }
+
+        [Test]
+        [TestCase(Side.Top)]
+        [TestCase(Side.Bottom)]
+        public void RevealCard_ThrowErrorForCardInLibrary(Side side)
+        {
+            var kernel = BuildKernel();
+
+            var library = GetLibrary(side, kernel);
+            Assert.Throws<InvalidOperationException>(() => kernel.RevealCard(library[0]));
         }
 
         #endregion
@@ -692,6 +770,487 @@ namespace Snapdragon.Tests
 
         #endregion
 
+        #region SwitchCardSide
+
+        [Test]
+        [TestCaseSource(typeof(AllSidesAndColumns))]
+        public void SwitchSides_RemovesFromOldLocationCollection(Side side, Column column)
+        {
+            var kernel = BuildKernel().DrawCard(side);
+            var cardId = GetHand(side, kernel).Single();
+            kernel = kernel.PlayCard(cardId, column, side).RevealCard(cardId);
+
+            kernel = kernel.SwitchCardSide(cardId, side);
+
+            Assert.That(kernel[column, side], Is.Empty);
+        }
+
+        [Test]
+        [TestCaseSource(typeof(AllSidesAndColumns))]
+        public void SwitchSides_AddsToNewLocationCollection(Side side, Column column)
+        {
+            var kernel = BuildKernel().DrawCard(side);
+            var cardId = GetHand(side, kernel).Single();
+            kernel = kernel.PlayCard(cardId, column, side).RevealCard(cardId);
+
+            kernel = kernel.SwitchCardSide(cardId, side);
+
+            Assert.That(kernel[column, side.Other()], Has.Exactly(1).Items);
+            Assert.That(kernel[column, side.Other()].Single().Id, Is.EqualTo(cardId));
+        }
+
+        [Test]
+        [TestCaseSource(typeof(AllSidesAndColumns))]
+        public void SwitchSides_UpdatesSide(Side side, Column column)
+        {
+            var kernel = BuildKernel().DrawCard(side);
+            var cardId = GetHand(side, kernel).Single();
+            kernel = kernel.PlayCard(cardId, column, side).RevealCard(cardId);
+
+            kernel = kernel.SwitchCardSide(cardId, side);
+
+            Assert.That(kernel.CardSides[cardId], Is.EqualTo(side.Other()));
+        }
+
+        #endregion
+
+        #region AddNewCardToHand
+
+        [Test]
+        [TestCase(Side.Top)]
+        [TestCase(Side.Bottom)]
+        public void AddNewCardToHand_PutsCardInCardsCollection(Side side)
+        {
+            var kernel = BuildKernel();
+
+            kernel = kernel.AddNewCardToHand(SnapCards.ByName["Blade"], side, out long _);
+
+            Assert.That(kernel.Cards.Count, Is.EqualTo(25)); // Each deck is 12 cards to start
+        }
+
+        [Test]
+        [TestCase(Side.Top)]
+        [TestCase(Side.Bottom)]
+        public void AddNewCardToHand_PutsCardInPlayerHand(Side side)
+        {
+            var kernel = BuildKernel();
+
+            kernel = kernel.AddNewCardToHand(SnapCards.ByName["Blade"], side, out long cardId);
+
+            var hand = GetHand(side, kernel);
+            Assert.That(hand, Has.Exactly(1).Items);
+            Assert.That(hand.Single(), Is.EqualTo(cardId));
+
+            Assert.That(kernel[cardId]!.Name, Is.EqualTo("Blade"));
+        }
+
+        [Test]
+        [TestCase(Side.Top)]
+        [TestCase(Side.Bottom)]
+        public void AddNewCardToHand_SetsCardSide(Side side)
+        {
+            var kernel = BuildKernel();
+
+            kernel = kernel.AddNewCardToHand(SnapCards.ByName["Blade"], side, out long cardId);
+
+            Assert.That(kernel.CardSides[cardId], Is.EqualTo(side));
+        }
+
+        [Test]
+        [TestCase(Side.Top)]
+        [TestCase(Side.Bottom)]
+        public void AddNewCardToHand_SetsCardStateToInHand(Side side)
+        {
+            var kernel = BuildKernel();
+
+            kernel = kernel.AddNewCardToHand(SnapCards.ByName["Blade"], side, out long cardId);
+
+            Assert.That(kernel.CardStates[cardId], Is.EqualTo(CardState.InHand));
+        }
+
+        #endregion
+
+        #region AddNewCardToLibrary
+
+        [Test]
+        [TestCase(Side.Top)]
+        [TestCase(Side.Bottom)]
+        public void AddNewCardToLibrary_PutsCardInCardsCollection(Side side)
+        {
+            var kernel = BuildKernel();
+
+            kernel = kernel.AddNewCardToLibrary(SnapCards.ByName["Blade"], side, out long _);
+
+            Assert.That(kernel.Cards.Count, Is.EqualTo(25)); // Each deck is 12 cards to start
+        }
+
+        [Test]
+        [TestCase(Side.Top)]
+        [TestCase(Side.Bottom)]
+        public void AddNewCardToLibrary_PutsCardInPlayerLibrary(Side side)
+        {
+            var kernel = BuildKernel();
+
+            kernel = kernel.AddNewCardToLibrary(SnapCards.ByName["Blade"], side, out long cardId);
+
+            var library = GetLibrary(side, kernel);
+            Assert.That(library, Has.Exactly(13).Items);
+            Assert.That(library.Last(), Is.EqualTo(cardId));
+
+            Assert.That(kernel[cardId]!.Name, Is.EqualTo("Blade"));
+        }
+
+        [Test]
+        [TestCase(Side.Top)]
+        [TestCase(Side.Bottom)]
+        public void AddNewCardToLibrary_SetsCardSide(Side side)
+        {
+            var kernel = BuildKernel();
+
+            kernel = kernel.AddNewCardToLibrary(SnapCards.ByName["Blade"], side, out long cardId);
+
+            Assert.That(kernel.CardSides[cardId], Is.EqualTo(side));
+        }
+
+        [Test]
+        [TestCase(Side.Top)]
+        [TestCase(Side.Bottom)]
+        public void AddNewCardToLibrary_SetsCardStateToInLibrary(Side side)
+        {
+            var kernel = BuildKernel();
+
+            kernel = kernel.AddNewCardToLibrary(SnapCards.ByName["Blade"], side, out long cardId);
+
+            Assert.That(kernel.CardStates[cardId], Is.EqualTo(CardState.InLibrary));
+        }
+
+        #endregion
+
+        #region AddNewCardToLocation
+
+        [Test]
+        [TestCaseSource(typeof(AllSidesAndColumns))]
+        public void AddNewCardToLocation_PutsCardInCardsCollection(Side side, Column column)
+        {
+            var kernel = BuildKernel();
+
+            kernel = kernel.AddNewCardToLocation(
+                SnapCards.ByName["Blade"],
+                column,
+                side,
+                out long _
+            );
+
+            Assert.That(kernel.Cards.Count, Is.EqualTo(25)); // Each deck is 12 cards to start
+        }
+
+        [Test]
+        [TestCaseSource(typeof(AllSidesAndColumns))]
+        public void AddNewCardToLocation_PutsCardInLocationCollection(Side side, Column column)
+        {
+            var kernel = BuildKernel();
+
+            kernel = kernel.AddNewCardToLocation(
+                SnapCards.ByName["Blade"],
+                column,
+                side,
+                out long cardId
+            );
+
+            var cards = kernel[column, side];
+            Assert.That(cards, Has.Exactly(1).Items);
+            Assert.That(cards.Single().Id, Is.EqualTo(cardId));
+            Assert.That(cards.Single().Name, Is.EqualTo("Blade"));
+        }
+
+        [Test]
+        [TestCaseSource(typeof(AllSidesAndColumns))]
+        public void AddNewCardToLocation_SetsCardLocation(Side side, Column column)
+        {
+            var kernel = BuildKernel();
+
+            kernel = kernel.AddNewCardToLocation(
+                SnapCards.ByName["Blade"],
+                column,
+                side,
+                out long cardId
+            );
+
+            Assert.That(kernel.CardLocations[cardId], Is.EqualTo(column));
+        }
+
+        [Test]
+        [TestCaseSource(typeof(AllSidesAndColumns))]
+        public void AddNewCardToLocation_SetsCardSide(Side side, Column column)
+        {
+            var kernel = BuildKernel();
+
+            kernel = kernel.AddNewCardToLocation(
+                SnapCards.ByName["Blade"],
+                column,
+                side,
+                out long cardId
+            );
+
+            Assert.That(kernel.CardSides[cardId], Is.EqualTo(side));
+        }
+
+        [Test]
+        [TestCaseSource(typeof(AllSidesAndColumns))]
+        public void AddNewCardToLocation_SetsCardStateToInPlay(Side side, Column column)
+        {
+            var kernel = BuildKernel();
+
+            kernel = kernel.AddNewCardToLocation(
+                SnapCards.ByName["Blade"],
+                column,
+                side,
+                out long cardId
+            );
+
+            Assert.That(kernel.CardStates[cardId], Is.EqualTo(CardState.InPlay));
+        }
+
+        #endregion
+
+        #region AddCopiedCardToHand
+
+        [Test]
+        [TestCase(Side.Top)]
+        [TestCase(Side.Bottom)]
+        public void AddCopiedCardToHand_PutsCardInCardsCollection(Side side)
+        {
+            var kernel = BuildKernel().DrawCard(side);
+            var cardInHand = kernel[GetHand(side, kernel).Single()]!;
+
+            kernel = kernel.AddCopiedCardToHand(cardInHand.Id, side, out long _);
+
+            Assert.That(kernel.Cards.Count, Is.EqualTo(25)); // Each deck is 12 cards to start
+        }
+
+        [Test]
+        [TestCase(Side.Top)]
+        [TestCase(Side.Bottom)]
+        public void AddCopiedCardToHand_PutsCardInPlayerHand(Side side)
+        {
+            var kernel = BuildKernel().DrawCard(side);
+            var cardInHand = kernel[GetHand(side, kernel).Single()]!;
+
+            kernel = kernel.AddCopiedCardToHand(cardInHand.Id, side, out long newCardId);
+
+            var hand = GetHand(side, kernel);
+            Assert.That(hand, Has.Exactly(2).Items);
+            Assert.That(hand[1], Is.EqualTo(newCardId));
+        }
+
+        [Test]
+        [TestCase(Side.Top)]
+        [TestCase(Side.Bottom)]
+        public void AddCopiedCardToHand_SetsCardSide(Side side)
+        {
+            var kernel = BuildKernel().DrawCard(side);
+            var cardInHand = kernel[GetHand(side, kernel).Single()]!;
+
+            kernel = kernel.AddCopiedCardToHand(cardInHand.Id, side, out long newCardId);
+
+            Assert.That(kernel.CardSides[newCardId], Is.EqualTo(side));
+        }
+
+        [Test]
+        [TestCase(Side.Top)]
+        [TestCase(Side.Bottom)]
+        public void AddCopiedCardToHand_SetsCardStateToInHand(Side side)
+        {
+            var kernel = BuildKernel().DrawCard(side);
+            var cardInHand = kernel[GetHand(side, kernel).Single()]!;
+
+            kernel = kernel.AddCopiedCardToHand(cardInHand.Id, side, out long newCardId);
+
+            Assert.That(kernel.CardStates[newCardId], Is.EqualTo(CardState.InHand));
+        }
+
+        [Test]
+        [TestCase(Side.Top)]
+        [TestCase(Side.Bottom)]
+        public void AddCopiedCardToHand_IncludesPowerAdjustment(Side side)
+        {
+            var kernel = BuildKernel().DrawCard(side);
+            var cardInHand = kernel[GetHand(side, kernel).Single()]!;
+            kernel = kernel.WithUpdatedCard(
+                cardInHand.Base with
+                {
+                    Power = cardInHand.Base.Power + 1
+                }
+            );
+
+            kernel = kernel.AddCopiedCardToHand(cardInHand.Id, side, out long newCardId);
+
+            var newHand = GetHand(side, kernel).Select(id => kernel[id]!).ToList();
+
+            Assert.That(newHand, Has.Exactly(2).Items);
+            Assert.That(newHand[0].Power, Is.EqualTo(cardInHand.Power + 1));
+            Assert.That(newHand[1].Power, Is.EqualTo(cardInHand.Power + 1));
+        }
+
+        [Test]
+        [TestCase(Side.Top)]
+        [TestCase(Side.Bottom)]
+        public void AddCopiedCardToHand_IncludesCostAdjustment(Side side)
+        {
+            var kernel = BuildKernel().DrawCard(side);
+            var cardInHand = kernel[GetHand(side, kernel).Single()]!;
+            kernel = kernel.WithUpdatedCard(
+                cardInHand.Base with
+                {
+                    Cost = cardInHand.Base.Cost - 1
+                }
+            );
+
+            kernel = kernel.AddCopiedCardToHand(cardInHand.Id, side, out long newCardId);
+
+            var newHand = GetHand(side, kernel).Select(id => kernel[id]!).ToList();
+
+            Assert.That(newHand, Has.Exactly(2).Items);
+            Assert.That(newHand[0].Cost, Is.EqualTo(cardInHand.Cost - 1));
+            Assert.That(newHand[1].Cost, Is.EqualTo(cardInHand.Cost - 1));
+        }
+
+        [Test]
+        [TestCase(Side.Top)]
+        [TestCase(Side.Bottom)]
+        public void AddCopiedCardToHand_GeneratesNewId(Side side)
+        {
+            var kernel = BuildKernel().DrawCard(side);
+            var cardInHand = kernel[GetHand(side, kernel).Single()]!;
+            kernel = kernel.WithUpdatedCard(
+                cardInHand.Base with
+                {
+                    Cost = cardInHand.Base.Cost - 1
+                }
+            );
+
+            kernel = kernel.AddCopiedCardToHand(cardInHand.Id, side, out long newCardId);
+
+            var newHand = GetHand(side, kernel).Select(id => kernel[id]!).ToList();
+
+            Assert.That(newHand, Has.Exactly(2).Items);
+            Assert.That(newHand[0].Id, Is.Not.EqualTo(newHand[1].Id));
+        }
+
+        #endregion
+
+        #region AddCopiedCardToLocation
+
+        [Test]
+        [TestCaseSource(typeof(AllSidesAndColumns))]
+        public void AddCopiedCardToLocation_PutsCardInCardsCollection(Side side, Column column)
+        {
+            var kernel = BuildKernel().DrawCard(side);
+            kernel = kernel.PlayCard(GetHand(side, kernel).Single(), column, side);
+
+            kernel = kernel.AddCopiedCardToLocation(
+                kernel[column, side].Single().Id,
+                column,
+                side,
+                out long _
+            );
+
+            Assert.That(kernel.Cards.Count, Is.EqualTo(25)); // Each deck is 12 cards to start
+        }
+
+        [Test]
+        [TestCaseSource(typeof(AllSidesAndColumns))]
+        public void AddCopiedCardToLocation_PutsCardInLocationCollection(Side side, Column column)
+        {
+            var kernel = BuildKernel().DrawCard(side);
+            kernel = kernel.PlayCard(GetHand(side, kernel).Single(), column, side);
+
+            kernel = kernel.AddCopiedCardToLocation(
+                kernel[column, side].Single().Id,
+                column,
+                side,
+                out long newCardId
+            );
+
+            var cards = kernel[column, side];
+            Assert.That(cards, Has.Exactly(2).Items);
+            Assert.That(cards[1].Id, Is.EqualTo(newCardId));
+            Assert.That(cards[0].Name, Is.EqualTo(cards[1].Name));
+        }
+
+        [Test]
+        [TestCaseSource(typeof(AllSidesAndColumns))]
+        public void AddCopiedCardToLocation_SetsCardLocation(Side side, Column column)
+        {
+            var kernel = BuildKernel().DrawCard(side);
+            kernel = kernel.PlayCard(GetHand(side, kernel).Single(), column, side);
+
+            kernel = kernel.AddCopiedCardToLocation(
+                kernel[column, side].Single().Id,
+                column,
+                side,
+                out long newCardId
+            );
+
+            Assert.That(kernel.CardLocations[newCardId], Is.EqualTo(column));
+        }
+
+        [Test]
+        [TestCaseSource(typeof(AllSidesAndColumns))]
+        public void AddCopiedCardToLocation_SetsCardSide(Side side, Column column)
+        {
+            var kernel = BuildKernel().DrawCard(side);
+            kernel = kernel.PlayCard(GetHand(side, kernel).Single(), column, side);
+
+            kernel = kernel.AddCopiedCardToLocation(
+                kernel[column, side].Single().Id,
+                column,
+                side,
+                out long newCardId
+            );
+
+            Assert.That(kernel.CardSides[newCardId], Is.EqualTo(side));
+        }
+
+        [Test]
+        [TestCaseSource(typeof(AllSidesAndColumns))]
+        public void AddCopiedCardToLocation_SetsCardStateToInPlay(Side side, Column column)
+        {
+            var kernel = BuildKernel().DrawCard(side);
+            kernel = kernel.PlayCard(GetHand(side, kernel).Single(), column, side);
+
+            kernel = kernel.AddCopiedCardToLocation(
+                kernel[column, side].Single().Id,
+                column,
+                side,
+                out long newCardId
+            );
+
+            Assert.That(kernel.CardStates[newCardId], Is.EqualTo(CardState.InPlay));
+        }
+
+        [Test]
+        [TestCaseSource(typeof(AllSidesAndColumns))]
+        public void AddCopiedCardToLocation_GeneratesNewId(Side side, Column column)
+        {
+            var kernel = BuildKernel().DrawCard(side);
+            kernel = kernel.PlayCard(GetHand(side, kernel).Single(), column, side);
+
+            kernel = kernel.AddCopiedCardToLocation(
+                kernel[column, side].Single().Id,
+                column,
+                side,
+                out long newCardId
+            );
+
+            var cards = kernel[column, side];
+
+            Assert.That(cards, Has.Exactly(2).Items);
+            Assert.That(cards[0].Id, Is.Not.EqualTo(cards[1].Id));
+        }
+
+        #endregion
+
         #region ReturnDiscardToLocation
 
         [Test]
@@ -863,50 +1422,6 @@ namespace Snapdragon.Tests
 
         #endregion
 
-        #region SwitchSides
-
-        [Test]
-        [TestCaseSource(typeof(AllSidesAndColumns))]
-        public void SwitchSides_RemovesFromOldLocationCollection(Side side, Column column)
-        {
-            var kernel = BuildKernel().DrawCard(side);
-            var cardId = GetHand(side, kernel).Single();
-            kernel = kernel.PlayCard(cardId, column, side).RevealCard(cardId);
-
-            kernel = kernel.SwitchCardSide(cardId, side);
-
-            Assert.That(kernel[column, side], Is.Empty);
-        }
-
-        [Test]
-        [TestCaseSource(typeof(AllSidesAndColumns))]
-        public void SwitchSides_AddsToNewLocationCollection(Side side, Column column)
-        {
-            var kernel = BuildKernel().DrawCard(side);
-            var cardId = GetHand(side, kernel).Single();
-            kernel = kernel.PlayCard(cardId, column, side).RevealCard(cardId);
-
-            kernel = kernel.SwitchCardSide(cardId, side);
-
-            Assert.That(kernel[column, side.Other()], Has.Exactly(1).Items);
-            Assert.That(kernel[column, side.Other()].Single().Id, Is.EqualTo(cardId));
-        }
-
-        [Test]
-        [TestCaseSource(typeof(AllSidesAndColumns))]
-        public void SwitchSides_UpdatesSide(Side side, Column column)
-        {
-            var kernel = BuildKernel().DrawCard(side);
-            var cardId = GetHand(side, kernel).Single();
-            kernel = kernel.PlayCard(cardId, column, side).RevealCard(cardId);
-
-            kernel = kernel.SwitchCardSide(cardId, side);
-
-            Assert.That(kernel.CardSides[cardId], Is.EqualTo(side.Other()));
-        }
-
-        #endregion
-
         #region RevealLocation
 
         [Test]
@@ -951,11 +1466,208 @@ namespace Snapdragon.Tests
 
         #endregion
 
-        #region AddSensorToLocation
+        #region AddSensor
+
+        [Test]
+        [TestCaseSource(typeof(AllSidesAndColumns))]
+        public void AddSensor_AddsToSensorsCollection(Side side, Column column)
+        {
+            const int SensorId = 1;
+
+            var kernel = BuildKernel();
+
+            // Need a source card
+            kernel = kernel.DrawCard(side);
+            kernel = kernel.PlayCard(GetHand(side, kernel).Single(), column, side);
+            var card = kernel[column][side].Single();
+            var sensor = new Sensor<ICard>(SensorId, column, side, card, null);
+
+            kernel = kernel.AddSensor(sensor);
+
+            Assert.That(kernel.Sensors, Has.Exactly(1).Items);
+            Assert.That(kernel.Sensors.Values.Single(), Is.EqualTo(sensor));
+        }
+
+        [Test]
+        [TestCaseSource(typeof(AllSidesAndColumns))]
+        public void AddSensor_AddsToCorrectLocationCollection(Side side, Column column)
+        {
+            const int SensorId = 2;
+
+            var kernel = BuildKernel();
+
+            // Need a source card
+            kernel = kernel.DrawCard(side);
+            kernel = kernel.PlayCard(GetHand(side, kernel).Single(), column, side);
+            var card = kernel[column][side].Single();
+            var sensor = new Sensor<ICard>(SensorId, column, side, card, null);
+
+            kernel = kernel.AddSensor(sensor);
+
+            var sensorsAtLocation = GetSensorsAt(side, column, kernel);
+
+            Assert.That(sensorsAtLocation, Has.Exactly(1).Items);
+            Assert.That(sensorsAtLocation.Single(), Is.EqualTo(SensorId));
+        }
+
+        [Test]
+        [TestCaseSource(typeof(AllSidesAndColumns))]
+        public void AddSensor_DoesNotAddToOtherLocationCollections(Side side, Column column)
+        {
+            const int SensorId = 3;
+
+            var kernel = BuildKernel();
+
+            // Need a source card
+            kernel = kernel.DrawCard(side);
+            kernel = kernel.PlayCard(GetHand(side, kernel).Single(), column, side);
+            var card = kernel[column][side].Single();
+            var sensor = new Sensor<ICard>(SensorId, column, side, card, null);
+
+            kernel = kernel.AddSensor(sensor);
+
+            foreach (var otherSide in All.Sides)
+            {
+                foreach (var otherColumn in All.Columns)
+                {
+                    if (otherSide != side || otherColumn != column)
+                    {
+                        var sensorsAtLocation = GetSensorsAt(otherSide, otherColumn, kernel);
+                        Assert.That(sensorsAtLocation, Is.Empty);
+                    }
+                }
+            }
+        }
+
+        [Test]
+        [TestCaseSource(typeof(AllSidesAndColumns))]
+        public void AddSensor_SetsSensorSide(Side side, Column column)
+        {
+            const int SensorId = 4;
+
+            var kernel = BuildKernel();
+
+            // Need a source card
+            kernel = kernel.DrawCard(side);
+            kernel = kernel.PlayCard(GetHand(side, kernel).Single(), column, side);
+            var card = kernel[column][side].Single();
+            var sensor = new Sensor<ICard>(SensorId, column, side, card, null);
+
+            kernel = kernel.AddSensor(sensor);
+
+            Assert.That(kernel.SensorSides[SensorId], Is.EqualTo(side));
+        }
+
+        [Test]
+        [TestCaseSource(typeof(AllSidesAndColumns))]
+        public void AddSensor_SetsSensorLocation(Side side, Column column)
+        {
+            const int SensorId = 5;
+
+            var kernel = BuildKernel();
+
+            // Need a source card
+            kernel = kernel.DrawCard(side);
+            kernel = kernel.PlayCard(GetHand(side, kernel).Single(), column, side);
+            var card = kernel[column][side].Single();
+            var sensor = new Sensor<ICard>(SensorId, column, side, card, null);
+
+            kernel = kernel.AddSensor(sensor);
+
+            Assert.That(kernel.SensorLocations[SensorId], Is.EqualTo(column));
+        }
 
         #endregion
 
         #region DestroySensor
+
+        [Test]
+        [TestCaseSource(typeof(AllSidesAndColumns))]
+        public void DestroySensor_RemovesFromSensorsCollection(Side side, Column column)
+        {
+            const int SensorId = 10;
+
+            var kernel = BuildKernel();
+
+            // Need a source card
+            kernel = kernel.DrawCard(side);
+            kernel = kernel.PlayCard(GetHand(side, kernel).Single(), column, side);
+            var card = kernel[column][side].Single();
+            var sensor = new Sensor<ICard>(SensorId, column, side, card, null);
+
+            kernel = kernel.AddSensor(sensor);
+
+            kernel = kernel.DestroySensor(SensorId, column, side);
+
+            Assert.That(kernel.Sensors, Is.Empty);
+        }
+
+        [Test]
+        [TestCaseSource(typeof(AllSidesAndColumns))]
+        public void DestroySensor_RemovesFromAppropriateLocationCollection(Side side, Column column)
+        {
+            const int SensorId = 11;
+
+            var kernel = BuildKernel();
+
+            // Need a source card
+            kernel = kernel.DrawCard(side);
+            kernel = kernel.PlayCard(GetHand(side, kernel).Single(), column, side);
+            var card = kernel[column][side].Single();
+            var sensor = new Sensor<ICard>(SensorId, column, side, card, null);
+
+            kernel = kernel.AddSensor(sensor);
+
+            kernel = kernel.DestroySensor(SensorId, column, side);
+
+            var sensorsAtLocation = GetSensorsAt(side, column, kernel);
+            Assert.That(sensorsAtLocation, Is.Empty);
+        }
+
+        [Test]
+        [TestCaseSource(typeof(AllSidesAndColumns))]
+        public void DestroySensor_RemovesFromLocationSensorSidesCollection(Side side, Column column)
+        {
+            const int SensorId = 12;
+
+            var kernel = BuildKernel();
+
+            // Need a source card
+            kernel = kernel.DrawCard(side);
+            kernel = kernel.PlayCard(GetHand(side, kernel).Single(), column, side);
+            var card = kernel[column][side].Single();
+            var sensor = new Sensor<ICard>(SensorId, column, side, card, null);
+
+            kernel = kernel.AddSensor(sensor);
+
+            kernel = kernel.DestroySensor(SensorId, column, side);
+
+            Assert.That(kernel.SensorSides.ContainsKey(SensorId), Is.False);
+        }
+
+        [Test]
+        [TestCaseSource(typeof(AllSidesAndColumns))]
+        public void DestroySensor_RemovesFromLocationSensorLocationsCollection(
+            Side side,
+            Column column
+        )
+        {
+            const int SensorId = 13;
+
+            var kernel = BuildKernel();
+
+            // Need a source card
+            kernel = kernel.DrawCard(side);
+            kernel = kernel.PlayCard(GetHand(side, kernel).Single(), column, side);
+            var card = kernel[column][side].Single();
+            var sensor = new Sensor<ICard>(SensorId, column, side, card, null);
+
+            kernel = kernel.AddSensor(sensor);
+
+            kernel = kernel.DestroySensor(SensorId, column, side);
+
+            Assert.That(kernel.SensorLocations.ContainsKey(SensorId), Is.False);
+        }
 
         #endregion
 
@@ -1078,6 +1790,20 @@ namespace Snapdragon.Tests
             }
 
             return new Deck(cardNames.Select(name => SnapCards.ByName[name]).ToImmutableList());
+        }
+
+        private static ImmutableList<long> GetSensorsAt(Side side, Column column, GameKernel kernel)
+        {
+            return (side, column) switch
+            {
+                (Side.Top, Column.Left) => kernel.TopLeftSensors,
+                (Side.Top, Column.Middle) => kernel.TopMiddleSensors,
+                (Side.Top, Column.Right) => kernel.TopRightSensors,
+                (Side.Bottom, Column.Left) => kernel.BottomLeftSensors,
+                (Side.Bottom, Column.Middle) => kernel.BottomMiddleSensors,
+                (Side.Bottom, Column.Right) => kernel.BottomRightSensors,
+                (_, _) => throw new NotImplementedException()
+            };
         }
 
         #endregion
