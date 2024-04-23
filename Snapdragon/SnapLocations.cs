@@ -1,12 +1,10 @@
-﻿using Snapdragon.CardEffectEventBuilders;
+﻿using System.Collections.Immutable;
 using Snapdragon.Events;
 using Snapdragon.Fluent;
 using Snapdragon.Fluent.EffectBuilders;
+using Snapdragon.Fluent.EventFilters;
 using Snapdragon.Fluent.Filters;
 using Snapdragon.Fluent.Selectors;
-using Snapdragon.TriggeredAbilities;
-using Snapdragon.TriggeredEffects;
-using System.Collections.Immutable;
 
 namespace Snapdragon
 {
@@ -51,12 +49,20 @@ namespace Snapdragon
                 When.RevealedAnd<CardRevealedEvent>()
                     .Then(EventCard.Get.CopyToHand(EventCard.Player))
             ),
-            new("Death's Domain", null, null, new OnCardRevealedHere(new DestroyCardInPlay())),
+            new(
+                "Death's Domain",
+                null,
+                null,
+                When.RevealedAnd<CardRevealedEvent>()
+                    .Where(EventCard.Here)
+                    .Then(new EventCardSelector().Destroy())
+            ),
             new LocationDefinition(
                 "Jotunheim",
                 null,
                 null,
-                new OnTurnEnd<Location>(new AddPowerToCardsHere(-1))
+                When.RevealedAnd<TurnEndedEvent>()
+                    .Then(Fluent.Selectors.All.Cards.AtLocation().ModifyPower(-1)) // TODO: Shorten
             ),
             new("Kyln", null, Ongoing.If.AfterTurn(4).Block(EffectType.PlayCard).ForLocation(Here)),
             new(
@@ -70,13 +76,16 @@ namespace Snapdragon
                 "Muir Island",
                 null,
                 null,
-                new OnTurnEnd<Location>(new AddPowerToCardsHere(1))
+                When.RevealedAnd<TurnEndedEvent>()
+                    .Then(Fluent.Selectors.All.Cards.AtLocation().ModifyPower(1)) // TODO: Shorten
             ),
             new LocationDefinition(
                 "Murderworld",
                 null,
                 null,
-                new OnSpecificTurnEnd<Location>(3, new DestroyCardsHere())
+                When.RevealedAnd<TurnEndedEvent>()
+                    .Where(new SpecificTurn(3))
+                    .Then(Fluent.Selectors.All.Cards.AtLocation().Destroy()) // TODO: Shorten
             ),
             new LocationDefinition(
                 "Necrosha",

@@ -1,4 +1,4 @@
-﻿namespace Snapdragon.TriggeredAbilities
+﻿namespace Snapdragon
 {
     public abstract record BaseTriggeredAbility<TSource, TEvent> : ITriggeredAbility<TSource>
         where TEvent : Event

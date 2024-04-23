@@ -1,6 +1,4 @@
-﻿using Snapdragon.TriggeredAbilities;
-
-namespace Snapdragon.Fluent
+﻿namespace Snapdragon.Fluent
 {
     public record TriggeredAbility<TEvent, TContext>(
         IEffectBuilder<TEvent, TContext> EffectBuilder,
