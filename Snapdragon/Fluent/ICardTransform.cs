@@ -9,6 +9,6 @@
     /// </summary>
     public interface ICardTransform
     {
-        CardBase Apply(CardBase card);
+        CardBase Apply(CardBase card, object source);
     }
 }

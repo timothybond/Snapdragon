@@ -31,12 +31,12 @@
                 throw new InvalidOperationException("Card is blocked from moving.");
             }
 
-            if (game.GetBlockedEffects(From, actualCard.Side).Contains(EffectType.MoveFromLocation))
+            if (game.GetBlockedEffects(From).Contains(EffectType.MoveFromLocation))
             {
                 throw new InvalidOperationException("Card cannot move away from given location.");
             }
 
-            if (game.GetBlockedEffects(To, actualCard.Side).Contains(EffectType.MoveToLocation))
+            if (game.GetBlockedEffects(To).Contains(EffectType.MoveToLocation))
             {
                 throw new InvalidOperationException("Card cannot move to from given location.");
             }

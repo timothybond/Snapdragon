@@ -1,5 +1,5 @@
-using Snapdragon.GameAccessors;
 using System.Collections.Immutable;
+using Snapdragon.GameAccessors;
 
 namespace Snapdragon.Tests
 {
@@ -1073,14 +1073,16 @@ namespace Snapdragon.Tests
         [Test]
         [TestCase(Side.Top)]
         [TestCase(Side.Bottom)]
-        public void AddCopiedCardToHand_IncludesPowerAdjustment(Side side)
+        public void AddCopiedCardToHand_IncludesPowerModification(Side side)
         {
             var kernel = BuildKernel().DrawCard(side);
             var cardInHand = kernel[GetHand(side, kernel).Single()]!;
             kernel = kernel.WithUpdatedCard(
                 cardInHand.Base with
                 {
-                    Power = cardInHand.Base.Power + 1
+                    Modifications = cardInHand.Base.Modifications.Add(
+                        new Modification(null, 1, cardInHand)
+                    )
                 }
             );
 
@@ -1096,14 +1098,16 @@ namespace Snapdragon.Tests
         [Test]
         [TestCase(Side.Top)]
         [TestCase(Side.Bottom)]
-        public void AddCopiedCardToHand_IncludesCostAdjustment(Side side)
+        public void AddCopiedCardToHand_IncludesCostModification(Side side)
         {
             var kernel = BuildKernel().DrawCard(side);
             var cardInHand = kernel[GetHand(side, kernel).Single()]!;
             kernel = kernel.WithUpdatedCard(
                 cardInHand.Base with
                 {
-                    Cost = cardInHand.Base.Cost - 1
+                    Modifications = cardInHand.Base.Modifications.Add(
+                        new Modification(-1, null, cardInHand)
+                    )
                 }
             );
 

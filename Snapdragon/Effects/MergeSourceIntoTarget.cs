@@ -21,7 +21,12 @@ namespace Snapdragon.Effects
                 throw new InvalidOperationException("Cannot merge cards in different locations.");
             }
 
-            var modifiedTarget = target.Base with { Power = target.Base.Power + source.Power };
+            var modifiedTarget = target.Base with
+            {
+                Modifications = target.Base.Modifications.Add(
+                    new Modification(null, source.Power, source)
+                )
+            };
             return game.RemoveCard(source)
                 .WithUpdatedCard(modifiedTarget)
                 .WithEvent(new CardMergedEvent(game.Turn, source, target))

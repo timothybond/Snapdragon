@@ -1,10 +1,13 @@
 ﻿namespace Snapdragon.Effects
 {
-    public record AddPowerToCard(ICardInstance Card, int Amount) : ModifyCard(Card)
+    public record AddPowerToCard(ICardInstance Card, int Amount, object Source) : ModifyCard(Card)
     {
         protected override CardBase ApplyToCard(CardBase card, Game game)
         {
-            return card with { Power = card.Power + Amount };
+            return card with
+            {
+                Modifications = card.Modifications.Add(new Modification(null, Amount, Source))
+            };
         }
 
         protected override bool IsBlocked(ICardInstance card, Game game)

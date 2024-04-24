@@ -1,6 +1,6 @@
-﻿using Snapdragon.Fluent;
+﻿using System.Collections.Immutable;
+using Snapdragon.Fluent;
 using Snapdragon.GameAccessors;
-using System.Collections.Immutable;
 
 namespace Snapdragon
 {
@@ -18,8 +18,8 @@ namespace Snapdragon
         public long Id => Base.Id;
         public CardDefinition Definition => Base.Definition;
         public string Name => Base.Name;
-        public int Cost => Base.Cost;
-        public int Power => Base.Power;
+        public int Cost => Base.Definition.Cost + Base.Modifications.Sum(m => m.CostChange ?? 0);
+        public int Power => Base.Definition.Power + Base.Modifications.Sum(m => m.PowerChange ?? 0);
         public int? PowerAdjustment => Base.PowerAdjustment;
         public OnReveal<ICard>? OnReveal => Base.OnReveal;
         public Ongoing<ICard>? Ongoing => Base.Ongoing;

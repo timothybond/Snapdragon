@@ -11,7 +11,8 @@
     /// where some instantly-triggered effect (usually a reveal effect)
     /// moves things rather than a <see cref="PlayerActions.MoveCardAction"/>.
     /// </summary>
-    public record MoveCard(ICardInstance Card, Column From, Column To, bool Forced = false) : IEffect
+    public record MoveCard(ICardInstance Card, Column From, Column To, bool Forced = false)
+        : IEffect
     {
         public Game Apply(Game game)
         {
@@ -47,18 +48,12 @@
             var oldLocation = game[From];
             var newLocation = game[To];
 
-            if (
-                game.GetBlockedEffects(oldLocation.Column, actualCard.Side)
-                    .Contains(EffectType.MoveFromLocation)
-            )
+            if (game.GetBlockedEffects(oldLocation.Column).Contains(EffectType.MoveFromLocation))
             {
                 return game;
             }
 
-            if (
-                game.GetBlockedEffects(newLocation.Column, actualCard.Side)
-                    .Contains(EffectType.MoveToLocation)
-            )
+            if (game.GetBlockedEffects(newLocation.Column).Contains(EffectType.MoveToLocation))
             {
                 return game;
             }

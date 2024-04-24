@@ -34,10 +34,7 @@ namespace Snapdragon
                     cardsWithMoveAbilities.Add(card);
                 }
 
-                if (
-                    card.Ongoing != null
-                    && card.Ongoing is OngoingBlockLocationEffect<ICard>
-                )
+                if (card.Ongoing != null && card.Ongoing is OngoingBlockLocationEffect<ICard>)
                 {
                     cardsWithLocationEffectBlocks.Add(card);
                 }
@@ -64,9 +61,7 @@ namespace Snapdragon
                 }
             }
 
-            var blockedEffectsByColumn = GetBlockedEffects(
-                game,
-                side,
+            var blockedEffectsByColumn = game.GetBlockedEffectsByColumn(
                 cardsWithLocationEffectBlocks,
                 locationsWithLocationEffectBlocks
             );
@@ -97,10 +92,7 @@ namespace Snapdragon
 
             foreach (var card in game.AllCards)
             {
-                if (
-                    card.Ongoing != null
-                    && card.Ongoing is OngoingBlockLocationEffect<ICard>
-                )
+                if (card.Ongoing != null && card.Ongoing is OngoingBlockLocationEffect<ICard>)
                 {
                     cardsWithLocationEffectBlocks.Add(card);
                 }

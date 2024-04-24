@@ -14,7 +14,10 @@
         MoveToLocation,
         MoveFromLocation,
 
-        AdjustPower,
-        ReducePower // Technically a subset of "AdjustPower", but some abilities mention this specifically
+        ReducePower, // Technically a subset of "AdjustPower", but some abilities mention this specifically
+
+        // These two are player-specific
+        IncreaseCost,
+        ReduceCost
     }
 }

@@ -1,9 +1,9 @@
-﻿using Snapdragon.Events;
+﻿using System.Collections.Immutable;
+using Snapdragon.Events;
 using Snapdragon.Fluent;
 using Snapdragon.GameAccessors;
 using Snapdragon.GameKernelAccessors;
 using Snapdragon.OngoingAbilities;
-using System.Collections.Immutable;
 
 namespace Snapdragon
 {
@@ -117,9 +117,54 @@ namespace Snapdragon
             return Kernel[cardId];
         }
 
+        /// <summary>
+        /// Gets all revealed/in-play items that block other effects.
+        /// </summary>
+        public (
+            IReadOnlyList<ICard> CardsWithLocationEffectBlocks,
+            IReadOnlyList<ICard> CardsWithCardEffectBlocks,
+            IReadOnlyList<Location> LocationsWithLocationEffectBlocks
+        ) GetEffectBlockers()
+        {
+            var cardsWithLocationEffectBlocks = new List<ICard>();
+            var cardsWithCardEffectBlocks = new List<ICard>();
+            var locationsWithLocationEffectBlocks = new List<Location>();
+
+            foreach (var card in AllCards)
+            {
+                if (card.Ongoing != null)
+                {
+                    if (card.Ongoing is OngoingBlockLocationEffect<ICard>)
+                    {
+                        cardsWithLocationEffectBlocks.Add(card);
+                    }
+                    else if (card.Ongoing is OngoingBlockCardEffect<ICard>)
+                    {
+                        cardsWithCardEffectBlocks.Add(card);
+                    }
+                }
+            }
+
+            foreach (var location in Locations)
+            {
+                if (
+                    location.Definition.Ongoing != null
+                    && location.Definition.Ongoing is OngoingBlockLocationEffect<Location>
+                )
+                {
+                    locationsWithLocationEffectBlocks.Add(location);
+                }
+            }
+
+            return (
+                cardsWithLocationEffectBlocks,
+                cardsWithCardEffectBlocks,
+                locationsWithLocationEffectBlocks
+            );
+        }
+
         public IReadOnlySet<EffectType> GetBlockedEffects(
             Column column,
-            Side side,
             IReadOnlyList<ICard>? cardsWithLocationEffectBlocks = null,
             IReadOnlyList<Location>? locationsWithLocationEffectBlocks = null
         )
@@ -171,6 +216,27 @@ namespace Snapdragon
         }
 
         /// <summary>
+        /// Gets all location-wide effect blocks, by column.
+        /// </summary>
+        /// <param name="game">Overall game state.</param>
+        /// <param name="cardsWithLocationEffectBlocks">All cards with <see cref="OngoingBlockLocationEffect{T}"/> abilities.</param>
+        public IReadOnlyDictionary<Column, IReadOnlySet<EffectType>> GetBlockedEffectsByColumn(
+            IReadOnlyList<ICard> cardsWithLocationEffectBlocks,
+            IReadOnlyList<Location> locationsWithLocationEffectBlocks
+        )
+        {
+            return All.Columns.ToDictionary(
+                col => col,
+                col =>
+                    GetBlockedEffects(
+                        col,
+                        cardsWithLocationEffectBlocks,
+                        locationsWithLocationEffectBlocks
+                    )
+            );
+        }
+
+        /// <summary>
         /// Gets the types of effects that are blocked for the given card,
         /// including those blocked based on its current location.
         ///
@@ -194,7 +260,7 @@ namespace Snapdragon
             else
             {
                 // This is a little gross but it's co-located with the method we're abusing
-                set = (HashSet<EffectType>)GetBlockedEffects(card.Column, card.Side);
+                set = (HashSet<EffectType>)GetBlockedEffects(card.Column);
             }
 
             foreach (var source in cardsWithCardEffectBlocks ?? AllCards)
@@ -265,14 +331,14 @@ namespace Snapdragon
             }
 
             var blockedAtFrom =
-                blockedEffectsByColumn?[card.Column] ?? GetBlockedEffects(card.Column, card.Side);
+                blockedEffectsByColumn?[card.Column] ?? GetBlockedEffects(card.Column);
             if (blockedAtFrom.Contains(EffectType.MoveFromLocation))
             {
                 return false;
             }
 
             var blockedAtTo =
-                blockedEffectsByColumn?[card.Column] ?? GetBlockedEffects(destination, card.Side);
+                blockedEffectsByColumn?[card.Column] ?? GetBlockedEffects(destination);
             if (blockedAtTo.Contains(EffectType.MoveToLocation))
             {
                 return false;
@@ -406,7 +472,7 @@ namespace Snapdragon
             var newCard = game.GetCard(newCardId);
             if (transform != null)
             {
-                var transformedCard = transform.Apply(newCard.Base);
+                var transformedCard = transform.Apply(newCard.Base, card); // TODO: Determine if this is ever the wrong "source" for a transform
                 game = game.WithUpdatedCard(transformedCard);
             }
 
@@ -599,7 +665,7 @@ namespace Snapdragon
 
             game = game.EndTurn();
             game = game.ProcessEvents();
-            game = game.RecalculateOngoingEffects();
+            game = game.RecalculatePower();
 
             this.Logger.LogGameState(game);
 
@@ -1031,24 +1097,70 @@ namespace Snapdragon
             return game;
         }
 
-        public Game RecalculateOngoingEffects()
+        public Game RecalculatePower()
         {
+            var recalculatedCards = new List<CardBase>();
+
+            var blockers = GetEffectBlockers();
+            var blockedEffectsByColumn = GetBlockedEffectsByColumn(
+                blockers.CardsWithLocationEffectBlocks,
+                blockers.LocationsWithLocationEffectBlocks
+            );
+
             var ongoingCardAbilities = this.GetCardOngoingAbilities().ToList();
             var ongoingLocationAbilities = this.GetLocationOngoingAbilities().ToList();
 
-            var recalculatedCards = this.AllCards.Select(c =>
-                c.Base with
-                {
-                    PowerAdjustment = this.GetPowerAdjustment(
-                        c,
-                        ongoingCardAbilities,
-                        ongoingLocationAbilities,
-                        this
-                    )
-                }
-            );
+            foreach (var card in this.AllCards)
+            {
+                var blockedEffects = GetBlockedEffects(
+                    card,
+                    blockedEffectsByColumn,
+                    blockers.CardsWithCardEffectBlocks
+                );
 
-            return this.WithUpdatedCards(recalculatedCards);
+                // "Power" is the power from the Definition plus any applicable modifications
+                var power = card.Definition.Power;
+
+                foreach (var mod in card.Base.Modifications)
+                {
+                    if (mod.PowerChange != null)
+                    {
+                        if (mod.PowerChange < 0 && blockedEffects.Contains(EffectType.ReducePower))
+                        {
+                            continue;
+                        }
+
+                        power += mod.PowerChange.Value;
+                    }
+                }
+
+                var powerAdjustment = this.GetPowerAdjustment(
+                    card,
+                    ongoingCardAbilities,
+                    ongoingLocationAbilities,
+                    blockedEffects.Contains(EffectType.ReducePower)
+                );
+
+                if (power != card.Base.Power || powerAdjustment != card.Base.PowerAdjustment)
+                {
+                    recalculatedCards.Add(
+                        card.Base with
+                        {
+                            Power = power,
+                            PowerAdjustment = powerAdjustment
+                        }
+                    );
+                }
+            }
+
+            if (recalculatedCards.Count > 0)
+            {
+                return this.WithUpdatedCards(recalculatedCards);
+            }
+            else
+            {
+                return this;
+            }
         }
 
         /// <summary>
@@ -1059,7 +1171,7 @@ namespace Snapdragon
             ICard card,
             IReadOnlyList<(Ongoing<ICard> Ability, ICard Source)> ongoingCardAbilities,
             IReadOnlyList<(Ongoing<Location> Ability, Location Source)> ongoingLocationAbilities,
-            Game game
+            bool cannotReduce = false
         )
         {
             var any = false;
@@ -1069,6 +1181,11 @@ namespace Snapdragon
             {
                 if (ongoing.Ability is OngoingAdjustPower<ICard> adjustPower)
                 {
+                    if (adjustPower.Amount < 0 && cannotReduce)
+                    {
+                        continue;
+                    }
+
                     // TODO: Reduce redundancy here
                     if (adjustPower.Selector.Get(ongoing.Source, this).Any(c => c.Id == card.Id))
                     {
@@ -1082,6 +1199,11 @@ namespace Snapdragon
             {
                 if (ongoing.Ability is OngoingAdjustPower<Location> adjustPower)
                 {
+                    if (adjustPower.Amount < 0 && cannotReduce)
+                    {
+                        continue;
+                    }
+
                     // TODO: Reduce redundancy here
                     if (adjustPower.Selector.Get(ongoing.Source, this).Any(c => c.Id == card.Id))
                     {

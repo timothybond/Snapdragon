@@ -7,7 +7,7 @@ namespace Snapdragon.Fluent.EffectBuilders
     {
         protected override IEffect BuildCardEffect(ICardInstance card, TContext context, Game game)
         {
-            return new SwapCostAndPower(card);
+            return new SwapCostAndPower(card, context);
         }
     }
 

@@ -4,7 +4,7 @@ namespace Snapdragon.Fluent.EffectBuilders
 {
     /// <summary>
     /// Builder for an effect that permanently alters the power of a card
-    /// (not to be confused with the ephemeral changes caused by "AdjustPower" effects).
+    /// (not to be confused with the ephemeral changes caused by ongoing effects).
     /// </summary>
     /// <param name="CardSelector">Selector to get affected cards.</param>
     /// <param name="Amount">Amount of power to add (or subtract)</param>
@@ -19,7 +19,7 @@ namespace Snapdragon.Fluent.EffectBuilders
 
         protected override IEffect BuildCardEffect(ICardInstance card, TContext context, Game game)
         {
-            return new AddPowerToCard(card, Amount.GetValue(context, game));
+            return new AddPowerToCard(card, Amount.GetValue(context, game), context);
         }
     }
 

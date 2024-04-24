@@ -71,32 +71,6 @@ namespace Snapdragon
         }
 
         /// <summary>
-        /// Gets all location-wide effect blocks, for one side.
-        /// </summary>
-        /// <param name="game">Overall game state.</param>
-        /// <param name="side">Target side.</param>
-        /// <param name="cardsWithLocationEffectBlocks">All cards with <see cref="OngoingBlockLocationEffect{T}"/> abilities.</param>
-        /// <returns></returns>
-        public static IReadOnlyDictionary<Column, IReadOnlySet<EffectType>> GetBlockedEffects(
-            Game game,
-            Side side,
-            IReadOnlyList<ICard> cardsWithLocationEffectBlocks,
-            IReadOnlyList<Location> locationsWithLocationEffectBlocks
-        )
-        {
-            return All.Columns.ToDictionary(
-                col => col,
-                col =>
-                    game.GetBlockedEffects(
-                        col,
-                        side,
-                        cardsWithLocationEffectBlocks,
-                        locationsWithLocationEffectBlocks
-                    )
-            );
-        }
-
-        /// <summary>
         /// Gets all sets of possible <see cref="MoveCardAction"/>s
         /// that are valid for the given game state and player.
         /// </summary>
@@ -113,9 +87,7 @@ namespace Snapdragon
             var skippedCards = new Stack<ICard>();
             var results = new List<IReadOnlyList<IPlayerAction>>();
 
-            var blockedEffectsByColumn = GetBlockedEffects(
-                game,
-                side,
+            var blockedEffectsByColumn = game.GetBlockedEffectsByColumn(
                 cardsWithLocationEffectBlocks,
                 locationsWithLocationEffectBlocks
             );
@@ -608,7 +580,6 @@ namespace Snapdragon
         {
             var blockedEffects = game.GetBlockedEffects(
                 column,
-                side,
                 cardsWithLocationEffectBlocks
             );
 

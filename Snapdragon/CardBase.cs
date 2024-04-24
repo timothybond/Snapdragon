@@ -1,6 +1,6 @@
-﻿using Snapdragon.Fluent;
+﻿using System.Collections.Immutable;
+using Snapdragon.Fluent;
 using Snapdragon.GameAccessors;
-using System.Collections.Immutable;
 
 namespace Snapdragon
 {
@@ -14,6 +14,7 @@ namespace Snapdragon
     public record CardBase(
         long Id,
         CardDefinition Definition,
+        ImmutableList<Modification> Modifications,
         string Name,
         int Cost,
         int Power,
@@ -31,6 +32,7 @@ namespace Snapdragon
             : this(
                 Ids.GetNextCard(),
                 definition,
+                [],
                 definition.Name,
                 definition.Cost,
                 definition.Power,
@@ -41,8 +43,7 @@ namespace Snapdragon
                 definition.MoveAbility,
                 definition.Disallowed,
                 definition.PlayRestriction
-            )
-        { }
+            ) { }
 
         public int AdjustedPower => this.Power + (this.PowerAdjustment ?? 0);
 
