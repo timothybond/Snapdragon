@@ -10,7 +10,7 @@ namespace Snapdragon.Fluent.Builders
     {
         public Ongoing<TContext> ForLocation(ISelector<Location, TContext> locationSelector)
         {
-            return ForLocationAndSide(locationSelector, new BothSides());
+            return ForLocationAndSide(locationSelector, new BothPlayers());
         }
 
         public Ongoing<TContext> ForLocationAndSide(

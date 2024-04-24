@@ -111,6 +111,7 @@ namespace Snapdragon
                 )
             ),
             new("America Chavez", 2, 3, OnReveal.Then(My.Library.First().ModifyPower(2))),
+            new("Hazmat", 2, 2, OnReveal.Then(Fluent.Selectors.All.OtherCards.ModifyPower(-1))),
             new(
                 "Mantis",
                 2,
@@ -205,6 +206,18 @@ namespace Snapdragon
             ),
             new("Cable", 3, 4, OnReveal.Then(new DrawOpponentCardBuilder())),
             new("Cyclops", 3, 4),
+            new(
+                "Debrii",
+                3,
+                3,
+                OnReveal.Then( // TODO: Shorten this somehow
+                    new AddCardToLocationBuilder<ICard>(
+                        new CardDefinition("Rock", 1, 0),
+                        new OtherLocations<ICard>(),
+                        new BothPlayers()
+                    )
+                )
+            ),
             new("Green Goblin", 3, -3, OnReveal.Then(Self.SwitchSides())),
             new("Ironheart", 3, 0, OnReveal.ModifyPower(My.OtherCards.GetRandom(3), 2)),
             new("Lady Sif", 3, 5, OnReveal.Discard(My.Hand.WithMaxCost().GetRandom())),

@@ -1,10 +1,10 @@
-﻿using System.Collections.Immutable;
-using Snapdragon.Events;
+﻿using Snapdragon.Events;
 using Snapdragon.Fluent;
 using Snapdragon.Fluent.EffectBuilders;
 using Snapdragon.Fluent.EventFilters;
 using Snapdragon.Fluent.Filters;
 using Snapdragon.Fluent.Selectors;
+using System.Collections.Immutable;
 
 namespace Snapdragon
 {
@@ -31,14 +31,14 @@ namespace Snapdragon
         {
             new LocationDefinition(
                 "Camp Lehigh",
-                OnReveal.Then(new BothSides().AddToHand(PossibleCards.WithCost(3).GetRandom()))
+                OnReveal.Then(new BothPlayers().AddToHand(PossibleCards.WithCost(3).GetRandom()))
             ),
             new LocationDefinition(
                 "Central Park",
                 OnReveal.Then(
                     new AllLocations().AddCard(
                         new CardDefinition("Squirrel", 1, 1),
-                        new BothSides()
+                        new BothPlayers()
                     )
                 )
             ),
@@ -55,7 +55,7 @@ namespace Snapdragon
                 null,
                 When.RevealedAnd<CardRevealedEvent>()
                     .Where(EventCard.Here)
-                    .Then(new EventCardSelector().Destroy())
+                    .Then(EventCard.Get.Destroy())
             ),
             new LocationDefinition(
                 "Jotunheim",

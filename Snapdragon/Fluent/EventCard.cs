@@ -32,7 +32,7 @@ namespace Snapdragon.Fluent
         /// <summary>
         /// Filters events to those on different cards than the contex item.
         /// </summary>
-        public static IEventFilter<CardEvent, ICardInstance> OtherCards => new OtherCardsFilter();
+        public static IEventFilter<CardEvent, ICardInstance> OtherCards => new OtherCards();
 
         public static ISingleItemSelector<Player, CardEvent, object> Player =>
             new EventCardSide<object>();

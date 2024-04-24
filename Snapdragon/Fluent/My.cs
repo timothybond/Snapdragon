@@ -17,7 +17,7 @@ namespace Snapdragon.Fluent
         public static readonly ISelector<ICardInstance, ICardInstance> OtherCards = new FilteredSelector<
             ICardInstance,
             ICardInstance
-        >(new RevealedCardsForSide(false), new OtherCardsFilter());
+        >(new RevealedCardsForSide(false), new OtherCards());
 
         public static readonly ISelector<ICardInstance, IObjectWithSide> Hand = new HandForSide(false);
 
