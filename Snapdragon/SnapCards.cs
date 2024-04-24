@@ -1,4 +1,5 @@
-﻿using Snapdragon.Events;
+﻿using System.Collections.Immutable;
+using Snapdragon.Events;
 using Snapdragon.Fluent;
 using Snapdragon.Fluent.EffectBuilders;
 using Snapdragon.Fluent.Filters;
@@ -6,7 +7,6 @@ using Snapdragon.Fluent.Selectors;
 using Snapdragon.Fluent.Transforms;
 using Snapdragon.MoveAbilities;
 using Snapdragon.PlayRestrictions;
-using System.Collections.Immutable;
 
 namespace Snapdragon
 {
@@ -125,6 +125,7 @@ namespace Snapdragon
             ),
             new("Medusa", 2, 2, OnReveal.If.InColumn(Column.Middle).Then(Self.ModifyPower(3))),
             new("Okoye", 2, 2, OnReveal.ModifyPower(My.Library, 1)),
+            new("Scorpion", 2, 2, OnReveal.ModifyPower(Opposing.Hand, -1)),
             new("Shocker", 2, 3),
             new(
                 "Star-Lord",
@@ -207,6 +208,13 @@ namespace Snapdragon
             new("Green Goblin", 3, -3, OnReveal.Then(Self.SwitchSides())),
             new("Ironheart", 3, 0, OnReveal.ModifyPower(My.OtherCards.GetRandom(3), 2)),
             new("Lady Sif", 3, 5, OnReveal.Discard(My.Hand.WithMaxCost().GetRandom())),
+            new(
+                "Luke Cage",
+                3,
+                4,
+                null,
+                new OngoingBlockCardEffect<ICard>(My.Cards, [EffectType.ReducePower])
+            ),
             new(
                 "Mister Fantastic",
                 3,

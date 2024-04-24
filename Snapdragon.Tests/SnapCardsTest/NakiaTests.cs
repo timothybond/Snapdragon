@@ -22,6 +22,25 @@
 
         [Test]
         [TestCaseSource(typeof(AllSidesAndColumns))]
+        public void CardsStillModifiedOncePlayed(Side side, Column column)
+        {
+            var game = TestHelpers
+                .NewGame()
+                .WithCardsInHand(side, "Misty Knight", "Blade")
+                .PlayCards(side, column, "Nakia")
+                .PlayCards(side, column, "Misty Knight", "Blade");
+
+            var cardsInPlay = game[column][side];
+            Assert.That(cardsInPlay, Has.Exactly(3).Items);
+
+            Assert.That(cardsInPlay[1].Name, Is.EqualTo("Misty Knight"));
+            Assert.That(cardsInPlay[1].Power, Is.EqualTo(3));
+            Assert.That(cardsInPlay[2].Name, Is.EqualTo("Blade"));
+            Assert.That(cardsInPlay[2].Power, Is.EqualTo(4));
+        }
+
+        [Test]
+        [TestCaseSource(typeof(AllSidesAndColumns))]
         public void DoesNotAddToCardsInOpponentHand(Side side, Column column)
         {
             var game = TestHelpers
