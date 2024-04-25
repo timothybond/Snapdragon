@@ -1,7 +1,6 @@
 ﻿namespace Snapdragon.PlayerActions
 {
-    public record MoveCardAction(Side Side, ICard Card, Column From, Column To)
-        : IPlayerAction
+    public record MoveCardAction(Side Side, ICard Card, Column From, Column To) : IPlayerAction
     {
         public Game Apply(Game game)
         {
@@ -31,12 +30,12 @@
                 throw new InvalidOperationException("Card is blocked from moving.");
             }
 
-            if (game.GetBlockedEffects(From).Contains(EffectType.MoveFromLocation))
+            if (game.GetBlockedEffects(From, Side).Contains(EffectType.MoveFromLocation))
             {
                 throw new InvalidOperationException("Card cannot move away from given location.");
             }
 
-            if (game.GetBlockedEffects(To).Contains(EffectType.MoveToLocation))
+            if (game.GetBlockedEffects(To, Side).Contains(EffectType.MoveToLocation))
             {
                 throw new InvalidOperationException("Card cannot move to from given location.");
             }

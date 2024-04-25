@@ -165,6 +165,7 @@ namespace Snapdragon
 
         public IReadOnlySet<EffectType> GetBlockedEffects(
             Column column,
+            Side side,
             IReadOnlyList<ICard>? cardsWithLocationEffectBlocks = null,
             IReadOnlyList<Location>? locationsWithLocationEffectBlocks = null
         )
@@ -179,6 +180,9 @@ namespace Snapdragon
                     // TODO: see if we can reduce the redundancy here
                     if (
                         blockLocationEffect.Selector.Get(source, this).Any(l => l.Column == column)
+                        && blockLocationEffect
+                            .PlayerSelector.Get(source, this)
+                            .Any(p => p.Side == side)
                         && (blockLocationEffect.Condition?.IsMet(source, this) ?? true)
                     )
                     {
@@ -201,6 +205,9 @@ namespace Snapdragon
                     // TODO: see if we can reduce the redundancy here
                     if (
                         blockLocationEffect.Selector.Get(loc, this).Any(l => l.Column == column)
+                        && blockLocationEffect
+                            .PlayerSelector.Get(loc, this)
+                            .Any(p => p.Side == side)
                         && (blockLocationEffect.Condition?.IsMet(loc, this) ?? true)
                     )
                     {
@@ -222,7 +229,8 @@ namespace Snapdragon
         /// <param name="cardsWithLocationEffectBlocks">All cards with <see cref="OngoingBlockLocationEffect{T}"/> abilities.</param>
         public IReadOnlyDictionary<Column, IReadOnlySet<EffectType>> GetBlockedEffectsByColumn(
             IReadOnlyList<ICard> cardsWithLocationEffectBlocks,
-            IReadOnlyList<Location> locationsWithLocationEffectBlocks
+            IReadOnlyList<Location> locationsWithLocationEffectBlocks,
+            Side side
         )
         {
             return All.Columns.ToDictionary(
@@ -230,6 +238,7 @@ namespace Snapdragon
                 col =>
                     GetBlockedEffects(
                         col,
+                        side,
                         cardsWithLocationEffectBlocks,
                         locationsWithLocationEffectBlocks
                     )
@@ -260,7 +269,7 @@ namespace Snapdragon
             else
             {
                 // This is a little gross but it's co-located with the method we're abusing
-                set = (HashSet<EffectType>)GetBlockedEffects(card.Column);
+                set = (HashSet<EffectType>)GetBlockedEffects(card.Column, card.Side);
             }
 
             foreach (var source in cardsWithCardEffectBlocks ?? AllCards)
@@ -331,14 +340,14 @@ namespace Snapdragon
             }
 
             var blockedAtFrom =
-                blockedEffectsByColumn?[card.Column] ?? GetBlockedEffects(card.Column);
+                blockedEffectsByColumn?[card.Column] ?? GetBlockedEffects(card.Column, card.Side);
             if (blockedAtFrom.Contains(EffectType.MoveFromLocation))
             {
                 return false;
             }
 
             var blockedAtTo =
-                blockedEffectsByColumn?[card.Column] ?? GetBlockedEffects(destination);
+                blockedEffectsByColumn?[card.Column] ?? GetBlockedEffects(destination, card.Side);
             if (blockedAtTo.Contains(EffectType.MoveToLocation))
             {
                 return false;
@@ -1102,9 +1111,15 @@ namespace Snapdragon
             var recalculatedCards = new List<CardBase>();
 
             var blockers = GetEffectBlockers();
-            var blockedEffectsByColumn = GetBlockedEffectsByColumn(
+            var topBlockedEffectsByColumn = GetBlockedEffectsByColumn(
                 blockers.CardsWithLocationEffectBlocks,
-                blockers.LocationsWithLocationEffectBlocks
+                blockers.LocationsWithLocationEffectBlocks,
+                Side.Top
+            );
+            var bottomBlockedEffectsByColumn = GetBlockedEffectsByColumn(
+                blockers.CardsWithLocationEffectBlocks,
+                blockers.LocationsWithLocationEffectBlocks,
+                Side.Top
             );
 
             var ongoingCardAbilities = this.GetCardOngoingAbilities().ToList();
@@ -1114,7 +1129,9 @@ namespace Snapdragon
             {
                 var blockedEffects = GetBlockedEffects(
                     card,
-                    blockedEffectsByColumn,
+                    card.Side == Side.Top
+                        ? topBlockedEffectsByColumn
+                        : bottomBlockedEffectsByColumn,
                     blockers.CardsWithCardEffectBlocks
                 );
 

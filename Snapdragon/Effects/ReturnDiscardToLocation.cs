@@ -18,8 +18,8 @@
             var location = game[Column];
 
             if (
-                location[Card.Side].Count >= Max.CardsPerLocation
-                || game.GetBlockedEffects(Column).Contains(EffectType.AddCard)
+                location[actualCard.Side].Count >= Max.CardsPerLocation
+                || game.GetBlockedEffects(Column, actualCard.Side).Contains(EffectType.AddCard)
             )
             {
                 return game;

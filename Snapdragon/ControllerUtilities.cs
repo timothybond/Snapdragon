@@ -89,7 +89,8 @@ namespace Snapdragon
 
             var blockedEffectsByColumn = game.GetBlockedEffectsByColumn(
                 cardsWithLocationEffectBlocks,
-                locationsWithLocationEffectBlocks
+                locationsWithLocationEffectBlocks,
+                side
             );
 
             // We assume no cards will BECOME moveable, by this definition, as a result of another card moving.
@@ -580,6 +581,7 @@ namespace Snapdragon
         {
             var blockedEffects = game.GetBlockedEffects(
                 column,
+                side,
                 cardsWithLocationEffectBlocks
             );
 

@@ -120,5 +120,17 @@ namespace Snapdragon.Tests.SnapCardsTest
                 Assert.Contains(otherColumn, targetColumns);
             }
         }
+
+        [Test]
+        [TestCaseSource(typeof(AllSidesAndColumns))]
+        public void OpponentCanPlayCardsSameLocation(Side side, Column column)
+        {
+            var game = TestHelpers
+                .PlayCards(side, column, "Ebony Maw")
+                .PlayCards(side.Other(), column, "Misty Knight");
+
+            Assert.That(game[column][side.Other()], Has.Exactly(1).Items);
+            Assert.That(game[column][side.Other()].Single().Name, Is.EqualTo("Misty Knight"));
+        }
     }
 }

@@ -12,7 +12,7 @@
             var columnsWithSpace = All
                 .Columns.Where(col =>
                     game[col][Card.Side].Count < Max.CardsPerLocation
-                    && !game.GetBlockedEffects(col).Contains(EffectType.AddCard)
+                    && !game.GetBlockedEffects(col, Card.Side).Contains(EffectType.AddCard)
                 )
                 .ToList();
 

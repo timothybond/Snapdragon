@@ -23,7 +23,7 @@
                 );
             }
 
-            if (game.GetBlockedEffects(Column).Contains(EffectType.PlayCard))
+            if (game.GetBlockedEffects(Column, Side).Contains(EffectType.PlayCard))
             {
                 throw new InvalidOperationException(
                     $"The 'PlayCard' effect type is blocked for side {Side}, Column {Column}."

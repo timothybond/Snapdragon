@@ -63,7 +63,8 @@ namespace Snapdragon
 
             var blockedEffectsByColumn = game.GetBlockedEffectsByColumn(
                 cardsWithLocationEffectBlocks,
-                locationsWithLocationEffectBlocks
+                locationsWithLocationEffectBlocks,
+                side
             );
 
             // First we do moves. Note this means that when a lot of move actions are provided,
