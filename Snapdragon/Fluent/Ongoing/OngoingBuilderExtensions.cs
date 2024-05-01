@@ -1,6 +1,6 @@
 ﻿using Snapdragon.Fluent.Builders;
 
-namespace Snapdragon.Fluent
+namespace Snapdragon.Fluent.Ongoing
 {
     public static class OngoingBuilderExtensions
     {

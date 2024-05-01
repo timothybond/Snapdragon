@@ -18,6 +18,9 @@
 
         // These two are player-specific
         IncreaseCost,
-        ReduceCost
+        ReduceCost,
+
+        OnRevealAbilities,
+        OngoingAbilities
     }
 }

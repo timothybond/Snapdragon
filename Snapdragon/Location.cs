@@ -10,9 +10,19 @@ namespace Snapdragon
     /// whenever anything changes.
     ///
     /// However, it is by design fairly low effort to create a new one of these after any change.
-    public record Location(Column Column, LocationDefinition Definition, GameKernel Kernel)
-        : IObjectWithColumn
+    public record Location(
+        Column Column,
+        LocationDefinition Definition,
+        GameKernel Kernel,
+        Multipliers TopMultipliers,
+        Multipliers BottomMultipliers
+    ) : IObjectWithColumn
     {
+        public MultipliersAccessor Multipliers
+        {
+            get { return new MultipliersAccessor(this); }
+        }
+
         public IReadOnlyList<ICard> this[Side side]
         {
             get

@@ -196,7 +196,27 @@ namespace Snapdragon.Tests
         {
             var cards = GetCards(cardNames);
 
-            var turn = cards.Select(c => c.Cost).Sum();
+            var turn = cards
+                .Select(c =>
+                {
+                    var cardInHand = game[side]
+                        .Hand.FirstOrDefault(card => string.Equals(card.Name, c.Name));
+
+                    if (cardInHand != null)
+                    {
+                        return cardInHand.Cost;
+                    }
+
+                    return c.Cost;
+                })
+                .Sum();
+
+            if (turn > 6)
+            {
+                throw new InvalidOperationException(
+                    "Cannot play more than 6 energy worth of cards."
+                );
+            }
 
             while (game.Turn < turn - 1)
             {

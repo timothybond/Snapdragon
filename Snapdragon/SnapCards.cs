@@ -3,6 +3,7 @@ using Snapdragon.Events;
 using Snapdragon.Fluent;
 using Snapdragon.Fluent.EffectBuilders;
 using Snapdragon.Fluent.Filters;
+using Snapdragon.Fluent.Ongoing;
 using Snapdragon.Fluent.Selectors;
 using Snapdragon.Fluent.Transforms;
 using Snapdragon.MoveAbilities;
@@ -276,6 +277,7 @@ namespace Snapdragon
                 new CannotPlayInColumn(Column.Right)
             ),
             new("The Thing", 4, 6),
+            new("Wong", 4, 2, null, new OngoingDoubleOnReveal<ICard>()),
             new("Blue Marvel", 5, 3, null, Ongoing.AdjustPower(My.OtherCards, 1)),
             new(
                 "Gamora",
@@ -300,7 +302,7 @@ namespace Snapdragon
                         .AddCard(new CardDefinition("Tiger Spirit", 5, 8))
                 )
             ),
-            new("Iron Man", 5, 0, null, new OngoingAbilities.DoubleLocationPower()),
+            new("Iron Man", 5, 0, null, new OngoingDoubleLocationPower()),
             new(
                 "Apocalypse",
                 6,
@@ -326,7 +328,8 @@ namespace Snapdragon
                         .Times(My.Discards.Count())
                 )
             ),
-            new("Hulk", 6, 12)
+            new("Hulk", 6, 12),
+            new("Onslaught", 6, 7, null, new OngoingDoubleOtherOngoing<ICard>())
         }
             .OrderBy(c => c.Cost)
             .ThenBy(c => c.Name)

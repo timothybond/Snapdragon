@@ -44,7 +44,13 @@ namespace Snapdragon.GameAccessors
         ImmutableList<long> BottomRightSensors,
         bool LeftRevealed,
         bool MiddleRevealed,
-        bool RightRevealed
+        bool RightRevealed,
+        Multipliers TopLeftMultipliers,
+        Multipliers TopMiddleMultipliers,
+        Multipliers TopRightMultipliers,
+        Multipliers BottomLeftMultipliers,
+        Multipliers BottomMiddleMultipliers,
+        Multipliers BottomRightMultipliers
     )
     {
         public static GameKernel FromPlayersAndLocations(
@@ -104,7 +110,13 @@ namespace Snapdragon.GameAccessors
                 [],
                 false,
                 false,
-                false
+                false,
+                new(),
+                new(),
+                new(),
+                new(),
+                new(),
+                new()
             );
         }
 
@@ -118,11 +130,29 @@ namespace Snapdragon.GameAccessors
                 switch (column)
                 {
                     case Column.Left:
-                        return new Location(Column.Left, LeftLocationDefinition, this);
+                        return new Location(
+                            Column.Left,
+                            LeftLocationDefinition,
+                            this,
+                            TopLeftMultipliers,
+                            BottomLeftMultipliers
+                        );
                     case Column.Middle:
-                        return new Location(Column.Middle, MiddleLocationDefinition, this);
+                        return new Location(
+                            Column.Middle,
+                            MiddleLocationDefinition,
+                            this,
+                            TopMiddleMultipliers,
+                            BottomMiddleMultipliers
+                        );
                     case Column.Right:
-                        return new Location(Column.Right, RightLocationDefinition, this);
+                        return new Location(
+                            Column.Right,
+                            RightLocationDefinition,
+                            this,
+                            TopRightMultipliers,
+                            BottomRightMultipliers
+                        );
                     default:
                         throw new NotImplementedException();
                 }
@@ -807,6 +837,20 @@ namespace Snapdragon.GameAccessors
                 BottomLibrary = BottomLibrary.Remove(cardId),
                 BottomDiscards = BottomDiscards.Remove(cardId),
                 BottomDestroyed = BottomDestroyed.Remove(cardId)
+            };
+        }
+
+        public GameKernel UpdateMultipliers(Column column, Side side, Multipliers multipliers)
+        {
+            return (column, side) switch
+            {
+                (Column.Left, Side.Top) => this with { TopLeftMultipliers = multipliers },
+                (Column.Middle, Side.Top) => this with { TopMiddleMultipliers = multipliers },
+                (Column.Right, Side.Top) => this with { TopRightMultipliers = multipliers },
+                (Column.Left, Side.Bottom) => this with { BottomLeftMultipliers = multipliers },
+                (Column.Middle, Side.Bottom) => this with { BottomMiddleMultipliers = multipliers },
+                (Column.Right, Side.Bottom) => this with { BottomRightMultipliers = multipliers },
+                (_, _) => throw new NotImplementedException()
             };
         }
 

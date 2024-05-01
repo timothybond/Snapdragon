@@ -1,9 +1,9 @@
 ﻿using System.Collections.Immutable;
 using Snapdragon.Events;
 using Snapdragon.Fluent;
+using Snapdragon.Fluent.Ongoing;
 using Snapdragon.GameAccessors;
 using Snapdragon.GameKernelAccessors;
-using Snapdragon.OngoingAbilities;
 
 namespace Snapdragon
 {
@@ -439,16 +439,18 @@ namespace Snapdragon
             {
                 game = location.Definition.OnReveal.Apply(location, game).Apply(game);
             }
-            return game.WithEvent(new LocationRevealedEvent(game.Turn, game[column]));
+            return game.WithEvent(new LocationRevealedEvent(game.Turn, game[column]))
+                .RecalculateMultipliers();
         }
 
         public Game WithNewCardInPlay(CardDefinition cardDefinition, Column column, Side side)
         {
             // TODO: Raise an event for this
-            return this with
+            var game = this with
             {
                 Kernel = Kernel.AddNewCardToLocation(cardDefinition, column, side, out long _)
             };
+            return game.RecalculateMultipliers();
         }
 
         public Game WithNewCardInHand(CardDefinition cardDefinition, Side side)
@@ -468,7 +470,7 @@ namespace Snapdragon
                 Kernel = Kernel.AddCopiedCardToLocation(card.Id, column, side, out long _)
             };
 
-            return game; // TODO: Add event for card being placed here
+            return game.RecalculateMultipliers(); // TODO: Add event for card being placed here
         }
 
         public Game WithCopyInHand(ICardInstance card, Side side, ICardTransform? transform)
@@ -519,7 +521,8 @@ namespace Snapdragon
                 )
             };
 
-            return game.WithEvent(new CardDestroyedFromPlayEvent(game.Turn, actualCard));
+            return game.WithEvent(new CardDestroyedFromPlayEvent(game.Turn, actualCard))
+                .RecalculateMultipliers();
         }
 
         /// <summary>
@@ -568,7 +571,8 @@ namespace Snapdragon
         /// </summary>
         public Game WithUpdatedCard(ICardInstance card)
         {
-            return this with { Kernel = Kernel.WithUpdatedCard(card) };
+            var game = this with { Kernel = Kernel.WithUpdatedCard(card) };
+            return game.RecalculateMultipliers();
         }
 
         /// <summary>
@@ -577,38 +581,46 @@ namespace Snapdragon
         /// </summary>
         public Game WithUpdatedCard(CardBase card)
         {
-            return this with { Kernel = Kernel.WithUpdatedCard(card) };
+            var game = this with { Kernel = Kernel.WithUpdatedCard(card) };
+            return game.RecalculateMultipliers();
         }
 
         public Game SwitchCardSide(ICard card)
         {
             var game = this with { Kernel = Kernel.SwitchCardSide(card.Id, card.Side) };
             var modifiedCard = game.GetCard(card.Id);
-            return game.WithEvent(new CardSwitchedSidesEvent(modifiedCard, game.Turn));
+            return game.WithEvent(new CardSwitchedSidesEvent(modifiedCard, game.Turn))
+                .RecalculateMultipliers();
         }
 
         public Game ReturnCardToHand(ICardInstance card)
         {
             // TODO: Raise an event for this
-            return this with { Kernel = Kernel.ReturnCardToHand(card.Id, card.Side) };
+            var game = this with
+            {
+                Kernel = Kernel.ReturnCardToHand(card.Id, card.Side)
+            };
+            return game.RecalculateMultipliers();
         }
 
         public Game ReturnDiscardToPlay(ICardInstance card, Column column)
         {
             // TODO: Raise an event for this
-            return this with
+            var game = this with
             {
                 Kernel = Kernel.ReturnDiscardToLocation(card.Id, column, card.Side)
             };
+            return game.RecalculateMultipliers();
         }
 
         public Game ReturnDestroyedToPlay(ICardInstance card, Column column)
         {
             // TODO: Raise an event for this
-            return this with
+            var game = this with
             {
                 Kernel = Kernel.ReturnDestroyedToLocation(card.Id, column, card.Side)
             };
+            return game.RecalculateMultipliers();
         }
 
         /// <summary>
@@ -617,7 +629,8 @@ namespace Snapdragon
         /// <param name="card">Card to remove.</param>
         public Game RemoveCard(ICardInstance card)
         {
-            return this with { Kernel = Kernel.RemoveCardFromGame(card.Id) };
+            var game = this with { Kernel = Kernel.RemoveCardFromGame(card.Id) };
+            return game.RecalculateMultipliers();
         }
 
         #endregion
@@ -788,34 +801,52 @@ namespace Snapdragon
         }
 
         /// <summary>
+        /// Triggers the on-reveal ability of a card (multiple times, if appropriate).
+        ///
+        /// This is automatically done within <see cref="RevealCard(ICard)"> but is exposed
+        /// so it can also be done by Odin's on-reveal ability.
+        /// </summary>
+        /// <param name="card"></param>
+        /// <returns></returns>
+        public Game TriggerOnRevealAbility(ICard card)
+        {
+            var game = this;
+
+            // Note this is guaranteed to be valid based on the checks in Kernel.RevealCard(...).
+            card = (ICard)Kernel[card.Id];
+
+            var multiplier = game[card.Column].Multipliers[card.Side].OnReveal;
+
+            if (card.OnReveal != null)
+            {
+                for (var i = 0; i < multiplier; i++)
+                {
+                    game = card.OnReveal.Apply(card, game).Apply(game);
+                }
+            }
+
+            return game;
+        }
+
+        /// <summary>
         /// Helper function that reveals a single card, then processes any triggered events.
         /// </summary>
         private Game RevealCard(ICard card)
         {
             var game = this with { Kernel = Kernel.RevealCard(card.Id) };
 
-            // Note this is guaranteed to be valid based on the chekcs in Kernel.RevealCard(...).
-            card = (ICard)Kernel[card.Id];
+            game = game.TriggerOnRevealAbility(card);
 
-            if (card.OnReveal != null)
-            {
-                game = card.OnReveal.Apply(card, game).Apply(game);
+            // This is to ensure that cards that get modified by their own reveal
+            // abilities get attached to the reveal event in their modified state,
+            // which may or may not be super useful at this point.
+            //
+            // The null coalesce operator is because of Hulkbuster.
+            var revealedCard = (ICard)Kernel[card.Id] ?? card;
 
-                // This is to ensure that cards that get modified by their own reveal
-                // abilities get attached to the reveal event in their modified state,
-                // which may or may not be super useful at this point.
-                //
-                // The null coalesce operator is because of Hulkbuster.
-                var revealedCard = (ICard)Kernel[card.Id] ?? card;
-
-                game = game.WithEvent(new CardRevealedEvent(game.Turn, revealedCard));
-            }
-            else
-            {
-                game = game.WithEvent(new CardRevealedEvent(game.Turn, card));
-            }
-
-            return game.ProcessEvents();
+            return game.WithEvent(new CardRevealedEvent(game.Turn, revealedCard))
+                .RecalculateMultipliers()
+                .ProcessEvents();
         }
 
         /// <summary>
@@ -1102,8 +1133,146 @@ namespace Snapdragon
         {
             var game = this with { Kernel = Kernel.MoveCard(card.Id, card.Side, card.Column, to) };
             game = game.WithEvent(new CardMovedEvent(game.Turn, Kernel[card.Id], card.Column, to));
+            game = game.RecalculateMultipliers();
 
             return game;
+        }
+
+        /// <summary>
+        /// Recalculates any multipliers for effects (e.g., Wong, Onslaught).
+        /// </summary>
+        public Game RecalculateMultipliers()
+        {
+            var effectBlockers = GetEffectBlockers();
+
+            var kernel = this.Kernel;
+
+            foreach (var location in Locations)
+            {
+                var onRevealBase = 1;
+                var ongoingBase = 1;
+
+                if (location.Revealed)
+                {
+                    if (location.Definition.Ongoing is OngoingDoubleOnReveal<Location>)
+                    {
+                        onRevealBase = 2;
+                    }
+                    else if (location.Definition.Ongoing is OngoingDoubleOtherOngoing<Location>)
+                    {
+                        ongoingBase = 2;
+                    }
+                }
+
+                var onRevealTop = onRevealBase;
+                var onRevealBottom = onRevealBase;
+                var ongoingTop = ongoingBase;
+                var ongoingBottom = ongoingBase;
+
+                var blockedEffectsTop = GetBlockedEffects(
+                    location.Column,
+                    Side.Top,
+                    effectBlockers.CardsWithLocationEffectBlocks,
+                    effectBlockers.LocationsWithLocationEffectBlocks
+                );
+                var blockedEffectsBottom = GetBlockedEffects(
+                    location.Column,
+                    Side.Bottom,
+                    effectBlockers.CardsWithLocationEffectBlocks,
+                    effectBlockers.LocationsWithLocationEffectBlocks
+                );
+
+                if (blockedEffectsTop.Contains(EffectType.OnRevealAbilities))
+                {
+                    onRevealTop = 0;
+                }
+                if (blockedEffectsTop.Contains(EffectType.OngoingAbilities))
+                {
+                    ongoingTop = 0;
+                }
+                if (blockedEffectsBottom.Contains(EffectType.OnRevealAbilities))
+                {
+                    onRevealBottom = 0;
+                }
+                if (blockedEffectsBottom.Contains(EffectType.OngoingAbilities))
+                {
+                    ongoingBottom = 0;
+                }
+
+                // We have to figure out ongoing multipliers first, because Wong's ability
+                // is itself an ongoing ability, and can therefore be multiplied
+                foreach (var card in location[Side.Top])
+                {
+                    if (card.State == CardState.InPlay)
+                    {
+                        if (card.Ongoing is OngoingDoubleOtherOngoing<ICard>)
+                        {
+                            ongoingTop *= 2;
+                        }
+                    }
+                }
+
+                foreach (var card in location[Side.Bottom])
+                {
+                    if (card.State == CardState.InPlay)
+                    {
+                        if (card.Ongoing is OngoingDoubleOtherOngoing<ICard>)
+                        {
+                            ongoingBottom *= 2;
+                        }
+                    }
+                }
+
+                foreach (var card in location[Side.Top])
+                {
+                    if (card.State == CardState.InPlay)
+                    {
+                        if (card.Ongoing is OngoingDoubleOnReveal<ICard>)
+                        {
+                            for (var i = 0; i < ongoingTop; i++)
+                            {
+                                onRevealTop *= 2;
+                            }
+                        }
+                    }
+                }
+
+                foreach (var card in location[Side.Bottom])
+                {
+                    if (card.State == CardState.InPlay)
+                    {
+                        if (card.Ongoing is OngoingDoubleOnReveal<ICard>)
+                        {
+                            for (var i = 0; i < ongoingBottom; i++)
+                            {
+                                onRevealBottom *= 2;
+                            }
+                        }
+                    }
+                }
+
+                var topMultipliers = new Multipliers(onRevealTop, ongoingTop);
+                var bottomMultipliers = new Multipliers(onRevealBottom, ongoingBottom);
+
+                if (topMultipliers != location.TopMultipliers)
+                {
+                    kernel = kernel.UpdateMultipliers(location.Column, Side.Top, topMultipliers);
+                }
+
+                if (bottomMultipliers != location.BottomMultipliers)
+                {
+                    kernel = kernel.UpdateMultipliers(
+                        location.Column,
+                        Side.Bottom,
+                        bottomMultipliers
+                    );
+                }
+            }
+
+            return this with
+            {
+                Kernel = kernel
+            };
         }
 
         public Game RecalculatePower()
@@ -1198,7 +1367,16 @@ namespace Snapdragon
             {
                 if (ongoing.Ability is OngoingAdjustPower<ICard> adjustPower)
                 {
+                    var ongoingMultiplier = this[ongoing.Source.Column]
+                        .Multipliers[ongoing.Source.Side]
+                        .Ongoing;
+
                     if (adjustPower.Amount < 0 && cannotReduce)
+                    {
+                        continue;
+                    }
+
+                    if (ongoingMultiplier == 0) // Sorta redundant, but would presumably save time
                     {
                         continue;
                     }
@@ -1206,7 +1384,7 @@ namespace Snapdragon
                     // TODO: Reduce redundancy here
                     if (adjustPower.Selector.Get(ongoing.Source, this).Any(c => c.Id == card.Id))
                     {
-                        total += adjustPower.Amount;
+                        total += adjustPower.Amount * ongoingMultiplier;
                         any = true;
                     }
                 }
@@ -1257,6 +1435,13 @@ namespace Snapdragon
                 {
                     if (card.Ongoing is OngoingAdjustLocationPower<ICard> addLocationPower)
                     {
+                        var ongoingMultiplier = this[card.Column].Multipliers[card.Side].Ongoing;
+
+                        if (ongoingMultiplier == 0) // Somewhat redundant, but should be faster
+                        {
+                            continue;
+                        }
+
                         if (
                             addLocationPower
                                 .Selector.Get(card, this)
@@ -1264,7 +1449,7 @@ namespace Snapdragon
                         )
                         {
                             // TODO: Deal with the fact that the card isn't the "target"
-                            var power = addLocationPower.Amount;
+                            var power = addLocationPower.Amount * ongoingMultiplier;
 
                             // TODO: Check if anything adds power to the opposite side (probably the case)
                             scores = scores.WithAddedPower(power, column, card.Side);
@@ -1273,17 +1458,34 @@ namespace Snapdragon
                 }
 
                 // Now handle the special "double power" ability
-                // TODO: Determine how this sometimes stacks
                 foreach (var side in All.Sides)
                 {
+                    var powerMultiplier = 1;
+                    var ongoingMultiplier = this[column].Multipliers[side].Ongoing;
+
+                    if (ongoingMultiplier == 0)
+                    {
+                        continue;
+                    }
+
                     foreach (var card in location[side])
                     {
-                        // For now I'm just ignoring the multiple doublings
-                        if (card.Ongoing is DoubleLocationPower)
+                        if (card.Ongoing is OngoingDoubleLocationPower)
                         {
-                            scores = scores.WithAddedPower(scores[column][side], column, side);
-                            break;
+                            for (var i = 0; i < ongoingMultiplier; i++)
+                            {
+                                powerMultiplier *= 2;
+                            }
                         }
+                    }
+
+                    if (powerMultiplier > 1)
+                    {
+                        scores = scores.WithAddedPower(
+                            scores[column][side] * (powerMultiplier - 1),
+                            column,
+                            side
+                        );
                     }
                 }
             }

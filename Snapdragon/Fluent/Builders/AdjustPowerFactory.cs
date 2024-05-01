@@ -1,4 +1,6 @@
-﻿namespace Snapdragon.Fluent.Builders
+﻿using Snapdragon.Fluent.Ongoing;
+
+namespace Snapdragon.Fluent.Builders
 {
     public record AdjustPowerFactory<TContext>(ISelector<ICardInstance, TContext> Selector, int Amount)
         : IOngoingAbilityFactory<TContext>

@@ -3,6 +3,7 @@ using Snapdragon.Fluent;
 using Snapdragon.Fluent.EffectBuilders;
 using Snapdragon.Fluent.EventFilters;
 using Snapdragon.Fluent.Filters;
+using Snapdragon.Fluent.Ongoing;
 using Snapdragon.Fluent.Selectors;
 using System.Collections.Immutable;
 

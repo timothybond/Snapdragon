@@ -1,5 +1,6 @@
 ﻿using Snapdragon.Events;
 using Snapdragon.Fluent.EffectBuilders;
+using Snapdragon.Fluent.Ongoing;
 using Snapdragon.Fluent.Selectors;
 using Snapdragon.Fluent.Transforms;
 
