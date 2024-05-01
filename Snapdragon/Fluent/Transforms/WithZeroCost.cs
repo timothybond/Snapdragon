@@ -6,6 +6,7 @@
         {
             return card with
             {
+                Cost = 0,
                 Modifications = card.Modifications.Add(
                     new Modification(-1 * card.Cost, null, source)
                 )
