@@ -7,7 +7,12 @@
 
         public Game Apply(Game game)
         {
-            return Effects.Aggregate(game, (g, e) => e.Apply(g));
+            foreach (var effect in Effects)
+            {
+                game = effect.Apply(game);
+            }
+
+            return game;
         }
     }
 }

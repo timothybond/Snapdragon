@@ -4,7 +4,12 @@
     {
         public Player? GetOrDefault(IObjectWithSide context, Game game)
         {
-            return context.Side == Side.Top ? game.TopPlayer : game.BottomPlayer;
+            return game[context.Side].Player;
+        }
+
+        public bool Selects(Player item, IObjectWithSide context, Game game)
+        {
+            return item.Side == context.Side;
         }
     }
 }

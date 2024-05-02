@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections;
+using System.Collections.Immutable;
 using System.Diagnostics;
 
 namespace Snapdragon.GameAccessors
@@ -19,6 +20,8 @@ namespace Snapdragon.GameAccessors
         ImmutableDictionary<long, Side> CardSides,
         ImmutableDictionary<long, CardState> CardStates,
         ImmutableDictionary<long, Column?> CardLocations,
+        ImmutableHashSet<long> PlayedCards,
+        ImmutableHashSet<long> RevealedCards,
         ImmutableList<long> TopLeftCards,
         ImmutableList<long> TopMiddleCards,
         ImmutableList<long> TopRightCards,
@@ -92,6 +95,8 @@ namespace Snapdragon.GameAccessors
                 [],
                 [],
                 [],
+                [],
+                [],
                 topCards.Select(c => c.Id).ToImmutableList(),
                 [],
                 [],
@@ -122,6 +127,12 @@ namespace Snapdragon.GameAccessors
 
         public IReadOnlyList<ICard> this[Column column, Side side] =>
             new CardInLocationListReference(this, CardIdsForLocation(column, side));
+
+        public IReadOnlyList<ICard> AllCards =>
+            new CardInLocationListReference(this, RevealedCards.ToList());
+
+        public IReadOnlyList<ICard> AllCardsIncludingUnrevealed =>
+            new CardInLocationListReference(this, PlayedCards.ToList());
 
         public Location this[Column column]
         {
@@ -336,7 +347,11 @@ namespace Snapdragon.GameAccessors
             }
 
             newCollection = newCollection.Add(cardId);
-            return RemoveCardFromHandUnsafe(cardId, side)
+
+            var newKernel = this with { PlayedCards = PlayedCards.Add(cardId) };
+
+            return newKernel
+                .RemoveCardFromHandUnsafe(cardId, side)
                 .WithCardInStateUnsafe(cardId, CardState.PlayedButNotRevealed)
                 .WithUpdatedLocationCollection(column, side, newCollection);
         }
@@ -392,6 +407,7 @@ namespace Snapdragon.GameAccessors
                 this with
                 {
                     CardStates = CardStates.SetItem(cardId, CardState.InPlay),
+                    RevealedCards = RevealedCards.Add(cardId)
                 }
             ).WithUpdatedCard(card with { TurnRevealed = Turn });
         }
@@ -444,7 +460,11 @@ namespace Snapdragon.GameAccessors
             ValidateSide(cardId, side);
 
             var kernel = RemoveCardFromLocationUnsafe(cardId, column, side)
-                .WithCardInStateUnsafe(cardId, CardState.Destroyed);
+                .WithCardInStateUnsafe(cardId, CardState.Destroyed) with
+            {
+                PlayedCards = PlayedCards.Remove(cardId),
+                RevealedCards = RevealedCards.Remove(cardId)
+            };
 
             switch (side)
             {
@@ -522,7 +542,11 @@ namespace Snapdragon.GameAccessors
                             $"Card {card.Name} ({card.Id}) is in state {CardStates[cardId]} but has no location."
                         );
                     }
-                    kernel = kernel.RemoveCardFromLocationUnsafe(cardId, column.Value, side);
+                    kernel = kernel.RemoveCardFromLocationUnsafe(cardId, column.Value, side) with
+                    {
+                        PlayedCards = PlayedCards.Remove(cardId),
+                        RevealedCards = RevealedCards.Remove(cardId)
+                    };
                     break;
                 case CardState.Discarded:
                     kernel = kernel.RemoveCardFromDiscardsUnsafe(cardId, side);
@@ -579,7 +603,11 @@ namespace Snapdragon.GameAccessors
 
             return RemoveCardFromDiscardsUnsafe(cardId, side)
                 .WithCardInStateUnsafe(cardId, CardState.InPlay)
-                .AddCardToLocationUnsafe(cardId, column, side);
+                .AddCardToLocationUnsafe(cardId, column, side) with
+            {
+                PlayedCards = PlayedCards.Add(cardId),
+                RevealedCards = RevealedCards.Add(cardId)
+            };
         }
 
         /// <summary>
@@ -596,7 +624,11 @@ namespace Snapdragon.GameAccessors
 
             return RemoveCardFromDestroyedUnsafe(cardId, side)
                 .WithCardInStateUnsafe(cardId, CardState.InPlay)
-                .AddCardToLocationUnsafe(cardId, column, side);
+                .AddCardToLocationUnsafe(cardId, column, side) with
+            {
+                PlayedCards = PlayedCards.Add(cardId),
+                RevealedCards = RevealedCards.Add(cardId)
+            };
         }
 
         /// <summary>
@@ -658,7 +690,11 @@ namespace Snapdragon.GameAccessors
             newCardId = cardBase.Id;
 
             return WithNewCardUnsafe(cardBase, side, CardState.InPlay)
-                .AddCardToLocationUnsafe(cardBase.Id, column, side);
+                .AddCardToLocationUnsafe(cardBase.Id, column, side) with
+            {
+                PlayedCards = PlayedCards.Add(newCardId),
+                RevealedCards = RevealedCards.Add(newCardId)
+            };
         }
 
         /// <summary>
@@ -698,7 +734,11 @@ namespace Snapdragon.GameAccessors
             newCardId = copiedCard.Id;
 
             return WithNewCardUnsafe(copiedCard, side, CardState.InPlay)
-                .AddCardToLocationUnsafe(copiedCard.Id, column, side);
+                .AddCardToLocationUnsafe(copiedCard.Id, column, side) with
+            {
+                PlayedCards = PlayedCards.Add(newCardId),
+                RevealedCards = RevealedCards.Add(newCardId)
+            };
         }
 
         public GameKernel RevealLocation(Column column)
@@ -836,7 +876,9 @@ namespace Snapdragon.GameAccessors
                 BottomHand = BottomHand.Remove(cardId),
                 BottomLibrary = BottomLibrary.Remove(cardId),
                 BottomDiscards = BottomDiscards.Remove(cardId),
-                BottomDestroyed = BottomDestroyed.Remove(cardId)
+                BottomDestroyed = BottomDestroyed.Remove(cardId),
+                PlayedCards = PlayedCards.Remove(cardId),
+                RevealedCards = RevealedCards.Remove(cardId)
             };
         }
 
@@ -857,6 +899,18 @@ namespace Snapdragon.GameAccessors
         #endregion
 
         #region Internal Logic
+
+
+        /// <summary>
+        /// Method to retrieve a card as an <see cref="ICard"/>.
+        ///
+        /// Assumes that the card is in fact valid and in play.
+        /// </summary>
+        private ICard GetCardUnsafe(long cardId)
+        {
+            var card = Cards.GetValueOrDefault(cardId);
+            return new Card(card, this);
+        }
 
         /// <summary>
         /// Internal helper function that removes a card from the
@@ -1325,6 +1379,38 @@ namespace Snapdragon.GameAccessors
                 throw new InvalidOperationException(
                     $"Sensor {sensorId} is not in column {column}."
                 );
+            }
+        }
+
+        #endregion
+
+        #region CardInLocationListReference
+
+        public struct CardInLocationListReference : IReadOnlyList<ICard>
+        {
+            public CardInLocationListReference(GameKernel kernel, IReadOnlyList<long> inner)
+            {
+                this.Kernel = kernel;
+                this.Inner = inner;
+            }
+
+            GameKernel Kernel { get; }
+
+            IReadOnlyList<long> Inner { get; }
+
+            public readonly ICard this[int index] => Kernel.GetCardUnsafe(Inner[index]) as ICard;
+
+            public readonly int Count => Inner.Count;
+
+            public readonly IEnumerator<ICard> GetEnumerator()
+            {
+                var kernel = Kernel;
+                return Inner.Select(kernel.GetCardUnsafe).Cast<ICard>().GetEnumerator();
+            }
+
+            readonly IEnumerator IEnumerable.GetEnumerator()
+            {
+                return GetEnumerator();
             }
         }
 

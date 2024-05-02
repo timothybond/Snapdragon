@@ -4,6 +4,6 @@
         ISelector<Location, TContext> Selector,
         int Amount,
         ICondition<TContext>? Condition = null
-    ) : Ongoing<TContext>(Condition)
+    ) : Ongoing<TContext>(OngoingAbilityType.AddPowerToLocation, Condition)
     { }
 }

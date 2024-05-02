@@ -63,8 +63,10 @@
                 .PlayCards(side, column, "Wong")
                 .PlayCards(side, column, "Onslaught", "Ironheart");
 
-            var misterNegative = game.AllCards.First();
-            Assert.That(misterNegative.Name, Is.EqualTo("Mister Negative"));
+            var misterNegative = game.AllCards.SingleOrDefault(c =>
+                string.Equals(c.Name, "Mister Negative")
+            );
+            Assert.That(misterNegative, Is.Not.Null);
             Assert.That(misterNegative.Power, Is.EqualTo(7)); // -1 initially, +2 from Ironheart repeated four times
         }
     }

@@ -7,5 +7,10 @@
             var side = OtherSide ? context.Side.Other() : context.Side;
             return game[side].Library;
         }
+
+        public bool Selects(ICardInstance item, IObjectWithSide context, Game game)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

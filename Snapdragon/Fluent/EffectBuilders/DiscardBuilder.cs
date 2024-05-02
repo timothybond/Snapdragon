@@ -16,10 +16,7 @@ namespace Snapdragon.Fluent.EffectBuilders
 
             var effects = cards.Select(card => new DiscardCard(card));
 
-            return effects.Aggregate<IEffect, IEffect>(
-                new NullEffect(),
-                (accEffect, effects) => new AndEffect(accEffect, effects)
-            );
+            return new AndEffect(effects);
         }
     }
 }

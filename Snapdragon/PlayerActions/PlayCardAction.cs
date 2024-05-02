@@ -32,7 +32,7 @@
 
             // TODO: Consolidate these objects
             var player = game[Side];
-            var playerState = Side == Side.Top ? game.TopPlayer : game.BottomPlayer;
+            var playerState = game[Side].Player;
 
             if (!player.Hand.Any(c => c.Id == Card.Id))
             {

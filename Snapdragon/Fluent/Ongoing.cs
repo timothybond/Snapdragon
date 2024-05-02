@@ -1,4 +1,7 @@
 ﻿namespace Snapdragon.Fluent
 {
-    public record Ongoing<TContext>(ICondition<TContext>? Condition = null) { }
+    public record Ongoing<TContext>(
+        OngoingAbilityType Type,
+        ICondition<TContext>? Condition = null
+    ) { }
 }

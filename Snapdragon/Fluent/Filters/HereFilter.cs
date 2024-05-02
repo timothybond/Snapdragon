@@ -12,7 +12,11 @@
             IEventFilter<CardEvent, IObjectWithPossibleColumn>,
             ISingleItemSelector<Location, IObjectWithPossibleColumn>
     {
-        protected override bool Includes(ICardInstance card, IObjectWithPossibleColumn context)
+        public override bool Applies(
+            ICardInstance card,
+            IObjectWithPossibleColumn context,
+            Game game
+        )
         {
             return card.Column == context.Column;
         }
@@ -30,6 +34,11 @@
             }
 
             return game[context.Column.Value];
+        }
+
+        public bool Selects(Location item, IObjectWithPossibleColumn context, Game game)
+        {
+            return item.Column == context.Column;
         }
     }
 }

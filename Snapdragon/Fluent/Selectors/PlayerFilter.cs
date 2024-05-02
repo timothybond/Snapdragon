@@ -5,6 +5,12 @@
     ) : IFilter<TSelected, TContext>
         where TSelected : IObjectWithSide
     {
+        public bool Applies(TSelected item, TContext context, Game game)
+        {
+            var player = game[item.Side].Player;
+            return PlayerSelector.Selects(player, context, game);
+        }
+
         public IEnumerable<TSelected> GetFrom(
             IEnumerable<TSelected> initial,
             TContext context,

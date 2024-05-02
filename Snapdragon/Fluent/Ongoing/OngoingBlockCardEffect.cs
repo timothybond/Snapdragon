@@ -6,6 +6,5 @@ namespace Snapdragon.Fluent.Ongoing
         ISelector<ICardInstance, TContext> Selector,
         ImmutableList<EffectType> BlockedEffects,
         ICondition<TContext>? Condition = null
-    ) : Ongoing<TContext>(Condition)
-    { }
+    ) : Ongoing<TContext>(OngoingAbilityType.BlockCardEffects, Condition) { }
 }

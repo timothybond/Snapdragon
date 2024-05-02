@@ -7,6 +7,6 @@ namespace Snapdragon.Fluent.Ongoing
         ImmutableList<EffectType> BlockedEffects,
         ISelector<Player, TContext> PlayerSelector,
         ICondition<TContext>? Condition = null
-    ) : Ongoing<TContext>(Condition)
+    ) : Ongoing<TContext>(OngoingAbilityType.BlockLocationEffects, Condition)
     { }
 }

@@ -2,7 +2,7 @@
 {
     public record WithOngoingAbilities : WhereCardFilter<object>
     {
-        protected override bool Includes(ICardInstance card, object context)
+        public override bool Applies(ICardInstance card, object context, Game game)
         {
             return card.Ongoing != null;
         }

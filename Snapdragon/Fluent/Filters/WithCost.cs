@@ -4,15 +4,21 @@
     {
         public IEnumerable<CardDefinition> GetFrom(
             IEnumerable<CardDefinition> initial,
-            object context
-, Game game)
+            object context,
+            Game game
+        )
         {
             return initial.Where(cd => cd.Cost == Cost);
         }
 
-        protected override bool Includes(ICardInstance card, object context)
+        public override bool Applies(ICardInstance card, object context, Game game)
         {
             return card.Cost == Cost;
+        }
+
+        public bool Applies(CardDefinition item, object context, Game game)
+        {
+            return item.Cost == Cost;
         }
     }
 }

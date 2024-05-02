@@ -11,5 +11,10 @@
         {
             return game.Locations.Where(l => l.Column != context.Column);
         }
+
+        public bool Selects(Location item, IObjectWithPossibleColumn context, Game game)
+        {
+            return item.Column != context.Column;
+        }
     }
 }

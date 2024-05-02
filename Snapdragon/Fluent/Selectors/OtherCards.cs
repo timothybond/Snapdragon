@@ -9,9 +9,9 @@ namespace Snapdragon.Fluent.Selectors
     public record OtherCards
         : WhereCardFilter<ICardInstance>,
             IEventFilter<CardEvent, ICardInstance>,
-            ISelector<ICard, ICard>
+            ISelector<ICardInstance, ICard>
     {
-        public IEnumerable<ICard> Get(ICard context, Game game)
+        public IEnumerable<ICardInstance> Get(ICard context, Game game)
         {
             return game.AllCards.Where(c => c.Id != context.Id);
         }
@@ -21,7 +21,12 @@ namespace Snapdragon.Fluent.Selectors
             return e.Card.Id != context.Id;
         }
 
-        protected override bool Includes(ICardInstance card, ICardInstance context)
+        public bool Selects(ICardInstance item, ICard context, Game game)
+        {
+            return item.Id != context.Id && item.State == CardState.InPlay;
+        }
+
+        public override bool Applies(ICardInstance card, ICardInstance context, Game game)
         {
             return card.Id != context.Id;
         }

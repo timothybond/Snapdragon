@@ -10,5 +10,6 @@
         PlayerConfiguration Configuration { get; }
         IPlayerController Controller { get; }
         int Energy { get; }
+        Player Player { get; }
     }
 }

@@ -9,5 +9,9 @@
     /// When multiple of these apply at once, it's multiplicative
     /// (i.e., two will quadruple on-reveal abilities, and four will octuple them).
     /// </summary>
-    public record OngoingDoubleOnReveal<TContext> : Ongoing<TContext> { }
+    public record OngoingDoubleOnReveal<TContext> : Ongoing<TContext>
+    {
+        public OngoingDoubleOnReveal()
+            : base(OngoingAbilityType.DoubleOnReveals) { }
+    }
 }

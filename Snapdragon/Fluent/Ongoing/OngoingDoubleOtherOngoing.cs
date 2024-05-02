@@ -9,5 +9,9 @@
     /// When multiple of these apply at once, it's multiplicative
     /// (i.e., two will quadruple ongoing abilities, abilities, and four will octuple them).
     /// </summary>
-    public record OngoingDoubleOtherOngoing<TContext> : Ongoing<TContext> { }
+    public record OngoingDoubleOtherOngoing<TContext> : Ongoing<TContext>
+    {
+        public OngoingDoubleOtherOngoing()
+            : base(OngoingAbilityType.DoubleOngoingEffects) { }
+    }
 }

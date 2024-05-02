@@ -9,11 +9,11 @@
     /// <typeparam name="TContext"></typeparam>
     public abstract record WhereCardFilter<TContext> : IFilter<ICardInstance, TContext>
     {
+        public abstract bool Applies(ICardInstance item, TContext context, Game game);
+
         public IEnumerable<ICardInstance> GetFrom(IEnumerable<ICardInstance> initial, TContext context, Game game)
         {
-            return initial.Where(c => Includes(c, context));
+            return initial.Where(c => Applies(c, context, game));
         }
-
-        protected abstract bool Includes(ICardInstance card, TContext context);
     }
 }

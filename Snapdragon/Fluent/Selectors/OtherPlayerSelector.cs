@@ -12,7 +12,14 @@
                 return null;
             }
 
-            return initialPlayer.Side == Side.Top ? game.BottomPlayer : game.TopPlayer;
+            return game[initialPlayer.Side.Other()].Player;
+        }
+
+        public bool Selects(Player item, TContext context, Game game)
+        {
+            // TODO: Determine if this ever causes a problem by virtue of
+            // not being able to select ANY player with the inner selector.
+            return !Inner.Selects(item, context, game);
         }
     }
 
@@ -30,7 +37,7 @@
                 return null;
             }
 
-            return initialPlayer.Side == Side.Top ? game.BottomPlayer : game.TopPlayer;
+            return game[initialPlayer.Side.Other()].Player;
         }
     }
 }

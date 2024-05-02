@@ -18,5 +18,15 @@
                     throw new NotImplementedException();
             }
         }
+
+        public bool Selects(Location item, IObjectWithColumn context, Game game)
+        {
+            if (item.Column == context.Column)
+            {
+                return false;
+            }
+
+            return item.Column == Column.Middle || context.Column == Column.Middle;
+        }
     }
 }

@@ -7,5 +7,10 @@
         {
             return game.Locations.Where(loc => loc.Column != context.Column);
         }
+
+        public bool Selects(Location item, TContext context, Game game)
+        {
+            return item.Column != context.Column;
+        }
     }
 }

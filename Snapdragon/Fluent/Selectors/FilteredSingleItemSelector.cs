@@ -9,6 +9,11 @@
         {
             return Filter.GetOrDefault(Selector.Get(context, game), context, game);
         }
+
+        public bool Selects(TResult item, TContext context, Game game)
+        {
+            return Selector.Selects(item, context, game) && Filter.Applies(item, context, game);
+        }
     }
 
     public record FilteredSingleItemSelector<TResult, TEvent, TContext>(

@@ -45,7 +45,12 @@ namespace Snapdragon.Fluent.Selectors
             return e.Card.Id == context.Id;
         }
 
-        protected override bool Includes(ICardInstance card, ICardInstance context)
+        public bool Selects(ICardInstance item, ICardInstance context, Game game)
+        {
+            return item.Id == context.Id;
+        }
+
+        public override bool Applies(ICardInstance card, ICardInstance context, Game game)
         {
             return card.Id == context.Id;
         }

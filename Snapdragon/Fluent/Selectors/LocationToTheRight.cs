@@ -18,5 +18,11 @@
                     throw new NotImplementedException();
             }
         }
+
+        public bool Selects(Location item, IObjectWithColumn context, Game game)
+        {
+            return (context.Column == Column.Middle && item.Column == Column.Right) ||
+                (context.Column == Column.Left && item.Column == Column.Middle);
+        }
     }
 }

@@ -10,5 +10,10 @@
         {
             return game.AllCards.SingleOrDefault(c => c.Id == context.Source.Id);
         }
+
+        public bool Selects(ICardInstance item, Sensor<ICard> context, Game game)
+        {
+            return item.Id == context.Source.Id;
+        }
     }
 }

@@ -6,5 +6,10 @@
         {
             return game.Locations;
         }
+
+        public bool Selects(Location item, object context, Game game)
+        {
+            return true;
+        }
     }
 }

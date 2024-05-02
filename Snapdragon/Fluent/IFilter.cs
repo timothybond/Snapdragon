@@ -13,6 +13,8 @@
         {
             return this.GetFrom(initial, context, game);
         }
+
+        bool Applies(TSelected item, TContext context, Game game);
     }
 
     public interface IFilter<TSelected, in TEvent, in TContext>

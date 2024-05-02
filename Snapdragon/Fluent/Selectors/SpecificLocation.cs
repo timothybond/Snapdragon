@@ -6,5 +6,10 @@
         {
             return game[Column];
         }
+
+        public bool Selects(Location item, object context, Game game)
+        {
+            return item.Column == this.Column;
+        }
     }
 }
