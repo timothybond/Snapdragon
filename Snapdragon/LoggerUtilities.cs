@@ -116,7 +116,7 @@ namespace Snapdragon
 
         private static int GetWidth(Location location)
         {
-            if (location.AllCards.Count() == 0)
+            if (location.AllCardsIncludingUnrevealed.Count() == 0)
             {
                 return location.Definition.Name.Length + 4;
             }
@@ -126,7 +126,7 @@ namespace Snapdragon
             // two parentheses,
             // two digit power
             return Math.Max(
-                location.AllCards.Select(c => c.Name.Length).Max() + 7,
+                location.AllCardsIncludingUnrevealed.Select(c => c.Name.Length).Max() + 7,
                 location.Definition.Name.Length + 4
             );
         }

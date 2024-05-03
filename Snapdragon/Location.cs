@@ -30,9 +30,9 @@ namespace Snapdragon
                 switch (side)
                 {
                     case Side.Top:
-                        return TopCards;
+                        return TopCardsIncludingUnrevealed;
                     case Side.Bottom:
-                        return BottomCards;
+                        return BottomCardsIncludingUnrevealed;
                     default:
                         throw new NotImplementedException();
                 }
@@ -62,21 +62,21 @@ namespace Snapdragon
         ///
         /// Note that this includes unrevealed cards, out of what might be a misguided attempt to keep things efficient.
         /// </summary>
-        public IReadOnlyList<ICard> TopCards => Kernel[Column, Side.Top];
+        public IReadOnlyList<ICard> TopCardsIncludingUnrevealed => Kernel[Column, Side.Top];
 
         /// <summary>
         /// Gets the cards for the bottom Player, in this location.
         ///
         /// Note that this includes unrevealed cards, out of what might be a misguided attempt to keep things efficient.
         /// </summary>
-        public IReadOnlyList<ICard> BottomCards => Kernel[Column, Side.Bottom];
+        public IReadOnlyList<ICard> BottomCardsIncludingUnrevealed => Kernel[Column, Side.Bottom];
 
         /// <summary>
         /// Gets all cards in the location.
         ///
         /// Note that this includes unrevealed cards, for consistency.
         /// </summary>
-        public IEnumerable<ICard> AllCards => TopCards.Concat(BottomCards);
+        public IEnumerable<ICard> AllCardsIncludingUnrevealed => TopCardsIncludingUnrevealed.Concat(BottomCardsIncludingUnrevealed);
 
         public IEnumerable<Sensor<ICard>> TopSensors
         {

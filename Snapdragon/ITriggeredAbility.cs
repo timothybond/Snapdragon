@@ -1,22 +1,13 @@
 ﻿namespace Snapdragon
 {
-    public interface ITriggeredAbility<TSource>
+    public interface ITriggeredAbility<TContext>
     {
-        Game ProcessEvent(Game game, Event e, TSource source);
+        EventType EventType { get; }
 
-        bool DiscardedOrDestroyed()
-        {
-            return this is ISpecialCardTrigger cardTrigger && cardTrigger.WhenDiscardedOrDestroyed;
-        }
+        Game ProcessEvent(Game game, Event e, TContext context);
 
-        bool InHand()
-        {
-            return this is ISpecialCardTrigger cardTrigger && cardTrigger.WhenInHand;
-        }
-
-        bool InDeck()
-        {
-            return this is ISpecialCardTrigger cardTrigger && cardTrigger.WhenInDeck;
-        }
+        bool WhenDiscardedOrDestroyed { get; }
+        bool WhenInHand { get; }
+        bool WhenInDeck { get; }
     }
 }

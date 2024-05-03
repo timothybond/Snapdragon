@@ -4,9 +4,15 @@ using Snapdragon.Fluent.Selectors;
 namespace Snapdragon.Fluent.Builders
 {
     public record DiscardedTriggerBuilder
-        : IBuilder<ITriggeredAbility<ICardInstance>, ICardInstance, IEffectBuilder<CardDiscardedEvent, ICardInstance>>
+        : IBuilder<
+            ITriggeredAbility<ICardInstance>,
+            ICardInstance,
+            IEffectBuilder<CardDiscardedEvent, ICardInstance>
+        >
     {
-        public ITriggeredAbility<ICardInstance> Then(IEffectBuilder<CardDiscardedEvent, ICardInstance> outcome)
+        public ITriggeredAbility<ICardInstance> Then(
+            IEffectBuilder<CardDiscardedEvent, ICardInstance> outcome
+        )
         {
             return new TriggeredAbilityDiscardedOrDestroyed<CardDiscardedEvent, ICardInstance>(
                 outcome,
@@ -26,15 +32,19 @@ namespace Snapdragon.Fluent.Builders
             IEffectBuilder<CardDestroyedFromPlayEvent, ICardInstance> outcome
         )
         {
-            return new TriggeredAbilityDiscardedOrDestroyed<CardDestroyedFromPlayEvent, ICardInstance>(
-                outcome,
-                new Self()
-            );
+            return new TriggeredAbilityDiscardedOrDestroyed<
+                CardDestroyedFromPlayEvent,
+                ICardInstance
+            >(outcome, new Self());
         }
     }
 
     public record DiscardedOrDestroyedTriggerBuilder
-        : IBuilder<ITriggeredAbility<ICardInstance>, ICardInstance, IEffectBuilder<Event, ICardInstance>>
+        : IBuilder<
+            ITriggeredAbility<ICardInstance>,
+            ICardInstance,
+            IEffectBuilder<Event, ICardInstance>
+        >
     {
         public ITriggeredAbility<ICardInstance> Then(IEffectBuilder<Event, ICardInstance> outcome)
         {

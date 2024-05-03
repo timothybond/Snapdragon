@@ -1108,169 +1108,151 @@ namespace Snapdragon
 
             var game = this with { PastEvents = oldEvents, NewEvents = remainingEvents };
 
-            // Note: Becuase we modify the game, we need to capture the state of it before this effect triggers.
-            // E.g., if we return a card to somebody's hand, we don't want to fire another trigger on it.
-            var originalState = game;
-
-            var sensors = AllSensors;
+            //var sensors = AllSensors;
 
             // TODO: Determine if we need to stack-order events for triggers, any other ordering constraints
+            //var allCards = AllCards.ToList();
 
-            // All this stuff is unrolled and not using helper accessors in an effort to avoid allocations / boost performance
-            foreach (var cardWithTrigger in originalState.Left.TopCards)
+            if (
+                Kernel.CardsByTriggerEventType.TryGetValue(
+                    nextEvent.Type,
+                    out var cardIdsWithTrigger
+                )
+            )
             {
-                if (cardWithTrigger.State == CardState.InPlay && cardWithTrigger.Triggered != null)
+                foreach (var cardId in cardIdsWithTrigger)
                 {
-                    game = cardWithTrigger.Triggered.ProcessEvent(game, nextEvent, cardWithTrigger);
+                    var card = Kernel[cardId];
+                    game = card.Triggered.ProcessEvent(game, nextEvent, card);
                 }
             }
+            //foreach (var cardWithTrigger in allCards)
+            //{
+            //    if (cardWithTrigger.Triggered != null)
+            //    {
+            //        game = cardWithTrigger.Triggered.ProcessEvent(game, nextEvent, cardWithTrigger);
+            //    }
+            //}
 
-            foreach (var cardWithTrigger in originalState.Left.BottomCards)
+            //foreach (var discardedOrDestroyedCard in originalState.Top.Discards)
+            //{
+            //    if (discardedOrDestroyedCard.Triggered?.DiscardedOrDestroyed() ?? false)
+            //    {
+            //        game = discardedOrDestroyedCard.Triggered.ProcessEvent(
+            //            game,
+            //            nextEvent,
+            //            discardedOrDestroyedCard
+            //        );
+            //    }
+            //}
+
+            //foreach (var discardedOrDestroyedCard in originalState.Top.Destroyed)
+            //{
+            //    if (discardedOrDestroyedCard.Triggered != null)
+            //    {
+            //        if (discardedOrDestroyedCard.Triggered.DiscardedOrDestroyed())
+            //        {
+            //            game = discardedOrDestroyedCard.Triggered.ProcessEvent(
+            //                game,
+            //                nextEvent,
+            //                discardedOrDestroyedCard
+            //            );
+            //        }
+            //    }
+            //}
+
+            //foreach (var discardedOrDestroyedCard in originalState.Bottom.Discards)
+            //{
+            //    if (discardedOrDestroyedCard.Triggered?.DiscardedOrDestroyed() ?? false)
+            //    {
+            //        game = discardedOrDestroyedCard.Triggered.ProcessEvent(
+            //            game,
+            //            nextEvent,
+            //            discardedOrDestroyedCard
+            //        );
+            //    }
+            //}
+
+            //foreach (var discardedOrDestroyedCard in originalState.Bottom.Destroyed)
+            //{
+            //    if (discardedOrDestroyedCard.Triggered != null)
+            //    {
+            //        if (discardedOrDestroyedCard.Triggered.DiscardedOrDestroyed())
+            //        {
+            //            game = discardedOrDestroyedCard.Triggered.ProcessEvent(
+            //                game,
+            //                nextEvent,
+            //                discardedOrDestroyedCard
+            //            );
+            //        }
+            //    }
+            //}
+
+            //foreach (var cardInHand in originalState.Top.Hand)
+            //{
+            //    if (cardInHand.Triggered != null)
+            //    {
+            //        if (cardInHand.Triggered.InHand())
+            //        {
+            //            game = cardInHand.Triggered.ProcessEvent(game, nextEvent, cardInHand);
+            //        }
+            //    }
+            //}
+
+            //foreach (var cardInHand in originalState.Bottom.Hand)
+            //{
+            //    if (cardInHand.Triggered != null)
+            //    {
+            //        if (cardInHand.Triggered.InHand())
+            //        {
+            //            game = cardInHand.Triggered.ProcessEvent(game, nextEvent, cardInHand);
+            //        }
+            //    }
+            //}
+
+            //foreach (var cardInLibrary in originalState.Top.Library)
+            //{
+            //    if (cardInLibrary.Triggered != null)
+            //    {
+            //        if (cardInLibrary.Triggered.InDeck())
+            //        {
+            //            game =
+            //                cardInLibrary.Triggered?.ProcessEvent(game, nextEvent, cardInLibrary)
+            //                ?? game;
+            //        }
+            //    }
+            //}
+
+            //foreach (var cardInLibrary in originalState.Bottom.Library)
+            //{
+            //    if (cardInLibrary.Triggered != null)
+            //    {
+            //        if (cardInLibrary.Triggered.InDeck())
+            //        {
+            //            game =
+            //                cardInLibrary.Triggered?.ProcessEvent(game, nextEvent, cardInLibrary)
+            //                ?? game;
+            //        }
+            //    }
+            //}
+
+            if (
+                Kernel.SensorsByTriggerEventType.TryGetValue(
+                    nextEvent.Type,
+                    out var sensorIdsWithTrigger
+                )
+            )
             {
-                if (cardWithTrigger.State == CardState.InPlay && cardWithTrigger.Triggered != null)
+                foreach (var sensorId in sensorIdsWithTrigger)
                 {
-                    game = cardWithTrigger.Triggered.ProcessEvent(game, nextEvent, cardWithTrigger);
+                    var sensor = Kernel.Sensors[sensorId];
+                    game = sensor.TriggeredAbility.ProcessEvent(game, nextEvent, sensor);
                 }
             }
-
-            foreach (var cardWithTrigger in originalState.Middle.TopCards)
-            {
-                if (cardWithTrigger.State == CardState.InPlay && cardWithTrigger.Triggered != null)
-                {
-                    game = cardWithTrigger.Triggered.ProcessEvent(game, nextEvent, cardWithTrigger);
-                }
-            }
-
-            foreach (var cardWithTrigger in originalState.Middle.BottomCards)
-            {
-                if (cardWithTrigger.State == CardState.InPlay && cardWithTrigger.Triggered != null)
-                {
-                    game = cardWithTrigger.Triggered.ProcessEvent(game, nextEvent, cardWithTrigger);
-                }
-            }
-
-            foreach (var cardWithTrigger in originalState.Right.TopCards)
-            {
-                if (cardWithTrigger.State == CardState.InPlay && cardWithTrigger.Triggered != null)
-                {
-                    game = cardWithTrigger.Triggered.ProcessEvent(game, nextEvent, cardWithTrigger);
-                }
-            }
-
-            foreach (var cardWithTrigger in originalState.Right.BottomCards)
-            {
-                if (cardWithTrigger.State == CardState.InPlay && cardWithTrigger.Triggered != null)
-                {
-                    game = cardWithTrigger.Triggered.ProcessEvent(game, nextEvent, cardWithTrigger);
-                }
-            }
-
-            foreach (var discardedOrDestroyedCard in originalState.Top.Discards)
-            {
-                if (discardedOrDestroyedCard.Triggered?.DiscardedOrDestroyed() ?? false)
-                {
-                    game = discardedOrDestroyedCard.Triggered.ProcessEvent(
-                        game,
-                        nextEvent,
-                        discardedOrDestroyedCard
-                    );
-                }
-            }
-
-            foreach (var discardedOrDestroyedCard in originalState.Top.Destroyed)
-            {
-                if (discardedOrDestroyedCard.Triggered != null)
-                {
-                    if (discardedOrDestroyedCard.Triggered.DiscardedOrDestroyed())
-                    {
-                        game = discardedOrDestroyedCard.Triggered.ProcessEvent(
-                            game,
-                            nextEvent,
-                            discardedOrDestroyedCard
-                        );
-                    }
-                }
-            }
-
-            foreach (var discardedOrDestroyedCard in originalState.Bottom.Discards)
-            {
-                if (discardedOrDestroyedCard.Triggered?.DiscardedOrDestroyed() ?? false)
-                {
-                    game = discardedOrDestroyedCard.Triggered.ProcessEvent(
-                        game,
-                        nextEvent,
-                        discardedOrDestroyedCard
-                    );
-                }
-            }
-
-            foreach (var discardedOrDestroyedCard in originalState.Bottom.Destroyed)
-            {
-                if (discardedOrDestroyedCard.Triggered != null)
-                {
-                    if (discardedOrDestroyedCard.Triggered.DiscardedOrDestroyed())
-                    {
-                        game = discardedOrDestroyedCard.Triggered.ProcessEvent(
-                            game,
-                            nextEvent,
-                            discardedOrDestroyedCard
-                        );
-                    }
-                }
-            }
-
-            foreach (var cardInHand in originalState.Top.Hand)
-            {
-                if (cardInHand.Triggered != null)
-                {
-                    if (cardInHand.Triggered.InHand())
-                    {
-                        game = cardInHand.Triggered.ProcessEvent(game, nextEvent, cardInHand);
-                    }
-                }
-            }
-
-            foreach (var cardInHand in originalState.Bottom.Hand)
-            {
-                if (cardInHand.Triggered != null)
-                {
-                    if (cardInHand.Triggered.InHand())
-                    {
-                        game = cardInHand.Triggered.ProcessEvent(game, nextEvent, cardInHand);
-                    }
-                }
-            }
-
-            foreach (var cardInLibrary in originalState.Top.Library)
-            {
-                if (cardInLibrary.Triggered != null)
-                {
-                    if (cardInLibrary.Triggered.InDeck())
-                    {
-                        game =
-                            cardInLibrary.Triggered?.ProcessEvent(game, nextEvent, cardInLibrary)
-                            ?? game;
-                    }
-                }
-            }
-
-            foreach (var cardInLibrary in originalState.Bottom.Library)
-            {
-                if (cardInLibrary.Triggered != null)
-                {
-                    if (cardInLibrary.Triggered.InDeck())
-                    {
-                        game =
-                            cardInLibrary.Triggered?.ProcessEvent(game, nextEvent, cardInLibrary)
-                            ?? game;
-                    }
-                }
-            }
-
-            foreach (var sensor in sensors)
-            {
-                game = sensor.TriggeredAbility?.ProcessEvent(game, nextEvent, sensor) ?? game;
-            }
+            //foreach (var sensor in sensors)
+            //{
+            //    game = sensor.TriggeredAbility?.ProcessEvent(game, nextEvent, sensor) ?? game;
+            //}
 
             foreach (var location in Locations)
             {

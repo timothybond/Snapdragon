@@ -53,7 +53,11 @@ namespace Snapdragon.GameAccessors
         Multipliers TopRightMultipliers,
         Multipliers BottomLeftMultipliers,
         Multipliers BottomMiddleMultipliers,
-        Multipliers BottomRightMultipliers
+        Multipliers BottomRightMultipliers,
+        ImmutableDictionary<long, EventType> CardEventTriggers,
+        ImmutableDictionary<EventType, ImmutableHashSet<long>> CardsByTriggerEventType,
+        ImmutableDictionary<long, EventType> SensorEventTriggers,
+        ImmutableDictionary<EventType, ImmutableHashSet<long>> SensorsByTriggerEventType
     )
     {
         public static GameKernel FromPlayersAndLocations(
@@ -78,6 +82,18 @@ namespace Snapdragon.GameAccessors
                 kvp => CardState.InLibrary
             );
             var cardLocations = cards.ToImmutableDictionary(kvp => kvp.Key, kvp => (Column?)null);
+
+            // Initially the only triggers possible are those that happen when in the library
+            var cardEventTriggers = cards
+                .Values.Where(c => c.Triggered?.WhenInDeck ?? false)
+                .ToImmutableDictionary(c => c.Id, c => c.Triggered!.EventType);
+
+            var cardsByEventType = cardEventTriggers
+                .GroupBy(kvp => kvp.Value)
+                .ToImmutableDictionary(
+                    g => g.Key,
+                    g => g.Select(kvp => kvp.Key).ToImmutableHashSet()
+                );
 
             return new GameKernel(
                 0,
@@ -121,7 +137,11 @@ namespace Snapdragon.GameAccessors
                 new(),
                 new(),
                 new(),
-                new()
+                new(),
+                cardEventTriggers,
+                cardsByEventType,
+                ImmutableDictionary<long, EventType>.Empty,
+                ImmutableDictionary<EventType, ImmutableHashSet<long>>.Empty
             );
         }
 
@@ -403,13 +423,9 @@ namespace Snapdragon.GameAccessors
                 );
             }
 
-            return (
-                this with
-                {
-                    CardStates = CardStates.SetItem(cardId, CardState.InPlay),
-                    RevealedCards = RevealedCards.Add(cardId)
-                }
-            ).WithUpdatedCard(card with { TurnRevealed = Turn });
+            return (this with { RevealedCards = RevealedCards.Add(cardId) })
+                .WithCardInStateUnsafe(cardId, CardState.InPlay)
+                .WithUpdatedCard(card with { TurnRevealed = Turn });
         }
 
         /// <summary>
@@ -817,6 +833,36 @@ namespace Snapdragon.GameAccessors
                     throw new NotImplementedException();
             }
 
+            var sensorEventTriggers = SensorEventTriggers;
+            var sensorsByTriggerEventType = SensorsByTriggerEventType;
+
+            if (sensor.TriggeredAbility?.EventType != null)
+            {
+                var eventType = sensor.TriggeredAbility.EventType;
+
+                sensorEventTriggers = sensorEventTriggers.Add(sensor.Id, eventType);
+
+                if (
+                    sensorsByTriggerEventType.TryGetValue(
+                        eventType,
+                        out ImmutableHashSet<long> existingSensors
+                    )
+                )
+                {
+                    sensorsByTriggerEventType = sensorsByTriggerEventType.SetItem(
+                        eventType,
+                        existingSensors.Add(sensor.Id)
+                    );
+                }
+                else
+                {
+                    sensorsByTriggerEventType = sensorsByTriggerEventType.SetItem(
+                        eventType,
+                        [sensor.Id]
+                    );
+                }
+            }
+
             return this with
             {
                 Sensors = Sensors.Add(sensor.Id, sensor),
@@ -827,12 +873,26 @@ namespace Snapdragon.GameAccessors
                 TopRightSensors = topRightSensors,
                 BottomLeftSensors = bottomLeftSensors,
                 BottomMiddleSensors = bottomMiddleSensors,
-                BottomRightSensors = bottomRightSensors
+                BottomRightSensors = bottomRightSensors,
+                SensorEventTriggers = sensorEventTriggers,
+                SensorsByTriggerEventType = sensorsByTriggerEventType
             };
         }
 
         public GameKernel DestroySensor(long sensorId, Column column, Side side)
         {
+            var sensorEventTriggers = SensorEventTriggers;
+            var sensorsByTriggerEventType = SensorsByTriggerEventType;
+
+            if (sensorEventTriggers.TryGetValue(sensorId, out EventType eventType))
+            {
+                sensorEventTriggers = sensorEventTriggers.Remove(sensorId);
+                sensorsByTriggerEventType = sensorsByTriggerEventType.SetItem(
+                    eventType,
+                    sensorsByTriggerEventType[eventType].Remove(sensorId)
+                );
+            }
+
             return RemoveSensorFromLocationUnsafe(sensorId, column, side) with
             {
                 Sensors = Sensors.Remove(sensorId),
@@ -843,7 +903,9 @@ namespace Snapdragon.GameAccessors
                 TopRightSensors = TopRightSensors.Remove(sensorId),
                 BottomLeftSensors = BottomLeftSensors.Remove(sensorId),
                 BottomMiddleSensors = BottomMiddleSensors.Remove(sensorId),
-                BottomRightSensors = BottomRightSensors.Remove(sensorId)
+                BottomRightSensors = BottomRightSensors.Remove(sensorId),
+                SensorEventTriggers = sensorEventTriggers,
+                SensorsByTriggerEventType = sensorsByTriggerEventType
             };
         }
 
@@ -857,6 +919,18 @@ namespace Snapdragon.GameAccessors
         /// <param name="cardId">Unique identifier of the card.</param>
         public GameKernel RemoveCardFromGame(long cardId)
         {
+            var cardEventTriggers = CardEventTriggers;
+            var cardsByTriggerEventType = CardsByTriggerEventType;
+
+            if (cardEventTriggers.TryGetValue(cardId, out EventType eventType))
+            {
+                cardEventTriggers = cardEventTriggers.Remove(cardId);
+                cardsByTriggerEventType = cardsByTriggerEventType.SetItem(
+                    eventType,
+                    cardsByTriggerEventType[eventType].Remove(cardId)
+                );
+            }
+
             return this with
             {
                 Cards = Cards.Remove(cardId),
@@ -878,7 +952,9 @@ namespace Snapdragon.GameAccessors
                 BottomDiscards = BottomDiscards.Remove(cardId),
                 BottomDestroyed = BottomDestroyed.Remove(cardId),
                 PlayedCards = PlayedCards.Remove(cardId),
-                RevealedCards = RevealedCards.Remove(cardId)
+                RevealedCards = RevealedCards.Remove(cardId),
+                CardEventTriggers = cardEventTriggers,
+                CardsByTriggerEventType = cardsByTriggerEventType
             };
         }
 
@@ -1222,7 +1298,62 @@ namespace Snapdragon.GameAccessors
         /// <returns></returns>
         private GameKernel WithCardInStateUnsafe(long cardId, CardState state)
         {
-            return this with { CardStates = CardStates.SetItem(cardId, state) };
+            var card = Cards[cardId];
+
+            bool needsTrigger = NeedsTrigger(card, state);
+
+            var cardEventTriggers = CardEventTriggers;
+            var cardsByTriggerEventType = CardsByTriggerEventType;
+
+            if (needsTrigger)
+            {
+                var eventType = card.Triggered.EventType;
+                if (
+                    !cardEventTriggers.TryGetValue(cardId, out EventType oldEventType)
+                    || oldEventType == eventType
+                )
+                {
+                    cardEventTriggers = cardEventTriggers.SetItem(cardId, eventType);
+
+                    if (
+                        cardsByTriggerEventType.TryGetValue(
+                            eventType,
+                            out ImmutableHashSet<long> existingCards
+                        )
+                    )
+                    {
+                        cardsByTriggerEventType = cardsByTriggerEventType.SetItem(
+                            eventType,
+                            existingCards.Add(cardId)
+                        );
+                    }
+                    else
+                    {
+                        cardsByTriggerEventType = cardsByTriggerEventType.SetItem(
+                            eventType,
+                            [cardId]
+                        );
+                    }
+                }
+            }
+            else // Need to remove existing trigger, if any
+            {
+                if (cardEventTriggers.TryGetValue(cardId, out EventType oldEventType))
+                {
+                    cardsByTriggerEventType = cardsByTriggerEventType.SetItem(
+                        oldEventType,
+                        cardsByTriggerEventType[oldEventType].Remove(cardId)
+                    );
+                    cardEventTriggers = cardEventTriggers.Remove(cardId);
+                }
+            }
+
+            return this with
+            {
+                CardStates = CardStates.SetItem(cardId, state),
+                CardEventTriggers = cardEventTriggers,
+                CardsByTriggerEventType = cardsByTriggerEventType
+            };
         }
 
         /// <summary>
@@ -1233,12 +1364,45 @@ namespace Snapdragon.GameAccessors
         /// <param name="cardBase">New card to add.</param>
         private GameKernel WithNewCardUnsafe(CardBase cardBase, Side side, CardState initialState)
         {
+            bool needsTrigger = NeedsTrigger(cardBase, initialState);
+
+            var cardEventTriggers = CardEventTriggers;
+            var cardsByTriggerEventType = CardsByTriggerEventType;
+
+            if (needsTrigger)
+            {
+                var eventType = cardBase.Triggered.EventType;
+                if (
+                    !cardEventTriggers.TryGetValue(cardBase.Id, out EventType oldEventType)
+                    || oldEventType == eventType
+                )
+                {
+                    cardEventTriggers = cardEventTriggers.SetItem(cardBase.Id, eventType);
+
+                    if (
+                        cardsByTriggerEventType.TryGetValue(
+                            eventType,
+                            out ImmutableHashSet<long> existingCards
+                        )
+                    )
+                    {
+                        cardsByTriggerEventType.SetItem(eventType, existingCards.Add(cardBase.Id));
+                    }
+                    else
+                    {
+                        cardsByTriggerEventType.SetItem(eventType, [cardBase.Id]);
+                    }
+                }
+            }
+
             return this with
             {
                 Cards = Cards.Add(cardBase.Id, cardBase),
                 CardSides = CardSides.Add(cardBase.Id, side),
                 CardStates = CardStates.Add(cardBase.Id, initialState),
-                CardLocations = CardLocations.Add(cardBase.Id, null)
+                CardLocations = CardLocations.Add(cardBase.Id, null),
+                CardEventTriggers = cardEventTriggers,
+                CardsByTriggerEventType = cardsByTriggerEventType
             };
         }
 
@@ -1305,6 +1469,30 @@ namespace Snapdragon.GameAccessors
                 (Column.Right, Side.Bottom) => BottomRightCards,
                 (_, _) => throw new NotImplementedException()
             };
+        }
+
+        private bool NeedsTrigger(CardBase cardBase, CardState state)
+        {
+            var eventType = cardBase.Triggered?.EventType;
+            if (eventType != null)
+            {
+                switch (state)
+                {
+                    case CardState.InHand:
+                        return cardBase.Triggered!.WhenInHand;
+                    case CardState.InLibrary:
+                        return cardBase.Triggered.WhenInDeck;
+                    case CardState.Discarded:
+                    case CardState.Destroyed:
+                        return cardBase.Triggered.WhenDiscardedOrDestroyed;
+                    case CardState.InPlay:
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+
+            return false;
         }
 
         #endregion

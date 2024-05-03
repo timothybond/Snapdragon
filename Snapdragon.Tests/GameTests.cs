@@ -319,7 +319,7 @@ namespace Snapdragon.Tests
 
             game = game.PlaySingleTurn();
 
-            Assert.That(game[column].TopCards.Count, Is.EqualTo(1));
+            Assert.That(game[column].TopCardsIncludingUnrevealed.Count, Is.EqualTo(1));
         }
 
         [Test]
@@ -352,7 +352,7 @@ namespace Snapdragon.Tests
 
             game = game.PlaySingleTurn();
 
-            Assert.That(game[column].TopCards.First().State, Is.EqualTo(CardState.InPlay));
+            Assert.That(game[column].TopCardsIncludingUnrevealed.First().State, Is.EqualTo(CardState.InPlay));
         }
 
         [Test]

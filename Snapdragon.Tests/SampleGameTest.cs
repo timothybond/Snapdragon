@@ -78,9 +78,9 @@ namespace Snapdragon.Tests
         // Most of these test cases are commented out because this test is pretty slow,
         // so we don't want to run it every time we run all of the tests.
         [Test]
-        [TestCase(1)]
+        //[TestCase(1)]
         //[TestCase(5)]
-        //[TestCase(10)]
+        [TestCase(10)]
         //[TestCase(20)]
         //[TestCase(50)]
         //[TestCase(100)]

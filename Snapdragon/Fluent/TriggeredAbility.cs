@@ -4,12 +4,12 @@
         IEffectBuilder<TEvent, TContext> EffectBuilder,
         IEventFilter<TEvent, TContext>? EventFilter,
         ICondition<TEvent, TContext>? Condition = null
-    ) : BaseTriggeredAbility<TContext, TEvent>, ISpecialCardTrigger
+    ) : BaseTriggeredAbility<TContext, TEvent>(), ISpecialCardTrigger
         where TEvent : Event
     {
-        public virtual bool WhenDiscardedOrDestroyed => false;
-        public virtual bool WhenInHand => false;
-        public virtual bool WhenInDeck => false;
+        public override bool WhenDiscardedOrDestroyed => false;
+        public override bool WhenInHand => false;
+        public override bool WhenInDeck => false;
 
         protected override Game ProcessEvent(Game game, TEvent e, TContext source)
         {
