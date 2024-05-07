@@ -1,3 +1,7 @@
+**Note: This is a branch of the "GameKernel" logic, where I split out a separate data structure to hold card locations and such. This was intended to make it impossible to make mistakes where e.g. a card was listed in multiple places.**
+
+**After working on it for a while, I became convinced that this - at least in its current form - was not worth the performance hit and complexity associated with it, particularly to solve a problem that hadn't really cropped up much (or maybe at all) in the first place.**
+
 # Snapdragon
 
 For posterity - this is a demonstration project that I wrote while applying for a job at Second Dinner to work on Marvel Snap.
