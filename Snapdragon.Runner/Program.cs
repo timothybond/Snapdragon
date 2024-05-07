@@ -21,5 +21,11 @@ using (var repository = repositoryBuilder.Build())
 //var moveExperiment = new MoveDeckSoloExperiment();
 //await moveExperiment.Run(repositoryBuilder);
 
-var kaZarExperiment = new KaZarSoloExperiment();
-await kaZarExperiment.Run(repositoryBuilder);
+//var kaZarExperiment = new KaZarSoloExperiment();
+//await kaZarExperiment.Run(repositoryBuilder);
+
+//var hazmatExperiment = new KaZarHazmatExperiment();
+//await hazmatExperiment.Run();
+
+var unguided = new UnguidedExperiment();
+await unguided.Run(repositoryBuilder);
