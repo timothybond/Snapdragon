@@ -51,5 +51,17 @@ namespace Snapdragon
         {
             return $"{Name} ({Id}) {Cost}E {AdjustedPower}P";
         }
+
+        public CardBase WithModification(Modification modification)
+        {
+            var modifications = Modifications.Add(modification);
+
+            return this with
+            {
+                Power = Definition.Power + modifications.Sum(m => m.PowerChange ?? 0),
+                Cost = Definition.Cost + modifications.Sum(m => m.CostChange ?? 0),
+                Modifications = modifications
+            };
+        }
     }
 }

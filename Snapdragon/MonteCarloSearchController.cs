@@ -1,4 +1,6 @@
-﻿namespace Snapdragon
+﻿using Snapdragon.PlayerActions;
+
+namespace Snapdragon
 {
     public class MonteCarloSearchController : IPlayerController
     {
@@ -30,6 +32,15 @@
             // instantiating all of these objects at once.
             foreach (var possibleActions in possibleActionLists)
             {
+                if (
+                    possibleActions
+                        .OfType<PlayCardAction>()
+                        .Select(pca => pca.Card)
+                        .Sum(c => c.Cost) > 6
+                )
+                {
+                    throw new InvalidOperationException();
+                }
                 var victories = 0;
 
                 for (var i = 0; i < this.simulationCount; i++)

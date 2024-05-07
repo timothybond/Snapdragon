@@ -1,5 +1,4 @@
-﻿using Snapdragon.Fluent;
-using Snapdragon.Fluent.Ongoing;
+﻿using Snapdragon.Fluent.Ongoing;
 using Snapdragon.GameKernelAccessors;
 using Snapdragon.PlayerActions;
 
@@ -58,12 +57,18 @@ namespace Snapdragon
                 locationsWithLocationEffectBlocks
             );
 
+            var playableCardSets = GetPlayableCardSets(game[side]);
+
             foreach (var moveSet in possibleMoveSets)
             {
                 var gameWithMoves = moveSet.Aggregate(game, (g, move) => move.Apply(g));
 
                 foreach (
-                    var possibleCardPlays in GetPossiblePlayCardActionSets(gameWithMoves, side)
+                    var possibleCardPlays in GetPossiblePlayCardActionSets(
+                        gameWithMoves,
+                        side,
+                        playableCardSets
+                    )
                 )
                 {
                     yield return moveSet.Concat(possibleCardPlays).ToList();
@@ -300,15 +305,23 @@ namespace Snapdragon
         /// </summary>
         public static IEnumerable<IReadOnlyList<IPlayerAction>> GetPossiblePlayCardActionSets(
             Game game,
-            Side side
+            Side side,
+            IReadOnlyList<IReadOnlyList<ICardInstance>> playableCardSets
         )
         {
             var cardsWithLocationEffectBlocks = game
                 .AllCards.Where(c => c.Ongoing is OngoingBlockLocationEffect<ICard>)
                 .ToList();
 
-            // Every entry in this list is a set of cards we can afford to play
-            var playableCardSets = GetPlayableCardSets(game[side]);
+            foreach (var playableCardSet in playableCardSets)
+            {
+                if (playableCardSet.Sum(c => c.Cost) > game[side].Energy)
+                {
+                    throw new InvalidOperationException(
+                        "Tried to play cards with greater cost than energy."
+                    );
+                }
+            }
 
             // This is the count of open slots by column,
             // and also where we check if PlayCards is blocked
@@ -607,12 +620,12 @@ namespace Snapdragon
             IPlayerAccessor player
         )
         {
-            return GetPlayableCardSets(player.Energy, player.Hand.ToList());
+            return GetPlayableCardSets(player.Energy, player.Hand);
         }
 
         private static IReadOnlyList<IReadOnlyList<ICardInstance>> GetPlayableCardSets(
             int energy,
-            IReadOnlyList<ICardInstance> hand
+            IReadOnlyCollection<ICardInstance> hand
         )
         {
             var results = new List<IReadOnlyList<ICardInstance>>();
@@ -620,22 +633,63 @@ namespace Snapdragon
             // Can always just play no cards.
             results.Add(new List<ICardInstance>());
 
-            var playableCards = hand.Where(c => c.Cost <= energy).ToList();
+            var playableCards = new Stack<ICardInstance>(hand);
 
-            // Repeatedly build sets of cards that can be played in addition to the first card,
-            // and then remove that first card, until there are no cards left.
-            while (playableCards.Count > 0)
-            {
-                var first = playableCards.First();
-                playableCards = playableCards.Skip(1).ToList();
+            GetPlayableCardSetsHelper(energy, new Stack<ICardInstance>(), playableCards, results);
 
-                results.AddRange(
-                    GetPlayableCardSets(energy - first.Cost, playableCards)
-                        .Select(cards => cards.Concat(new[] { first }).ToList())
-                );
-            }
+            //var playableCards = hand.Where(c => c.Cost <= energy).ToList();
+
+            //// Repeatedly build sets of cards that can be played in addition to the first card,
+            //// and then remove that first card, until there are no cards left.
+            //while (playableCards.Count > 0)
+            //{
+            //    var first = playableCards.First();
+            //    playableCards = playableCards.Skip(1).ToList();
+
+            //    results.AddRange(
+            //        GetPlayableCardSets(energy - first.Cost, playableCards)
+            //            .Select(cards => cards.Concat(new[] { first }).ToList())
+            //    );
+            //}
 
             return results;
+        }
+
+        private static void GetPlayableCardSetsHelper(
+            int energy,
+            Stack<ICardInstance> cardsSoFar,
+            Stack<ICardInstance> remainingCards,
+            List<IReadOnlyList<ICardInstance>> results
+        )
+        {
+            if (remainingCards.Count > 0)
+            {
+                var nextCard = remainingCards.Pop();
+
+                if (nextCard.Cost <= energy)
+                {
+                    cardsSoFar.Push(nextCard);
+                    results.Add(cardsSoFar.ToList());
+
+                    if (cardsSoFar.Sum(c => c.Cost) > 6)
+                    {
+                        throw new InvalidOperationException();
+                    }
+
+                    GetPlayableCardSetsHelper(
+                        energy - nextCard.Cost,
+                        cardsSoFar,
+                        remainingCards,
+                        results
+                    );
+
+                    cardsSoFar.Pop();
+                }
+
+                GetPlayableCardSetsHelper(energy, cardsSoFar, remainingCards, results);
+
+                remainingCards.Push(nextCard);
+            }
         }
     }
 }

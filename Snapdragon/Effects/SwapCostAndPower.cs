@@ -10,15 +10,7 @@
             var costMod = newCost - card.Cost;
             var powerMod = newPower - card.Power;
 
-            return card with
-            {
-                Modifications = card.Modifications.Add(new Modification(costMod, powerMod, Source))
-            };
-        }
-
-        protected override bool IsBlocked(ICardInstance card, Game game)
-        {
-            return false;
+            return card.WithModification(new Modification(costMod, powerMod, Source));
         }
     }
 }

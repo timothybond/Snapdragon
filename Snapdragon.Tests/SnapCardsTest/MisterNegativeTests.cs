@@ -29,6 +29,38 @@
 
         [Test]
         [TestCaseSource(typeof(AllSidesAndColumns))]
+        public void PlayedTwice_ReturnsCardsToOriginalState(Side side, Column column)
+        {
+            var game = TestHelpers
+                .NewGame()
+                .PlaySingleTurn()
+                .PlaySingleTurn()
+                .PlaySingleTurn()
+                .WithCardsInDeck(
+                    side,
+                    "Mister Negative",
+                    "Mister Negative",
+                    "Iron Man",
+                    "White Tiger"
+                )
+                .PlayCards(side, column, "Mister Negative")
+                .PlayCards(side, column, "Mister Negative");
+
+            var cardsInDeck = game[side].Library;
+
+            Assert.That(cardsInDeck, Has.Exactly(2).Items);
+
+            Assert.That(cardsInDeck[0].Name, Is.EqualTo("Iron Man"));
+            Assert.That(cardsInDeck[0].Cost, Is.EqualTo(5));
+            Assert.That(cardsInDeck[0].Power, Is.EqualTo(0));
+
+            Assert.That(cardsInDeck[1].Name, Is.EqualTo("White Tiger"));
+            Assert.That(cardsInDeck[1].Cost, Is.EqualTo(5));
+            Assert.That(cardsInDeck[1].Power, Is.EqualTo(1));
+        }
+
+        [Test]
+        [TestCaseSource(typeof(AllSidesAndColumns))]
         public void DoesNotAffectCardsInHand(Side side, Column column)
         {
             var game = TestHelpers

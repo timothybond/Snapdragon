@@ -984,8 +984,12 @@ namespace Snapdragon.GameAccessors
         /// </summary>
         private ICard GetCardUnsafe(long cardId)
         {
-            var card = Cards.GetValueOrDefault(cardId);
-            return new Card(card, this);
+            if (Cards.TryGetValue(cardId, out CardBase cardBase))
+            {
+                return new Card(cardBase, this);
+            }
+
+            throw new InvalidOperationException($"Tried to get nonexistent card '{cardId}'.");
         }
 
         /// <summary>

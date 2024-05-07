@@ -101,6 +101,14 @@ namespace Snapdragon
 
             var playableCardSets = GetPlayableCardSets(game[side]);
 
+            foreach (var playableCardSet in playableCardSets)
+            {
+                if (playableCardSet.Sum(c => c.Cost) > 6)
+                {
+                    throw new InvalidOperationException();
+                }
+            }
+
             var availableColumns = GetPlayableCardSlots(game, side, cardsWithLocationEffectBlocks);
             var totalAvailableSlots =
                 availableColumns.Left + availableColumns.Middle + availableColumns.Right;

@@ -4,6 +4,7 @@ using Snapdragon.Fluent;
 using Snapdragon.Fluent.Ongoing;
 using Snapdragon.GameAccessors;
 using Snapdragon.GameKernelAccessors;
+using Snapdragon.PlayerActions;
 
 namespace Snapdragon
 {
@@ -316,14 +317,14 @@ namespace Snapdragon
             // Note: This weird scope exists because I didn't feel like keeping around two references to the same thing,
             // but I couldn't directly replace "card" until I verified that it wasn't null.
             {
-                var actualCard = this[card.Column][card.Side].SingleOrDefault(c => c.Id == card.Id);
+                var actualCard = this.Kernel[card.Id];
 
                 if (actualCard == null)
                 {
                     return false;
                 }
 
-                card = actualCard;
+                card = (ICard)actualCard;
             }
 
             var blockedEffects = GetBlockedEffects(
@@ -830,6 +831,22 @@ namespace Snapdragon
             // Get player actions
             var topPlayerActions = game.Top.Controller.GetActions(game, Side.Top);
             var bottomPlayerActions = game.Bottom.Controller.GetActions(game, Side.Bottom);
+
+            if (
+                topPlayerActions.OfType<PlayCardAction>().Sum(pca => pca.Card.Cost)
+                > this.Top.Energy
+            )
+            {
+                throw new InvalidOperationException();
+            }
+
+            if (
+                bottomPlayerActions.OfType<PlayCardAction>().Sum(pca => pca.Card.Cost)
+                > this.Bottom.Energy
+            )
+            {
+                throw new InvalidOperationException();
+            }
 
             // Resolve player actions
             game = game.ProcessPlayerActions(topPlayerActions, bottomPlayerActions);
