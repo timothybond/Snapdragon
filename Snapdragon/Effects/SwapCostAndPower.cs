@@ -2,7 +2,7 @@
 {
     public record SwapCostAndPower(ICardInstance Card, object Source) : ModifyCard(Card)
     {
-        protected override CardBase ApplyToCard(CardBase card, Game game)
+        protected override ICardInstance ApplyToCard(ICardInstance card, Game game)
         {
             var newCost = Math.Max(0, Math.Min(6, card.Power));
             var newPower = card.Cost;

@@ -18,8 +18,7 @@ namespace Snapdragon.Fluent.EffectBuilders
             }
 
             var players =
-                PlayerSelector?.Get(context, game).ToList()
-                ?? new List<Player> { game[card.Side].Player };
+                PlayerSelector?.Get(context, game).ToList() ?? new List<Player> { game[card.Side] };
 
             if (players.Count == 0)
             {
@@ -53,7 +52,7 @@ namespace Snapdragon.Fluent.EffectBuilders
 
             var players =
                 PlayerSelector?.Get(e, context, game).ToList()
-                ?? new List<Player> { game[card.Side].Player };
+                ?? new List<Player> { game[card.Side] };
 
             if (players.Count == 0)
             {

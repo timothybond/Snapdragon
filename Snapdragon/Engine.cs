@@ -1,4 +1,4 @@
-﻿using Snapdragon.GameAccessors;
+﻿using System.Collections.Immutable;
 
 namespace Snapdragon
 {
@@ -32,27 +32,27 @@ namespace Snapdragon
 
             var firstRevealedOrRandom = firstRevealed ?? Random.Side();
 
-            var topPlayer = topPlayerConfig.ToPlayer(Side.Top);
-            var bottomPlayer = bottomPlayerConfig.ToPlayer(Side.Bottom);
-
             // TODO: Specify different Locations, with effects
             // TODO: Handle card abilities that put them in a specific draw order
             var game = new Game(
                 Guid.NewGuid(),
-                GameKernel.FromPlayersAndLocations(
-                    topPlayer,
-                    bottomPlayer,
-                    locationDefinitions.Left,
-                    locationDefinitions.Middle,
-                    locationDefinitions.Right
-                ),
-                topPlayer,
-                bottomPlayer,
+                0,
+                new Location(Column.Left, locationDefinitions.Left),
+                new Location(Column.Middle, locationDefinitions.Middle),
+                new Location(Column.Right, locationDefinitions.Right),
+                topPlayerConfig.ToPlayer(Side.Top, shuffle),
+                bottomPlayerConfig.ToPlayer(Side.Bottom, shuffle),
                 firstRevealedOrRandom,
                 [],
                 [],
+                ImmutableDictionary<long, ICardInstance>.Empty,
+                ImmutableDictionary<long, EventType>.Empty,
+                ImmutableDictionary<EventType, ImmutableHashSet<long>>.Empty,
+                ImmutableDictionary<long, Sensor<ICard>>.Empty,
+                ImmutableDictionary<long, EventType>.Empty,
+                ImmutableDictionary<EventType, ImmutableHashSet<long>>.Empty,
                 this.logger
-            );
+            ).Initialize();
 
             if (repository != null)
             {

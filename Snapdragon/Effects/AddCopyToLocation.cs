@@ -17,7 +17,7 @@
                 return game;
             }
 
-            return game.WithCopyInPlay(card, Column, Side ?? Card.Side);
+            return game.WithCopyInPlayUnsafe(card, Column, Side ?? Card.Side);
         }
     }
 }

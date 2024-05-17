@@ -27,10 +27,9 @@ Some notes about the items within the main "Snapdragon" project:
 - Virtually everything is implemented as immutable record types with various transformations. This is important for the typical reason of avoiding unexpected mutations and allowing me to run everything safely on multiple threads, but also because the Monte Carlo game search logic requires me to easily be able to make derivitive game states and run them forward.
 - `SnapCards` contains all of the implemented Marvel Snap cards. It's also a reasonable place to look to get a sense for what ability logic has been written.
 - The `Snapdragon.Effects` namespace has types derive from `IEffect`, which have enough information (on instantiation) to transform an instance of `Game`. Most (but not all) other things that transform `Game` do so by creating an `IEffect` and then applying them.
-- Some cards (e.g., Hawkeye, Jessica Jones) have on-reveal abilities that create some kind of trigger associated with the space they were played in (regardless of whether the card is then moved). I have chosen to refer to these as "Sensors".
-- Outside the context of the game, I use the `CardDefinition` type to refer to a card in the abstract (cost, abilities, etc.). Once a card is used in a game, and then has a Side (i.e., which Player owns it), it gets transformed into the `CardInstance` type (implementing `ICardInstance`). Once it is in a specific location it finally becomes an instance of `Card` (implementing `ICard`).
+- Some cards (e.g., Hawkeye, Jessica Jones) have on-reveal abilities that create some kind of trigger associated with the space they were played in (regardless of whether the card is then moved). I have chosen to refer to these as "Sensors", most of the logic for which is in the `Snapdragon.Sensors` namespace.
+- Outside the context of the game, I use the `CardDefinition` type to refer to a card in the abstract (cost, abilities, etc.). Once a card is used in a game, and then has a Side (i.e., which Player owns it), it gets transformed into the `Card` type.
 - Pretty much all of the Monte Carlo game search logic is implemented in either the `MonteCarloSearchController` or in the `ControllerUtilities` class. `ControllerUtilities` mostly consists of logic to get exhaustive sets of all of the possible actions a given player can take on a given turn.
-- In an effort to prevent inconsistencies, several things about `Card`s/`CardInstance`s and `Sensors` are actually stored in an object I've named `GameKernel`, which is intended to prevent things like a `Card` thinking it's in one `Column` but actually being in another.
 
 # Future Work
 
@@ -40,7 +39,7 @@ As noted above, this project isn't attempting to implement everything, so there'
 
 ### Locations
 
-I'm only partway through implementing `LocationDefinition`s, with many categories of `Location` ability not addressed yet.
+I'm only partway through implementing `Location`s, with many categories of `Location` ability not addressed yet.
 
 ### Hidden Information
 
@@ -50,7 +49,7 @@ This is definitely fixable with effort, but I would need to make a transform to 
 
 ### Various Card Abilities
 
-At time of writing I have implemented 57 cards, out of what I believe are a few hundred. I've tried to cover a variety of effects - on-reveal, ongoing, movement, etc. - to make it obvious I can do so.
+At time of writing I have implemented 47 cards, out of what I believe are a few hundred. I've tried to cover a variety of effects - on-reveal, ongoing, movement, etc. - to make it obvious I can do so.
 
 There are a few categories of abilities I still haven't tackled, such as restrictions on when a card can be played (e.g. Ebony Maw, Infinaut).
 
@@ -92,9 +91,11 @@ invoked *without* passing in the `source` object (which would theoretically be t
 
 ### Card.Column
 
-A recent refactor makes it (roughly) impossible for an `ICard` to have an inconsistent `Column`, but I haven't finished writing all of the necessary tests for this.
+I fixed the previous problem that was here, where the nullable `Card.Column` property was getting checked a lot and I had to constantly look for nulls - now in-play cards are of type `Card` and not-in-play cards are of type `CardInstance` and I always know that `Card.Column` is non-null.
 
-Also I think I may have re-introduced some instances of an older problem where I wouldn't always know whether something had a non-null `Column` value for sure.
+However, this introduced a lot of places where I needed to specify types where I didn't before, so I think there's more cleanup to be done there.
+
+Also, I still have the issue that a `Card.Column` value could mismatch with the `Location.Column` value of its containing `Location`, and it would be nice to address that.
 
 ### ControllerUtilities
 
@@ -122,7 +123,7 @@ A good example of this is if Carnage eats Nova, which immediately gives its powe
 
 I recently rewrote the logic to construct most of the abilities (particularly Ongoing and On-Reveal ones) as a fluent API (at the moment, still nested under a `Snapdragon.Fluent` namespace). I think in general it's an improvement on the prior implementation for abilities, particularly in terms of how easy it is to follow things in `SnapCards.cs` but also in terms of how flexible and extensible the abilities are, but there's definitely some cleanup and refactoring that would be good:
 
-- A lot of the old ability logic is still in place and needs to be deleted (in progress)
+- A lot of the old ability logic is still in place and needs to be deleted
 - Once this is the only way to make abilities, there's no point in keeping it in a `Fluent` namespace (which was more so I could keep track of the in-progress work)
 - Some of the builder types are hard to follow and not well-documented - in practice they end up *mostly* being intuitive, but there's no justification for not making them cleaner and documenting them
 - The types *mostly* work as desired when chaining together stuff, but occasionally I need to explicitly specify one
@@ -147,7 +148,3 @@ new(
     OnReveal.Build(My.OtherCards.WithOngoingAbilities().ModifyPower(2))
 ),
 ```
-
-### Player vs. IPlayerAccessor
-
-While I was doing the refactoring to introduce the `GameKernel` type, I mostly replaced the old `Card`/`Location` and related types with new ones that reference a `GameKernel`. I sort of did this for `Player` too, but not entirely (at least `Energy` is still on the actual `Player` object as opposed to the implementations of `IPlayerAccessor`). There are now a lot of places that weirdly access both things to do basic logic, also, which should be corrected.

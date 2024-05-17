@@ -2,40 +2,57 @@
 using Snapdragon.Events;
 using Snapdragon.Fluent;
 using Snapdragon.Fluent.Ongoing;
-using Snapdragon.GameAccessors;
-using Snapdragon.GameKernelAccessors;
 using Snapdragon.PlayerActions;
 
 namespace Snapdragon
 {
     public record Game(
         Guid Id,
-        GameKernel Kernel,
-        Player TopPlayer,
-        Player BottomPlayer,
+        int Turn,
+        Location Left,
+        Location Middle,
+        Location Right,
+        Player Top,
+        Player Bottom,
         Side FirstRevealed,
         ImmutableList<Event> PastEvents,
         ImmutableList<Event> NewEvents,
+        ImmutableDictionary<long, ICardInstance> CardsById,
+        ImmutableDictionary<long, EventType> CardEventTriggers,
+        ImmutableDictionary<EventType, ImmutableHashSet<long>> CardsByTriggerEventType,
+        ImmutableDictionary<long, Sensor<ICard>> SensorsById,
+        ImmutableDictionary<long, EventType> SensorEventTriggers,
+        ImmutableDictionary<EventType, ImmutableHashSet<long>> SensorsByTriggerEventType,
         IGameLogger Logger,
         bool GameOver = false
     )
     {
         #region Accessors
 
-        public int Turn => Kernel.Turn;
-
-        public IPlayerAccessor Top => new TopPlayerAccessor(this, TopPlayer);
-
-        public IPlayerAccessor Bottom => new BottomPlayerAccessor(this, BottomPlayer);
-
         /// <summary>
-        /// Gets the <see cref="Location"/> for the given <see cref="Column"/>.
-        public Location this[Column column] => Kernel[column];
+        /// Gets the <see cref="Location"/> in the given <see cref="Column"/>.
+        public Location this[Column column]
+        {
+            get
+            {
+                switch (column)
+                {
+                    case Column.Left:
+                        return Left;
+                    case Column.Middle:
+                        return Middle;
+                    case Column.Right:
+                        return Right;
+                    default:
+                        throw new NotImplementedException();
+                }
+            }
+        }
 
         /// <summary>
         /// Gets the <see cref="Player"/> on the given <see cref="Side"/>.
         /// </summary>
-        public IPlayerAccessor this[Side side]
+        public Player this[Side side]
         {
             get
             {
@@ -51,35 +68,57 @@ namespace Snapdragon
             }
         }
 
-        public Location Left => Kernel[Column.Left];
-
-        public Location Middle => Kernel[Column.Middle];
-
-        public Location Right => Kernel[Column.Right];
-
         public IEnumerable<Location> Locations
         {
             get
             {
-                yield return Kernel[Column.Left];
-                yield return Kernel[Column.Middle];
-                yield return Kernel[Column.Right];
+                yield return Left;
+                yield return Middle;
+                yield return Right;
             }
         }
 
         /// <summary>
-        /// Gets all <see cref="ICard"/>s that have been played and revealed.
+        /// Gets all <see cref="CardInstance"/>s that have been played and revealed.
         /// </summary>
-        public IReadOnlyList<ICard> AllCards => this.Kernel.AllCards;
+        public IEnumerable<ICard> AllCards =>
+            this
+                .Left.AllCardsIncludingUnrevealed.Concat(this.Middle.AllCardsIncludingUnrevealed)
+                .Concat(this.Right.AllCardsIncludingUnrevealed)
+                .Where(c => c.State == CardState.InPlay);
+
+        public ICardInstance? GetCardInstance(long cardId)
+        {
+            return CardsById.GetValueOrDefault(cardId);
+        }
+
+        public ICard? GetCard(long cardId)
+        {
+            var cardInstance = CardsById.GetValueOrDefault(cardId);
+
+            if (cardInstance is Card card)
+            {
+                return card;
+            }
+
+            return null;
+        }
+
+        public Sensor<ICard>? GetSensor(long sensorId)
+        {
+            return AllSensors.SingleOrDefault(s => s.Id == sensorId);
+        }
 
         /// <summary>
         /// Gets all <see cref="CardInstance"/>s that have been played, whether or not they are revealed.
         /// </summary>
-        public IReadOnlyList<ICard> AllCardsIncludingUnrevealed =>
-            this.Kernel.AllCardsIncludingUnrevealed;
+        public IEnumerable<ICard> AllCardsIncludingUnrevealed =>
+            this
+                .Left.AllCardsIncludingUnrevealed.Concat(this.Middle.AllCardsIncludingUnrevealed)
+                .Concat(this.Right.AllCardsIncludingUnrevealed);
 
         public IEnumerable<Sensor<ICard>> AllSensors =>
-            this.Locations.SelectMany(l => l.AllSensors);
+            this.Left.Sensors.Concat(this.Middle.Sensors).Concat(this.Right.Sensors);
 
         public IEnumerable<(Ongoing<ICard> Ability, ICard Source)> GetCardOngoingAbilities()
         {
@@ -112,11 +151,6 @@ namespace Snapdragon
             }
         }
 
-        public ICardInstance? GetCard(long cardId)
-        {
-            return Kernel[cardId];
-        }
-
         /// <summary>
         /// Gets all revealed/in-play items that block other effects.
         /// </summary>
@@ -126,7 +160,7 @@ namespace Snapdragon
             IReadOnlyList<Location> LocationsWithLocationEffectBlocks
         ) GetEffectBlockers(IReadOnlyList<ICard> cards = null)
         {
-            cards ??= this.AllCards;
+            cards ??= this.AllCards.ToList();
 
             var cardsWithLocationEffectBlocks = new List<ICard>();
             var cardsWithCardEffectBlocks = new List<ICard>();
@@ -174,7 +208,7 @@ namespace Snapdragon
         {
             var set = new HashSet<EffectType>();
             var location = this[column];
-            var player = this[side].Player;
+            var player = this[side];
 
             foreach (var source in cardsWithLocationEffectBlocks ?? AllCards)
             {
@@ -317,14 +351,14 @@ namespace Snapdragon
             // Note: This weird scope exists because I didn't feel like keeping around two references to the same thing,
             // but I couldn't directly replace "card" until I verified that it wasn't null.
             {
-                var actualCard = this.Kernel[card.Id];
+                var actualCard = this[card.Column][card.Side].SingleOrDefault(c => c.Id == card.Id);
 
                 if (actualCard == null)
                 {
                     return false;
                 }
 
-                card = (ICard)actualCard;
+                card = actualCard;
             }
 
             var blockedEffects = GetBlockedEffects(
@@ -382,22 +416,6 @@ namespace Snapdragon
             return this with { NewEvents = this.NewEvents.Add(e) };
         }
 
-        /// <summary>
-        /// Gets a modified state that includes the passed-in <see cref="Player"/> as appropriate.
-        /// </summary>
-        public Game WithPlayer(Player player)
-        {
-            switch (player.Side)
-            {
-                case Side.Top:
-                    return this with { TopPlayer = player };
-                case Side.Bottom:
-                    return this with { BottomPlayer = player };
-                default:
-                    throw new NotImplementedException();
-            }
-        }
-
         public Game DrawCard(Side side)
         {
             var player = this[side];
@@ -405,10 +423,11 @@ namespace Snapdragon
             // TODO: Check for any blocks on drawing cards
             if (player.Library.Count > 0 && player.Hand.Count < Max.HandSize)
             {
-                var game = this with { Kernel = Kernel.DrawCard(side) };
-                game = game.WithEvent(new CardDrawnEvent(Turn, game[player.Side].Hand.Last()));
-
-                return game;
+                player = player.DrawCard();
+                var drawnCard = player.Hand.Last();
+                return this.WithPlayer(player)
+                    .WithUpdatedCards(drawnCard)
+                    .WithEvent(new CardDrawnEvent(Turn, drawnCard));
             }
 
             return this;
@@ -417,13 +436,23 @@ namespace Snapdragon
         public Game DrawOpponentCard(Side side)
         {
             var player = this[side];
+            var opponent = this[side.Other()];
 
             // TODO: Check for any blocks on drawing cards
-            if (player.Library.Count > 0 && player.Hand.Count < Max.HandSize)
+            if (opponent.Library.Count > 0 && player.Hand.Count < Max.HandSize)
             {
-                var game = this with { Kernel = Kernel.DrawOpponentCard(side) };
-                game = game.WithEvent(new CardDrawnEvent(Turn, game[player.Side].Hand.Last()));
-                return game;
+                var card = opponent.Library[0].ToCardInstance() with
+                {
+                    Side = side,
+                    State = CardState.InHand
+                };
+                opponent = opponent with { Library = opponent.Library.RemoveAt(0) };
+                player = player with { Hand = player.Hand.Add(card) };
+
+                return this.WithPlayer(player)
+                    .WithPlayer(opponent)
+                    .WithUpdatedCards(card)
+                    .WithEvent(new CardDrawnEvent(Turn, card));
             }
 
             return this;
@@ -431,8 +460,11 @@ namespace Snapdragon
 
         public Game WithRevealedLocation(Column column)
         {
-            var game = this with { Kernel = Kernel.RevealLocation(column) };
-            var location = game[column];
+            var location = this[column] with { Revealed = true };
+
+            var game = this.WithLocation(location)
+                .WithEvent(new LocationRevealedEvent(this.Turn, location));
+
             if (location.Definition.OnReveal != null)
             {
                 game = location.Definition.OnReveal.Apply(location, game).Apply(game);
@@ -454,13 +486,21 @@ namespace Snapdragon
             }
         }
 
-        public Game WithNewCardInPlay(CardDefinition cardDefinition, Column column, Side side)
+        /// <summary>
+        /// Adds a new card to a particular location and side.
+        ///
+        /// Does not validate that this is appropriate; caller must orchestrate whatever is happening correctly.
+        /// </summary>
+        /// <param name="cardDefinition"></param>
+        /// <param name="column"></param>
+        /// <param name="side"></param>
+        /// <returns></returns>
+        public Game WithNewCardInPlayUnsafe(CardDefinition cardDefinition, Column column, Side side)
         {
-            // TODO: Raise an event for this
-            var game = this with
-            {
-                Kernel = Kernel.AddNewCardToLocation(cardDefinition, column, side, out long _)
-            };
+            var newCard = new Card(cardDefinition, side, column);
+
+            var location = this[column];
+            var game = this.WithLocation(location.WithCard(newCard)).WithUpdatedCards(newCard); // TODO: Raise an event for this
 
             // For performance reasons, skip recalculation if the card doesn't affect anything
             if (
@@ -478,22 +518,37 @@ namespace Snapdragon
             }
         }
 
-        public Game WithNewCardInHand(CardDefinition cardDefinition, Side side)
+        public Game WithNewCardInHandUnsafe(CardDefinition cardDefinition, Side side)
         {
-            var game = this with
-            {
-                Kernel = Kernel.AddNewCardToHand(cardDefinition, side, out long newCardId)
-            };
+            var newCard = new CardInstance(cardDefinition, side, CardState.InHand);
+            var player = this[side];
 
-            return game.WithEvent(new CardAddedToHandEvent(game.GetCard(newCardId), game.Turn));
+            var hand = player.Hand.Add(newCard);
+            player = player with { Hand = hand };
+            var game = this.WithPlayer(player);
+
+            return game.WithEvent(new CardAddedToHandEvent(newCard, game.Turn))
+                .WithUpdatedCards(newCard);
         }
 
-        public Game WithCopyInPlay(ICardInstance card, Column column, Side side)
+        public Game WithNewCardInDeckUnsafe(CardDefinition cardDefinition, Side side)
         {
-            var game = this with
-            {
-                Kernel = Kernel.AddCopiedCardToLocation(card.Id, column, side, out long _)
-            };
+            var newCard = new CardInstance(cardDefinition, side, CardState.InLibrary);
+            var player = this[side];
+
+            var library = player.Library with { Cards = player.Library.Cards.Add(newCard) };
+            player = player with { Library = library };
+            var game = this.WithPlayer(player).WithUpdatedCards(newCard);
+
+            return game; // TODO: Determine what event should be raised, if any
+        }
+
+        public Game WithCopyInPlayUnsafe(ICardInstance card, Column column, Side side)
+        {
+            var copy = card.ToCardInstance() with { Id = Ids.GetNextCard(), Side = side };
+            var location = this[column].WithCard(copy.InPlayAt(column));
+
+            var game = this.WithLocation(location).WithUpdatedCards(copy);
 
             if (
                 card.Ongoing?.Type == OngoingAbilityType.DoubleOngoingEffects
@@ -510,38 +565,44 @@ namespace Snapdragon
             }
         }
 
-        public Game WithCopyInHand(ICardInstance card, Side side, ICardTransform? transform)
+        public Game WithCopyInHandUnsafe(ICardInstance card, Side side, ICardTransform? transform)
         {
-            var game = this with
-            {
-                Kernel = Kernel.AddCopiedCardToHand(card.Id, side, out long newCardId)
-            };
+            var copy = card.ToCardInstance() with { Id = Ids.GetNextCard(), Side = side };
 
-            var newCard = game.GetCard(newCardId);
             if (transform != null)
             {
-                var transformedCard = transform.Apply(newCard.Base, card); // TODO: Determine if this is ever the wrong "source" for a transform
-                game = game.WithUpdatedCard(transformedCard);
+                copy = transform.Apply(copy).ToCardInstance();
             }
 
-            return game.WithEvent(new CardAddedToHandEvent(game.GetCard(newCardId), game.Turn));
+            var player = this[side];
+
+            var hand = player.Hand.Add(copy);
+            player = player with { Hand = hand };
+            var game = this.WithPlayer(player).WithUpdatedCards(copy);
+
+            return game.WithEvent(new CardAddedToHandEvent(copy, game.Turn));
         }
 
         public Game WithCardDiscarded(ICardInstance card)
         {
-            card = Kernel[card.Id];
-            if (card == null)
+            var player = this[card.Side];
+            var cardInHand = player.Hand.Single(c => c.Id == card.Id);
+            var cardDiscarded = cardInHand.ToCardInstance() with { State = CardState.Discarded };
+            player = player with
             {
-                throw new InvalidOperationException($"Card {card.Name} ({card.Id}) not found.");
-            }
+                Hand = player.Hand.Remove(cardInHand),
+                Discards = player.Discards.Add(cardDiscarded)
+            };
 
-            var game = this with { Kernel = Kernel.DiscardCard(card.Id, card.Side) };
-            return game.WithEvent(new CardDiscardedEvent(game.Turn, card));
+            return this.WithPlayer(player)
+                .WithUpdatedCards(cardDiscarded)
+                .WithEvent(new CardDiscardedEvent(this.Turn, cardDiscarded));
         }
 
         public Game DestroyCardInPlay(ICardInstance card)
         {
-            var actualCard = Kernel[card.Id] as ICard;
+            var actualCard = this.AllCards.Single(c => c.Id == card.Id);
+
             if (actualCard == null)
             {
                 throw new InvalidOperationException(
@@ -549,16 +610,14 @@ namespace Snapdragon
                 );
             }
 
-            var game = this with
-            {
-                Kernel = Kernel.DestroyCardFromPlay(
-                    actualCard.Id,
-                    actualCard.Column,
-                    actualCard.Side
-                )
-            };
-
-            game = game.WithEvent(new CardDestroyedFromPlayEvent(game.Turn, actualCard));
+            var location = this[actualCard.Column].WithRemovedCard(actualCard);
+            var destroyedCard = actualCard.ToCardInstance() with { State = CardState.Destroyed };
+            var player = this[actualCard.Side];
+            player = player with { Destroyed = player.Destroyed.Add(destroyedCard) };
+            var game = this.WithLocation(location)
+                .WithPlayer(player)
+                .WithUpdatedCards(destroyedCard)
+                .WithEvent(new CardDestroyedFromPlayEvent(this.Turn, actualCard));
 
             if (
                 actualCard.Ongoing?.Type == OngoingAbilityType.DoubleOngoingEffects
@@ -576,108 +635,159 @@ namespace Snapdragon
         }
 
         /// <summary>
-        /// Gets a modified state with the given <see cref="Sensor{ICardInLocation}"/> added.
+        /// Gets a modified state with the given <see cref="Sensor{ICard}"/>.  Note that unlike <see
+        /// cref="WithCard(CardInstance)"/>, this adds a new Sensor rather than modifying an existing one.
         /// </summary>
         public Game WithSensor(Sensor<ICard> sensor)
         {
-            return this with { Kernel = Kernel.AddSensor(sensor) };
-        }
+            var location = this[sensor.Column];
 
-        /// <summary>
-        /// Gets a modified state with the given <see cref="Sensor{ICardInLocation}"/> removed.
-        /// </summary>
-        public Game WithSensorDeleted(long sensorId)
-        {
-            var sensor =
-                Kernel.Sensors.GetValueOrDefault(sensorId)
-                ?? throw new InvalidOperationException($"Sensor {sensorId} not found.");
+            var sensorsByTriggerEventType = SensorsByTriggerEventType;
 
-            return this with
+            if (sensor.TriggeredAbility?.EventType != null)
             {
-                Kernel = Kernel.DestroySensor(sensor.Id, sensor.Column, sensor.Side)
+                var sensorsWithTrigger =
+                    SensorsByTriggerEventType.GetValueOrDefault(sensor.TriggeredAbility.EventType)
+                    ?? ImmutableHashSet<long>.Empty;
+                sensorsWithTrigger = sensorsWithTrigger.Add(sensor.Id);
+                sensorsByTriggerEventType = SensorsByTriggerEventType.SetItem(
+                    sensor.TriggeredAbility.EventType,
+                    sensorsWithTrigger
+                );
+            }
+
+            return this.WithLocation(location.WithSensor(sensor)) with
+            {
+                SensorsById = this.SensorsById.SetItem(sensor.Id, sensor),
+                SensorsByTriggerEventType = sensorsByTriggerEventType
             };
         }
 
         /// <summary>
-        /// Gets a modified state with the given <see cref="CardBase"/>s updated (in place).
-        /// Cannot handle moved cards, destroyed cards, etc.
+        /// Gets a modified state with the given <see cref="Sensor{ICard}"/> removed.
         /// </summary>
-        public Game WithUpdatedCards(IEnumerable<CardBase> cards)
+        public Game WithSensorDeleted(long sensorId)
+        {
+            var sensor = this.GetSensor(sensorId);
+
+            var sensorsByTriggerEventType = SensorsByTriggerEventType;
+
+            if (sensor.TriggeredAbility?.EventType != null)
+            {
+                var sensorsWithTrigger = SensorsByTriggerEventType[
+                    sensor.TriggeredAbility.EventType
+                ];
+                sensorsWithTrigger = sensorsWithTrigger.Remove(sensorId);
+                sensorsByTriggerEventType = sensorsByTriggerEventType.SetItem(
+                    sensor.TriggeredAbility.EventType,
+                    sensorsWithTrigger
+                );
+            }
+
+            var sensorsById = SensorsById.Remove(sensorId);
+
+            return this with
+            {
+                Left = this.Left.WithSensorDeleted(sensorId),
+                Middle = this.Middle.WithSensorDeleted(sensorId),
+                Right = this.Right.WithSensorDeleted(sensorId),
+                SensorsById = sensorsById,
+                SensorsByTriggerEventType = sensorsByTriggerEventType
+            };
+        }
+
+        /// <summary>
+        /// Gets a modified state with the given <see cref="ICard"/>s updated.  Currently only suitable for cards in
+        /// play, with attributes (typically PowerAdjustment) changed. Cannot handle moved cards, destroyed cards, etc.
+        /// </summary>
+        /// <param name="card"></param>
+        /// <returns></returns>
+        public Game WithModifiedCards(IEnumerable<ICard> cards)
         {
             // TODO: Determine if this needs to be optimized
             var game = this;
 
             foreach (var card in cards)
             {
-                game = game.WithUpdatedCard(card);
+                game = game.WithModifiedCard(card);
             }
 
             return game;
         }
 
         /// <summary>
-        /// Gets a modified state with the given <see cref="ICardInstance"/> updated (in place).
-        /// Cannot handle moved cards, destroyed cards, etc.
+        /// Gets a modified state with the given <see cref="ICard"/> updated.  Currently only suitable for cards in play,
+        /// with attributes (typically PowerAdjustment) changed. Cannot handle moved cards, destroyed cards, etc.
         /// </summary>
-        public Game WithUpdatedCard(ICardInstance card)
+        /// <param name="card"></param>
+        /// <returns></returns>
+        public Game WithModifiedCard(ICardInstance card)
         {
-            var oldCard = Kernel[card.Id];
+            var game = this.WithUpdatedCards(card);
 
-            var game = this with { Kernel = Kernel.WithUpdatedCard(card) };
-
-            if (
-                oldCard.Ongoing?.Type == OngoingAbilityType.DoubleOngoingEffects
-                || oldCard.Ongoing?.Type == OngoingAbilityType.DoubleOnReveals
-                || oldCard.Ongoing?.Type == OngoingAbilityType.BlockLocationEffects
-                || oldCard.Ongoing?.Type == OngoingAbilityType.BlockCardEffects
-                || card.Ongoing?.Type == OngoingAbilityType.DoubleOngoingEffects
-                || card.Ongoing?.Type == OngoingAbilityType.DoubleOnReveals
-                || card.Ongoing?.Type == OngoingAbilityType.BlockLocationEffects
-                || card.Ongoing?.Type == OngoingAbilityType.BlockCardEffects
-            )
+            if (card.Column != null)
             {
-                return game.RecalculateMultipliers();
+                var location = this[card.Column.Value];
+                var newCards = location[card.Side]
+                    .Select(c => c.Id == card.Id ? card.InPlayAt(card.Column.Value) : c)
+                    .ToImmutableList();
+
+                location = location with
+                {
+                    TopCardsIncludingUnrevealed =
+                        card.Side == Side.Top ? newCards : location.TopCardsIncludingUnrevealed,
+                    BottomCardsIncludingUnrevealed =
+                        card.Side == Side.Bottom
+                            ? newCards
+                            : location.BottomCardsIncludingUnrevealed,
+                };
+
+                game = game.WithLocation(location);
             }
-            else
+            else if (card.State == CardState.InLibrary)
             {
-                return game;
+                var player = game[card.Side];
+                player = player with
+                {
+                    Library = player.Library with
+                    {
+                        Cards = player
+                            .Library.Cards.Select(c => c.Id == card.Id ? card : c)
+                            .ToImmutableList()
+                    }
+                };
+                game = game.WithPlayer(player);
             }
-        }
-
-        /// <summary>
-        /// Gets a modified state with the given <see cref="CardBase"/> updated (in place).
-        /// Cannot handle moved cards, destroyed cards, etc.
-        /// </summary>
-        public Game WithUpdatedCard(CardBase card)
-        {
-            var oldCard = Kernel[card.Id];
-
-            var game = this with { Kernel = Kernel.WithUpdatedCard(card) };
-
-            // Performance tweak - we only have to recalculate multipliers if the updated card
-            // has an ongoing ability that affects them (or did previously, e.g. Enchantress was played)
-            if (
-                oldCard.Ongoing?.Type == OngoingAbilityType.DoubleOngoingEffects
-                || oldCard.Ongoing?.Type == OngoingAbilityType.DoubleOnReveals
-                || oldCard.Ongoing?.Type == OngoingAbilityType.BlockLocationEffects
-                || oldCard.Ongoing?.Type == OngoingAbilityType.BlockCardEffects
-                || card.Ongoing?.Type == OngoingAbilityType.DoubleOngoingEffects
-                || card.Ongoing?.Type == OngoingAbilityType.DoubleOnReveals
-                || card.Ongoing?.Type == OngoingAbilityType.BlockLocationEffects
-                || card.Ongoing?.Type == OngoingAbilityType.BlockCardEffects
-            )
+            else if (card.State == CardState.InHand)
             {
-                return game.RecalculateMultipliers();
+                var player = game[card.Side];
+                player = player with
+                {
+                    Hand = player.Hand.Select(c => c.Id == card.Id ? card : c).ToImmutableList()
+                };
+                game = game.WithPlayer(player);
             }
 
             return game;
         }
 
-        public Game SwitchCardSide(ICard card)
+        public Game SwitchCardSideUnsafe(ICard card)
         {
-            var game = this with { Kernel = Kernel.SwitchCardSide(card.Id, card.Side) };
-            var modifiedCard = game.GetCard(card.Id);
-            game = game.WithEvent(new CardSwitchedSidesEvent(modifiedCard, game.Turn));
+            var actualCard = this.AllCards.Single(c => c.Id == card.Id);
+            var location = this[actualCard.Column];
+            location = location.WithoutCard(actualCard);
+            var switchedCard = (
+                actualCard.ToCardInstance() with
+                {
+                    Side = actualCard.Side.Other()
+                }
+            ).InPlayAt(actualCard.Column);
+            location = location.WithCard(switchedCard);
+
+            var game = this.WithLocation(location);
+
+            game = game.WithEvent(new CardSwitchedSidesEvent(switchedCard, game.Turn))
+                .WithUpdatedCards(switchedCard);
 
             if (
                 card.Ongoing?.Type == OngoingAbilityType.DoubleOngoingEffects
@@ -694,13 +804,39 @@ namespace Snapdragon
             }
         }
 
-        public Game ReturnCardToHand(ICardInstance card)
+        public Game ReturnCardToHandUnsafe(ICardInstance card)
         {
-            // TODO: Raise an event for this
-            var game = this with
+            var game = this;
+            var actualCard = this.GetCardInstance(card.Id);
+
+            if (actualCard?.Column != null)
             {
-                Kernel = Kernel.ReturnCardToHand(card.Id, card.Side)
-            };
+                var location = this[actualCard.Column.Value];
+                game = game.WithLocation(location.WithoutCard(actualCard));
+            }
+
+            var player = this[actualCard.Side];
+            var cardInHand = actualCard.ToCardInstance() with { State = CardState.InHand };
+            player = player with { Hand = player.Hand.Add(cardInHand) };
+
+            switch (actualCard.State)
+            {
+                case CardState.Discarded:
+                    player = player with
+                    {
+                        Discards = player.Discards.RemoveAll(c => c.Id == card.Id)
+                    };
+                    break;
+                case CardState.Destroyed:
+                    player = player with
+                    {
+                        Destroyed = player.Destroyed.RemoveAll(c => c.Id == card.Id)
+                    };
+                    break;
+            }
+
+            // TODO: Raise an event for this
+            game = game.WithPlayer(player).WithUpdatedCards(cardInHand);
 
             if (
                 card.Ongoing?.Type == OngoingAbilityType.DoubleOngoingEffects
@@ -717,13 +853,18 @@ namespace Snapdragon
             }
         }
 
-        public Game ReturnDiscardToPlay(ICardInstance card, Column column)
+        public Game ReturnDiscardToPlayUnsafe(ICardInstance card, Column column)
         {
+            var player = this[card.Side];
+            var actualCard = player.Discards.Single(c => c.Id == card.Id);
+            player = player with { Discards = player.Discards.Remove(actualCard) };
+            var returnedCard = actualCard.InPlayAt(column) with { State = CardState.InPlay };
+            var location = this[column].WithCard(returnedCard);
+
             // TODO: Raise an event for this
-            var game = this with
-            {
-                Kernel = Kernel.ReturnDiscardToLocation(card.Id, column, card.Side)
-            };
+            var game = this.WithLocation(location)
+                .WithPlayer(player)
+                .WithUpdatedCards(returnedCard);
 
             if (
                 card.Ongoing?.Type == OngoingAbilityType.DoubleOngoingEffects
@@ -742,11 +883,14 @@ namespace Snapdragon
 
         public Game ReturnDestroyedToPlay(ICardInstance card, Column column)
         {
+            var player = this[card.Side];
+            var actualCard = player.Destroyed.Single(c => c.Id == card.Id);
+            player = player with { Destroyed = player.Destroyed.Remove(actualCard) };
+            var returnedCard = actualCard.InPlayAt(column) with { State = CardState.InPlay };
+            var location = this[column].WithCard(returnedCard);
+
             // TODO: Raise an event for this
-            var game = this with
-            {
-                Kernel = Kernel.ReturnDestroyedToLocation(card.Id, column, card.Side)
-            };
+            var game = this.WithLocation(location).WithUpdatedCards(returnedCard);
 
             if (
                 card.Ongoing?.Type == OngoingAbilityType.DoubleOngoingEffects
@@ -769,7 +913,24 @@ namespace Snapdragon
         /// <param name="card">Card to remove.</param>
         public Game RemoveCard(ICardInstance card)
         {
-            var game = this with { Kernel = Kernel.RemoveCardFromGame(card.Id) };
+            var actualCard = this.AllCards.Single(c => c.Id == card.Id);
+            var location = this[actualCard.Column];
+
+            // TODO: Raise an event for this
+            var game = this.WithLocation(location.WithRemovedCard(actualCard));
+
+            if (actualCard.Triggered?.EventType != null)
+            {
+                game = game with
+                {
+                    CardsByTriggerEventType = CardsByTriggerEventType.SetItem(
+                        actualCard.Triggered.EventType,
+                        CardsByTriggerEventType[actualCard.Triggered.EventType].Remove(card.Id)
+                    )
+                };
+            }
+
+            game = game with { CardsById = CardsById.Remove(card.Id) };
 
             if (
                 card.Ongoing?.Type == OngoingAbilityType.DoubleOngoingEffects
@@ -783,6 +944,99 @@ namespace Snapdragon
             else
             {
                 return game;
+            }
+        }
+
+        /// <summary>
+        /// Gets a modified state that includes the passed-in <see cref="Location"/> as appropriate.
+        /// </summary>
+        private Game WithLocation(Location location)
+        {
+            return location.Column switch
+            {
+                Column.Left => this with { Left = location },
+                Column.Middle => this with { Middle = location },
+                Column.Right => this with { Right = location },
+                _ => throw new NotImplementedException(),
+            };
+        }
+
+        /// <summary>
+        /// Updates collections with any necessary changes when something is different about a card.
+        ///
+        /// Must be called whenever a card is modified, played, moved, removed, etc.
+        /// </summary>
+        private Game WithUpdatedCards(params ICardInstance[] cards)
+        {
+            var cardEventTriggers = CardEventTriggers;
+            var cardsByTriggerEventType = CardsByTriggerEventType;
+            var cardsById = CardsById;
+
+            foreach (var card in cards)
+            {
+                var oldCard = CardsById.GetValueOrDefault(card.Id);
+                var triggerApplied = oldCard?.Triggered?.AppliesInState(oldCard.State) ?? false;
+                var triggerNowApplies = card.Triggered?.AppliesInState(card.State) ?? false;
+
+                if (
+                    oldCard?.Triggered?.EventType != card.Triggered?.EventType
+                    || triggerApplied != triggerNowApplies
+                )
+                {
+                    if (oldCard?.Triggered?.EventType != null && triggerApplied)
+                    {
+                        var cardsTriggered = cardsByTriggerEventType[oldCard.Triggered.EventType];
+                        cardsTriggered = cardsTriggered.Remove(oldCard.Id);
+                        cardsByTriggerEventType = cardsByTriggerEventType.SetItem(
+                            oldCard.Triggered.EventType,
+                            cardsTriggered
+                        );
+
+                        cardEventTriggers = cardEventTriggers.Remove(card.Id);
+                    }
+
+                    if (card.Triggered?.EventType != null && triggerNowApplies)
+                    {
+                        cardEventTriggers = cardEventTriggers.SetItem(
+                            card.Id,
+                            card.Triggered.EventType
+                        );
+
+                        var cardsTriggered =
+                            cardsByTriggerEventType.GetValueOrDefault(card.Triggered.EventType)
+                            ?? ImmutableHashSet<long>.Empty;
+                        cardsTriggered = cardsTriggered.Add(card.Id);
+                        cardsByTriggerEventType = cardsByTriggerEventType.SetItem(
+                            card.Triggered.EventType,
+                            cardsTriggered
+                        );
+                    }
+                }
+
+                cardsById = cardsById.SetItem(card.Id, card);
+            }
+
+            return this with
+            {
+                CardsById = cardsById,
+                CardEventTriggers = cardEventTriggers,
+                CardsByTriggerEventType = cardsByTriggerEventType
+            };
+        }
+
+        /// <summary>
+        /// Gets a modified state that includes the passed-in <see cref="Player"/> as appropriate.
+        /// </summary>
+        private Game WithPlayer(Player player)
+        {
+            switch (player.Side)
+            {
+                case Side.Top:
+                    return this with { Top = player };
+                case Side.Bottom:
+                    return this with { Bottom = player };
+                default:
+                    throw new NotImplementedException();
             }
         }
 
@@ -981,9 +1235,6 @@ namespace Snapdragon
         {
             var game = this;
 
-            // Note this is guaranteed to be valid based on the checks in Kernel.RevealCard(...).
-            card = (ICard)Kernel[card.Id];
-
             var multiplier = game[card.Column].Multipliers[card.Side].OnReveal;
 
             if (card.OnReveal != null)
@@ -1002,7 +1253,9 @@ namespace Snapdragon
         /// </summary>
         private Game RevealCard(ICard card)
         {
-            var game = this with { Kernel = Kernel.RevealCard(card.Id) };
+            var actualCard = this.GetCard(card.Id);
+            actualCard = actualCard.InPlayAt(actualCard.Column) with { State = CardState.InPlay };
+            var game = this.WithModifiedCard(actualCard);
 
             game = game.TriggerOnRevealAbility(card);
 
@@ -1011,7 +1264,7 @@ namespace Snapdragon
             // which may or may not be super useful at this point.
             //
             // The null coalesce operator is because of Hulkbuster.
-            var revealedCard = (ICard)Kernel[card.Id] ?? card;
+            var revealedCard = game.AllCards.SingleOrDefault(c => c.Id == card.Id) ?? actualCard;
 
             game = game.WithEvent(new CardRevealedEvent(game.Turn, revealedCard));
 
@@ -1041,17 +1294,17 @@ namespace Snapdragon
             // Note the check for Games going over is in PlaySingleTurn
             var game = this with
             {
-                Kernel = Kernel with { Turn = Kernel.Turn + 1 }
+                Turn = this.Turn + 1
             };
             game = game.RevealLocation();
             game = game.ProcessEvents();
 
             // Each Player draws a card, and gets an amount of energy equal to the turn count
             game = game.DrawCard(Side.Top).DrawCard(Side.Bottom);
-            var topPlayer = game.TopPlayer with { Energy = game.Turn };
-            var bottomPlayer = game.BottomPlayer with { Energy = game.Turn };
+            var topPlayer = game.Top with { Energy = game.Turn };
+            var bottomPlayer = game.Bottom with { Energy = game.Turn };
 
-            game = game with { TopPlayer = topPlayer, BottomPlayer = bottomPlayer };
+            game = game with { Top = topPlayer, Bottom = bottomPlayer };
 
             Logger.LogHands(game);
 
@@ -1130,16 +1383,11 @@ namespace Snapdragon
             // TODO: Determine if we need to stack-order events for triggers, any other ordering constraints
             //var allCards = AllCards.ToList();
 
-            if (
-                Kernel.CardsByTriggerEventType.TryGetValue(
-                    nextEvent.Type,
-                    out var cardIdsWithTrigger
-                )
-            )
+            if (CardsByTriggerEventType.TryGetValue(nextEvent.Type, out var cardIdsWithTrigger))
             {
                 foreach (var cardId in cardIdsWithTrigger)
                 {
-                    var card = Kernel[cardId];
+                    var card = GetCardInstance(cardId);
                     game = card.Triggered.ProcessEvent(game, nextEvent, card);
                 }
             }
@@ -1253,16 +1501,11 @@ namespace Snapdragon
             //    }
             //}
 
-            if (
-                Kernel.SensorsByTriggerEventType.TryGetValue(
-                    nextEvent.Type,
-                    out var sensorIdsWithTrigger
-                )
-            )
+            if (SensorsByTriggerEventType.TryGetValue(nextEvent.Type, out var sensorIdsWithTrigger))
             {
                 foreach (var sensorId in sensorIdsWithTrigger)
                 {
-                    var sensor = Kernel.Sensors[sensorId];
+                    var sensor = GetSensor(sensorId);
                     game = sensor.TriggeredAbility.ProcessEvent(game, nextEvent, sensor);
                 }
             }
@@ -1282,18 +1525,37 @@ namespace Snapdragon
             return game;
         }
 
-        public Game PlayCard(ICardInstance card, Column column)
+        public Game PlayCardUnsafe(ICardInstance card, Column column)
         {
-            var game = this with { Kernel = Kernel.PlayCard(card.Id, column, card.Side) };
-            card = game.Kernel[card.Id];
+            var player = this[card.Side];
+            player = player with
+            {
+                Energy = player.Energy - card.Cost,
+                Hand = player.Hand.Remove(card)
+            };
 
-            return game.WithEvent(new CardPlayedEvent(this.Turn, card));
+            var cardInPlay = card.InPlayAt(column) with { State = CardState.PlayedButNotRevealed };
+            var location = this[column].WithCard(cardInPlay);
+
+            return this.WithPlayer(player)
+                .WithLocation(location)
+                .WithUpdatedCards(cardInPlay)
+                .WithEvent(new CardPlayedEvent(this.Turn, cardInPlay));
         }
 
-        public Game MoveCard(ICard card, Column to)
+        public Game MoveCardUnsafe(ICard card, Column to)
         {
-            var game = this with { Kernel = Kernel.MoveCard(card.Id, card.Side, card.Column, to) };
-            game = game.WithEvent(new CardMovedEvent(game.Turn, Kernel[card.Id], card.Column, to));
+            var fromLocation = this[card.Column];
+            var toLocation = this[to];
+
+            fromLocation = fromLocation.WithoutCard(card);
+            card = card.InPlayAt(to);
+            toLocation = toLocation.WithCard(card);
+
+            var game = this.WithLocation(fromLocation)
+                .WithLocation(toLocation)
+                .WithUpdatedCards(card)
+                .WithEvent(new CardMovedEvent(this.Turn, card, fromLocation.Column, to));
 
             if (
                 card.Ongoing?.Type == OngoingAbilityType.DoubleOngoingEffects
@@ -1319,10 +1581,11 @@ namespace Snapdragon
                 .ToDictionary(g => g.Key, g => g.ToList());
             var effectBlockers = GetEffectBlockers(allCards);
 
-            var kernel = this.Kernel;
+            var game = this;
 
-            foreach (var location in Locations)
+            foreach (var column in All.Columns)
             {
+                var location = this[column];
                 var onRevealBase = 1;
                 var ongoingBase = 1;
 
@@ -1496,30 +1759,31 @@ namespace Snapdragon
                 var topMultipliers = new Multipliers(onRevealTop, ongoingTop);
                 var bottomMultipliers = new Multipliers(onRevealBottom, ongoingBottom);
 
+                var changed = false;
                 if (topMultipliers != location.TopMultipliers)
                 {
-                    kernel = kernel.UpdateMultipliers(location.Column, Side.Top, topMultipliers);
+                    location = location with { TopMultipliers = topMultipliers };
+                    changed = true;
                 }
 
                 if (bottomMultipliers != location.BottomMultipliers)
                 {
-                    kernel = kernel.UpdateMultipliers(
-                        location.Column,
-                        Side.Bottom,
-                        bottomMultipliers
-                    );
+                    location = location with { BottomMultipliers = bottomMultipliers };
+                    changed = true;
+                }
+
+                if (changed)
+                {
+                    game = game.WithLocation(location);
                 }
             }
 
-            return this with
-            {
-                Kernel = kernel
-            };
+            return game;
         }
 
         public Game RecalculatePower()
         {
-            var recalculatedCards = new List<CardBase>();
+            var recalculatedCards = new List<ICard>();
 
             var blockers = GetEffectBlockers();
             var topBlockedEffectsByColumn = GetBlockedEffectsByColumn(
@@ -1549,7 +1813,7 @@ namespace Snapdragon
                 // "Power" is the power from the Definition plus any applicable modifications
                 var power = card.Definition.Power;
 
-                foreach (var mod in card.Base.Modifications)
+                foreach (var mod in card.Modifications)
                 {
                     if (mod.PowerChange != null)
                     {
@@ -1569,10 +1833,10 @@ namespace Snapdragon
                     blockedEffects.Contains(EffectType.ReducePower)
                 );
 
-                if (power != card.Base.Power || powerAdjustment != card.Base.PowerAdjustment)
+                if (power != card.Power || powerAdjustment != card.PowerAdjustment)
                 {
                     recalculatedCards.Add(
-                        card.Base with
+                        card.InPlayAt(card.Column) with
                         {
                             Power = power,
                             PowerAdjustment = powerAdjustment
@@ -1583,7 +1847,7 @@ namespace Snapdragon
 
             if (recalculatedCards.Count > 0)
             {
-                return this.WithUpdatedCards(recalculatedCards);
+                return this.WithModifiedCards(recalculatedCards);
             }
             else
             {
@@ -1673,8 +1937,9 @@ namespace Snapdragon
                 // Now apply any ongoing effects that ADD power to a location (e.g. Mister Fantastic, Klaw)
                 foreach (var card in this.AllCards)
                 {
-                    if (card.Ongoing is OngoingAdjustLocationPower<ICard> addLocationPower)
+                    if (card.Ongoing?.Type == OngoingAbilityType.AddPowerToLocation)
                     {
+                        var addLocationPower = card.Ongoing as OngoingAdjustLocationPower<ICard>;
                         var ongoingMultiplier = this[card.Column].Multipliers[card.Side].Ongoing;
 
                         if (ongoingMultiplier == 0) // Somewhat redundant, but should be faster
@@ -1746,6 +2011,21 @@ namespace Snapdragon
             var scores = this.GetCurrentScores();
 
             return scores.Leader;
+        }
+
+        #endregion
+
+        #region Other Helpers
+
+        // TODO: See if we can make this more automatic
+        /// <summary>
+        /// Helper function for anything that can't happen automatically within the constructor.
+        ///
+        /// MUST be called exactly once, right after the constructor.
+        /// </summary>
+        public Game Initialize()
+        {
+            return this.WithUpdatedCards(Top.Library.Cards.Concat(Bottom.Library.Cards).ToArray());
         }
 
         #endregion

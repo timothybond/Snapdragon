@@ -16,7 +16,7 @@
     {
         public Game Apply(Game game)
         {
-            var actualCard = game.Kernel[Card.Id] as ICard;
+            var actualCard = game.GetCard(Card.Id);
 
             if (actualCard == null)
             {
@@ -69,7 +69,7 @@
                 return game;
             }
 
-            return game.MoveCard(actualCard, To);
+            return game.MoveCardUnsafe(actualCard, To);
         }
     }
 }

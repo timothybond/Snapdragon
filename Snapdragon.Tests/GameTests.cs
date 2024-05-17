@@ -93,8 +93,8 @@ namespace Snapdragon.Tests
 
             var game = CreateGame(engine, topPlayerConfig, bottomPlayerConfig);
 
-            Assert.That(game.TopPlayer.Energy, Is.EqualTo(0));
-            Assert.That(game.BottomPlayer.Energy, Is.EqualTo(0));
+            Assert.That(game.Top.Energy, Is.EqualTo(0));
+            Assert.That(game.Bottom.Energy, Is.EqualTo(0));
         }
 
         #endregion
@@ -205,8 +205,8 @@ namespace Snapdragon.Tests
 
             game = game.StartNextTurn();
 
-            Assert.That(game.TopPlayer.Energy, Is.EqualTo(turn));
-            Assert.That(game.BottomPlayer.Energy, Is.EqualTo(turn));
+            Assert.That(game.Top.Energy, Is.EqualTo(turn));
+            Assert.That(game.Bottom.Energy, Is.EqualTo(turn));
         }
 
         [Test]
@@ -314,7 +314,7 @@ namespace Snapdragon.Tests
             // TODO - Play a card
             playerController.Actions = new List<IPlayerAction>
             {
-                new PlayCardAction(Side.Top, game.Top.Hand.First(), column)
+                new PlayCardAction(Side.Top, game.Top.Hand[0], column)
             };
 
             game = game.PlaySingleTurn();
@@ -347,12 +347,15 @@ namespace Snapdragon.Tests
             // TODO - Play a card
             playerController.Actions = new List<IPlayerAction>
             {
-                new PlayCardAction(Side.Top, game.Top.Hand.First(), column)
+                new PlayCardAction(Side.Top, game.Top.Hand[0], column)
             };
 
             game = game.PlaySingleTurn();
 
-            Assert.That(game[column].TopCardsIncludingUnrevealed.First().State, Is.EqualTo(CardState.InPlay));
+            Assert.That(
+                game[column].TopCardsIncludingUnrevealed[0].State,
+                Is.EqualTo(CardState.InPlay)
+            );
         }
 
         [Test]
@@ -385,14 +388,14 @@ namespace Snapdragon.Tests
             {
                 topPlayerController.Actions = new List<IPlayerAction>
                 {
-                    new PlayCardAction(Side.Top, game.Top.Hand.First(), column)
+                    new PlayCardAction(Side.Top, game.Top.Hand[0], column)
                 };
             }
             else
             {
                 bottomPlayerController.Actions = new List<IPlayerAction>
                 {
-                    new PlayCardAction(Side.Bottom, game.Bottom.Hand.First(), column)
+                    new PlayCardAction(Side.Bottom, game.Bottom.Hand[0], column)
                 };
             }
 
@@ -426,7 +429,7 @@ namespace Snapdragon.Tests
             // TODO - Play a card
             playerController.Actions = new List<IPlayerAction>
             {
-                new PlayCardAction(Side.Top, game.Top.Hand.First(), column)
+                new PlayCardAction(Side.Top, game.Top.Hand[0], column)
             };
 
             game = game.PlaySingleTurn();
@@ -497,21 +500,14 @@ namespace Snapdragon.Tests
             PlayerConfiguration bottomPlayer
         )
         {
-            return engine
-                .CreateGame(
-                    topPlayer,
-                    bottomPlayer,
-                    false,
-                    leftLocationName: "Ruins",
-                    middleLocationName: "Ruins",
-                    rightLocationName: "Ruins"
-                )
-                .DrawCard(Side.Top)
-                .DrawCard(Side.Top)
-                .DrawCard(Side.Top)
-                .DrawCard(Side.Bottom)
-                .DrawCard(Side.Bottom)
-                .DrawCard(Side.Bottom);
+            return engine.CreateGame(
+                topPlayer,
+                bottomPlayer,
+                false,
+                leftLocationName: "Ruins",
+                middleLocationName: "Ruins",
+                rightLocationName: "Ruins"
+            );
         }
 
         #endregion

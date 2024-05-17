@@ -17,10 +17,7 @@ namespace Snapdragon.Fluent.EffectBuilders
             {
                 if (context is IObjectWithSide objectWithSide)
                 {
-                    players = new List<Player>
-                    {
-                        game[objectWithSide.Side].Player
-                    };
+                    players = new List<Player> { game[objectWithSide.Side] };
                 }
                 else
                 {

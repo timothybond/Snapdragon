@@ -19,7 +19,7 @@
                 return game;
             }
 
-            return game.SwitchCardSide(actualCard);
+            return game.SwitchCardSideUnsafe(actualCard);
         }
     }
 }

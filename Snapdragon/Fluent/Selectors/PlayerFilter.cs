@@ -7,7 +7,7 @@
     {
         public bool Applies(TSelected item, TContext context, Game game)
         {
-            var player = game[item.Side].Player;
+            var player = game[item.Side];
             return PlayerSelector.Selects(player, context, game);
         }
 

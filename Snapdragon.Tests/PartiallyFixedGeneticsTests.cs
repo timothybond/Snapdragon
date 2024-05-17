@@ -1,6 +1,6 @@
-﻿using Snapdragon.CardOrders;
+﻿using System.Collections.Immutable;
+using Snapdragon.CardOrders;
 using Snapdragon.GeneticAlgorithm;
-using System.Collections.Immutable;
 
 namespace Snapdragon.Tests
 {
@@ -36,7 +36,9 @@ namespace Snapdragon.Tests
         [Test]
         [TestCase("Ka-Zar")]
         [TestCase("Blue Marvel", "Ka-Zar")]
-        public async Task AfterSeveralGenerations_FixedCardsRemainTheSame(params string[] fixedCardNames)
+        public async Task AfterSeveralGenerations_FixedCardsRemainTheSame(
+            params string[] fixedCardNames
+        )
         {
             const int Generations = 4;
 
@@ -95,10 +97,7 @@ namespace Snapdragon.Tests
             {
                 var item = genetics.GetRandomItem();
 
-                Assert.That(
-                    item.FixedCards.Count + item.EvolvingCards.Count,
-                    Is.EqualTo(12)
-                );
+                Assert.That(item.FixedCards.Count + item.EvolvingCards.Count, Is.EqualTo(12));
             }
         }
     }

@@ -25,7 +25,7 @@
                 return game;
             }
 
-            return game.ReturnDiscardToPlay(actualCard, Column);
+            return game.ReturnDiscardToPlayUnsafe(actualCard, Column);
         }
     }
 }

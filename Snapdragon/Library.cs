@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections;
+using System.Collections.Immutable;
 
 namespace Snapdragon
 {
@@ -7,7 +8,7 @@ namespace Snapdragon
     /// The set of <see cref="ICardInstance"/>s that a <see cref="Player"/> has not drawn yet.  By convention, the <see
     /// cref="ICardInstance"/> at the 0-index is at the top of the Library.
     /// </summary>
-    public record Library(ImmutableList<ICardInstance> Cards)
+    public record Library(ImmutableList<ICardInstance> Cards) : IReadOnlyList<ICardInstance>
     {
         public int Count => Cards.Count;
 
@@ -16,6 +17,16 @@ namespace Snapdragon
         public Library RemoveAt(int index)
         {
             return new Library(this.Cards.RemoveAt(index));
+        }
+
+        public IEnumerator<ICardInstance> GetEnumerator()
+        {
+            return Cards.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return Cards.GetEnumerator();
         }
     }
 }

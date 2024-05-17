@@ -22,7 +22,7 @@
 
             Assert.That(game[side].Library.Count, Is.EqualTo(2));
 
-            foreach (var cardInLibrary in game[side].Library)
+            foreach (var cardInLibrary in game[side].Library.Cards)
             {
                 Assert.That(cardInLibrary.Power, Is.EqualTo(3));
             }
@@ -50,7 +50,7 @@
 
             var topCardInLibrary = game[side.Other()].Library[0];
 
-            foreach (var cardInLibrary in game[side.Other()].Library)
+            foreach (var cardInLibrary in game[side.Other()].Library.Cards)
             {
                 Assert.That(cardInLibrary.Power, Is.EqualTo(2));
             }

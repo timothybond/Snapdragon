@@ -7,11 +7,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="HandFilters\**" />
+    <EmbeddedResource Remove="HandFilters\**" />
+    <None Remove="HandFilters\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="System.Collections.Immutable" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="OngoingAbilities\" />
+    <Folder Include="Sensors\" />
   </ItemGroup>
 
 </Project>

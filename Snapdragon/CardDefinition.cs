@@ -1,5 +1,5 @@
-﻿using Snapdragon.Fluent;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
+using Snapdragon.Fluent;
 
 namespace Snapdragon
 {
@@ -13,6 +13,5 @@ namespace Snapdragon
         IMoveAbility<ICard>? MoveAbility = null,
         ImmutableList<EffectType>? Disallowed = null,
         IPlayRestriction? PlayRestriction = null
-    )
-    { }
+    ) { }
 }

@@ -12,7 +12,7 @@
                 return null;
             }
 
-            return game[initialPlayer.Side.Other()].Player;
+            return game[initialPlayer.Side.Other()];
         }
 
         public bool Selects(Player item, TContext context, Game game)
@@ -37,7 +37,7 @@
                 return null;
             }
 
-            return game[initialPlayer.Side.Other()].Player;
+            return game[initialPlayer.Side.Other()];
         }
     }
 }

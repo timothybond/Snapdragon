@@ -1,13 +1,8 @@
 ﻿namespace Snapdragon.MoveAbilities
 {
-    public record CanMoveAlways : IMoveAbility<ICard>
+    public record CanMoveAlways : IMoveAbility<ICardInstance>
     {
-        public bool CanMove(
-            ICard target,
-            ICard source,
-            Column destination,
-            Game game
-        )
+        public bool CanMove(ICard target, ICardInstance source, Column destination, Game game)
         {
             return target.Id == source.Id;
         }

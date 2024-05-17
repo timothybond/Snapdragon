@@ -90,7 +90,13 @@ namespace Snapdragon.Tests
         [TestCase(Side.Bottom)]
         public void GetPossibleActionSets_GetsExpectedValues(Side side)
         {
-            var game = TestHelpers.NewGame().WithCardsInHand(side, "Ant Man", "Misty Knight");
+            var oneOne = new CardInstance(Cards.OneOne, Side.Top, CardState.InHand);
+            var oneTwo = new CardInstance(Cards.OneTwo, Side.Top, CardState.InHand);
+
+            var game = TestHelpers.NewGame();
+
+            game = game.WithNewCardInHandUnsafe(Cards.OneOne, side)
+                .WithNewCardInHandUnsafe(Cards.OneTwo, side);
 
             // Need to make sure we have 2 energy
             game = game.PlaySingleTurn().PlaySingleTurn();
@@ -111,53 +117,53 @@ namespace Snapdragon.Tests
             Assert.That(singleCardPlays.Count, Is.EqualTo(6));
 
             // Playing the first card only
-            var playAntMan = singleCardPlays
+            var playOneOne = singleCardPlays
                 .Where(s =>
                     s[0] is PlayCardAction playAction
-                    && string.Equals(playAction.Card.Name, "Ant Man")
+                    && string.Equals(playAction.Card.Name, Cards.OneOne.Name)
                 )
                 .ToList();
 
-            Assert.That(playAntMan.Count, Is.EqualTo(3));
+            Assert.That(playOneOne.Count, Is.EqualTo(3));
 
             Assert.That(
-                playAntMan.Any(s =>
+                playOneOne.Any(s =>
                     s[0] is PlayCardAction playAction && playAction.Column == Column.Left
                 )
             );
             Assert.That(
-                playAntMan.Any(s =>
+                playOneOne.Any(s =>
                     s[0] is PlayCardAction playAction && playAction.Column == Column.Middle
                 )
             );
             Assert.That(
-                playAntMan.Any(s =>
+                playOneOne.Any(s =>
                     s[0] is PlayCardAction playAction && playAction.Column == Column.Right
                 )
             );
 
             // Playing the second card only
-            var playMistyKnight = singleCardPlays
+            var playOneTwo = singleCardPlays
                 .Where(s =>
                     s[0] is PlayCardAction playAction
-                    && string.Equals(playAction.Card.Name, "Misty Knight")
+                    && string.Equals(playAction.Card.Name, Cards.OneOne.Name)
                 )
                 .ToList();
 
-            Assert.That(playMistyKnight.Count, Is.EqualTo(3));
+            Assert.That(playOneTwo.Count, Is.EqualTo(3));
 
             Assert.That(
-                playMistyKnight.Any(s =>
+                playOneTwo.Any(s =>
                     s[0] is PlayCardAction playAction && playAction.Column == Column.Left
                 )
             );
             Assert.That(
-                playMistyKnight.Any(s =>
+                playOneTwo.Any(s =>
                     s[0] is PlayCardAction playAction && playAction.Column == Column.Middle
                 )
             );
             Assert.That(
-                playMistyKnight.Any(s =>
+                playOneTwo.Any(s =>
                     s[0] is PlayCardAction playAction && playAction.Column == Column.Right
                 )
             );
@@ -170,12 +176,12 @@ namespace Snapdragon.Tests
             // All sets must play both cards
             Assert.That(
                 playBothCards.All(s =>
-                    s.Cast<PlayCardAction>().Any(p => string.Equals(p.Card.Name, "Ant Man"))
+                    s.Cast<PlayCardAction>().Any(p => string.Equals(p.Card.Name, Cards.OneOne.Name))
                 )
             );
             Assert.That(
                 playBothCards.All(s =>
-                    s.Cast<PlayCardAction>().Any(p => string.Equals(p.Card.Name, "Misty Knight"))
+                    s.Cast<PlayCardAction>().Any(p => string.Equals(p.Card.Name, Cards.OneTwo.Name))
                 )
             );
 
@@ -210,34 +216,40 @@ namespace Snapdragon.Tests
         }
 
         [Test]
-        [TestCase(Side.Top)]
-        [TestCase(Side.Bottom)]
-        public void GetPlayableCards(Side side)
+        public void GetPlayableCards()
         {
-            var game = TestHelpers
-                .NewGame()
-                .WithCardsInHand(side, "Ant Man", "Misty Knight", "Medusa", "Okoye")
-                .PlaySingleTurn()
-                .PlaySingleTurn()
-                .PlaySingleTurn()
-                .StartNextTurn();
-            var player = game[side];
+            var oneOne = new CardInstance(Cards.OneOne, Side.Top, CardState.InHand);
+            var oneTwo = new CardInstance(Cards.OneTwo, Side.Top, CardState.InHand);
+            var twoOne = new CardInstance(Cards.TwoOne, Side.Top, CardState.InHand);
+            var twoTwo = new CardInstance(Cards.TwoTwo, Side.Top, CardState.InHand);
+
+            var controller = new RandomPlayerController();
+            var player = new Player(
+                new PlayerConfiguration("Test", new Deck([], Guid.Empty), controller),
+                Side.Top,
+                4,
+                new Library([]),
+                [oneOne, oneTwo, twoOne, twoTwo],
+                [],
+                []
+            );
+
             var playableCardSets = ControllerUtilities.GetPlayableCardSets(player);
 
             // Results should include (13 total):
             // []
-            // [AntMan],
-            // [AntMan, MistyKnight]
-            // [AntMan, MistyKnight, Medusa]
-            // [AntMan, MistyKnight, Okoye]
-            // [AntMan, Medusa]
-            // [AntMan, Okoya]
-            // [MistyKnight],
-            // [MistyKnight, Medusa]
-            // [MistyKnight, Okoya]
-            // [Medusa]
-            // [Medusa, Okoye]
-            // [Okoye]
+            // [OneOne],
+            // [OneOne, OneTwo]
+            // [OneOne, OneTwo, TwoOne]
+            // [OneOne, OneTwo, TwoTwo]
+            // [OneOne, TwoOne]
+            // [OneOne, TwoTwo]
+            // [OneTwo],
+            // [OneTwo, TwoOne]
+            // [OneTwo, TwoTwo]
+            // [TwoOne]
+            // [TwoOne, TwoTwo]
+            // [TwoTwo]
             Assert.That(playableCardSets.Count, Is.EqualTo(13));
 
             var emptyCards = playableCardSets.Where(s => s.Count == 0).ToList();
@@ -246,65 +258,35 @@ namespace Snapdragon.Tests
             var singleCards = playableCardSets.Where(s => s.Count == 1).ToList();
             Assert.That(singleCards.Count, Is.EqualTo(4));
 
-            Assert.That(singleCards.Any(s => s.Any(c => string.Equals(c.Name, "Ant Man"))));
-            Assert.That(singleCards.Any(s => s.Any(c => string.Equals(c.Name, "Misty Knight"))));
-            Assert.That(singleCards.Any(s => s.Any(c => string.Equals(c.Name, "Medusa"))));
-            Assert.That(singleCards.Any(s => s.Any(c => string.Equals(c.Name, "Okoye"))));
+            Assert.That(singleCards.Any(s => s.Contains(oneOne)));
+            Assert.That(singleCards.Any(s => s.Contains(oneTwo)));
+            Assert.That(singleCards.Any(s => s.Contains(twoOne)));
+            Assert.That(singleCards.Any(s => s.Contains(twoTwo)));
 
-            // [AntMan, Misty Knight]
-            // [AntMan, Medusa]
-            // [AntMan, Okoye]
-            // [MistyKnight, Medusa]
-            // [MistyKnight, Okoye]
-            // [Medusa, Okoye]
+            // [OneOne, OneTwo]
+            // [OneOne, TwoOne]
+            // [OneOne, TwoTwo]
+            // [OneTwo, TwoOne]
+            // [OneTwo, TwoTwo]
+            // [TwoOne, TwoTwo]
             var doubleCards = playableCardSets.Where(s => s.Count == 2).ToList();
             Assert.That(doubleCards.Count, Is.EqualTo(6));
-            Assert.That(
-                doubleCards.Any(s =>
-                    s.Any(c => string.Equals(c.Name, "Ant Man"))
-                    && s.Any(c => string.Equals(c.Name, "Misty Knight"))
-                )
-            );
-            Assert.That(
-                doubleCards.Any(s =>
-                    s.Any(c => string.Equals(c.Name, "Ant Man"))
-                    && s.Any(c => string.Equals(c.Name, "Medusa"))
-                )
-            );
-            Assert.That(
-                doubleCards.Any(s =>
-                    s.Any(c => string.Equals(c.Name, "Ant Man"))
-                    && s.Any(c => string.Equals(c.Name, "Okoye"))
-                )
-            );
-            Assert.That(
-                doubleCards.Any(s =>
-                    s.Any(c => string.Equals(c.Name, "Misty Knight"))
-                    && s.Any(c => string.Equals(c.Name, "Medusa"))
-                )
-            );
-            Assert.That(
-                doubleCards.Any(s =>
-                    s.Any(c => string.Equals(c.Name, "Misty Knight"))
-                    && s.Any(c => string.Equals(c.Name, "Okoye"))
-                )
-            );
-            Assert.That(
-                doubleCards.Any(s =>
-                    s.Any(c => string.Equals(c.Name, "Medusa"))
-                    && s.Any(c => string.Equals(c.Name, "Okoye"))
-                )
-            );
+            Assert.That(doubleCards.Any(s => s.Contains(oneOne) && s.Contains(oneTwo)));
+            Assert.That(doubleCards.Any(s => s.Contains(oneOne) && s.Contains(twoOne)));
+            Assert.That(doubleCards.Any(s => s.Contains(oneOne) && s.Contains(twoTwo)));
+            Assert.That(doubleCards.Any(s => s.Contains(oneTwo) && s.Contains(twoOne)));
+            Assert.That(doubleCards.Any(s => s.Contains(oneTwo) && s.Contains(twoTwo)));
+            Assert.That(doubleCards.Any(s => s.Contains(twoOne) && s.Contains(twoTwo)));
 
             // [OneOne, OneTwo, TwoOne]
             // [OneOne, OneTwo, TwoTwo]
             var tripleCards = playableCardSets.Where(s => s.Count == 3).ToList();
             Assert.That(tripleCards.Count, Is.EqualTo(2));
 
-            Assert.That(tripleCards.All(s => s.Any(c => string.Equals(c.Name, "Ant Man"))));
-            Assert.That(tripleCards.All(s => s.Any(c => string.Equals(c.Name, "Misty Knight"))));
-            Assert.That(tripleCards.Any(s => s.Any(c => string.Equals(c.Name, "Medusa"))));
-            Assert.That(tripleCards.Any(s => s.Any(c => string.Equals(c.Name, "Okoye"))));
+            Assert.That(tripleCards.All(s => s.Contains(oneOne)));
+            Assert.That(tripleCards.All(s => s.Contains(oneTwo)));
+            Assert.That(tripleCards.Any(s => s.Contains(twoOne)));
+            Assert.That(tripleCards.Any(s => s.Contains(twoTwo)));
         }
 
         [Test]

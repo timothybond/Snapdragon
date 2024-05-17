@@ -93,7 +93,7 @@ namespace Snapdragon
 
             foreach (var card in game.AllCards)
             {
-                if (card.Ongoing != null && card.Ongoing is OngoingBlockLocationEffect<ICard>)
+                if (card.Ongoing?.Type == OngoingAbilityType.BlockLocationEffects)
                 {
                     cardsWithLocationEffectBlocks.Add(card);
                 }

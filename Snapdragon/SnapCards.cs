@@ -1,5 +1,4 @@
-﻿using System.Collections.Immutable;
-using Snapdragon.Events;
+﻿using Snapdragon.Events;
 using Snapdragon.Fluent;
 using Snapdragon.Fluent.EffectBuilders;
 using Snapdragon.Fluent.Filters;
@@ -8,6 +7,7 @@ using Snapdragon.Fluent.Selectors;
 using Snapdragon.Fluent.Transforms;
 using Snapdragon.MoveAbilities;
 using Snapdragon.PlayRestrictions;
+using System.Collections.Immutable;
 
 namespace Snapdragon
 {
@@ -48,7 +48,7 @@ namespace Snapdragon
                 "Agent 13",
                 1,
                 2,
-                OnReveal.AddToHand(new RandomSingleItem<CardDefinition, ICard>(), My.Self) // TODO: Simplify
+                OnReveal.AddToHand(new RandomSingleItem<CardDefinition, ICard>(), My.Self)
             ),
             new("Blade", 1, 3, OnReveal.Discard(My.Hand.Last())),
             new(

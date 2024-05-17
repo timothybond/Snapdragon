@@ -4,20 +4,20 @@
     {
         public Game Apply(Game game)
         {
-            var card = game.Kernel[Card.Id];
+            var actualCard = game.GetCardInstance(Card.Id);
 
-            if (card == null)
+            if (actualCard == null)
             {
                 return game;
             }
 
-            var updatedCard = this.ApplyToCard(card.Base, game);
-            return game.WithUpdatedCard(updatedCard);
+            var updatedCard = this.ApplyToCard(actualCard, game);
+            return game.WithModifiedCard(updatedCard);
         }
 
         /// <summary>
         /// Performs the actual modification on a matched card that was checked elsewhere for relevant blocked effects.
         /// </summary>
-        protected abstract CardBase ApplyToCard(CardBase card, Game game);
+        protected abstract ICardInstance ApplyToCard(ICardInstance card, Game game);
     }
 }

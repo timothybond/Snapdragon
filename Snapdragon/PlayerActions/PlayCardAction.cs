@@ -30,9 +30,7 @@
                 );
             }
 
-            // TODO: Consolidate these objects
             var player = game[Side];
-            var playerState = game[Side].Player;
 
             if (!player.Hand.Any(c => c.Id == Card.Id))
             {
@@ -41,20 +39,14 @@
                 );
             }
 
-            if (game[Side].Energy < Card.Cost)
+            if (player.Energy < Card.Cost)
             {
                 throw new InvalidOperationException(
                     $"Tried to play card with cost {Card.Cost}, but remaining energy was {game[Side].Energy}."
                 );
             }
 
-            // TODO: Consider making an IEffect for this
-            var newPlayerState = playerState with
-            {
-                Energy = player.Energy - Card.Cost
-            };
-
-            return game.WithPlayer(newPlayerState).PlayCard(Card, Column);
+            return game.PlayCardUnsafe(Card, Column);
         }
 
         public override string ToString()

@@ -9,6 +9,19 @@
 
         public EventType EventType => EventTypeMap.Get<TEvent>();
 
+        public bool AppliesInState(CardState state)
+        {
+            return state switch
+            {
+                CardState.InPlay => true,
+                CardState.InHand => this.WhenInHand,
+                CardState.InLibrary => this.WhenInDeck,
+                CardState.Discarded => this.WhenDiscardedOrDestroyed,
+                CardState.Destroyed => this.WhenDiscardedOrDestroyed,
+                _ => false
+            };
+        }
+
         public Game ProcessEvent(Game game, Event e, TSource source)
         {
             if (e is TEvent typedEvent)

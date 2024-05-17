@@ -1,29 +1,28 @@
-﻿using Snapdragon.GameAccessors;
+﻿using System.Collections.Immutable;
+using Snapdragon.GameAccessors;
 
 namespace Snapdragon
 {
-    /// The combination of a <see cref="LocationDefinition"/>, <see cref="Column"/> and a reference to a
-    /// <see cref="GameKernel"/> that allows us to retrieve the ephemeral attributes from that <see cref="GameKernel"/>.
-    ///
-    /// Note that because <see cref="GameKernel"/> can only be altered
-    /// by creating new instances, the values of this object are unreliable
-    /// whenever anything changes.
-    ///
-    /// However, it is by design fairly low effort to create a new one of these after any change.
     public record Location(
         Column Column,
         LocationDefinition Definition,
-        GameKernel Kernel,
+        ImmutableList<ICard> TopCardsIncludingUnrevealed,
+        ImmutableList<ICard> BottomCardsIncludingUnrevealed,
         Multipliers TopMultipliers,
-        Multipliers BottomMultipliers
+        Multipliers BottomMultipliers,
+        ImmutableList<Sensor<ICard>> Sensors,
+        bool Revealed = false
     ) : IObjectWithColumn
     {
+        public Location(Column Column, LocationDefinition Definition)
+            : this(Column, Definition, [], [], new(), new(), []) { }
+
         public MultipliersAccessor Multipliers
         {
             get { return new MultipliersAccessor(this); }
         }
 
-        public IReadOnlyList<ICard> this[Side side]
+        public ImmutableList<ICard> this[Side side]
         {
             get
             {
@@ -39,83 +38,111 @@ namespace Snapdragon
             }
         }
 
-        public bool Revealed
-        {
-            get
-            {
-                switch (Column)
-                {
-                    case Column.Left:
-                        return Kernel.LeftRevealed;
-                    case Column.Middle:
-                        return Kernel.MiddleRevealed;
-                    case Column.Right:
-                        return Kernel.RightRevealed;
-                    default:
-                        throw new NotImplementedException();
-                }
-            }
-        }
-
-        /// <summary>
-        /// Gets the cards for the top Player, in this location.
-        ///
-        /// Note that this includes unrevealed cards, out of what might be a misguided attempt to keep things efficient.
-        /// </summary>
-        public IReadOnlyList<ICard> TopCardsIncludingUnrevealed => Kernel[Column, Side.Top];
-
-        /// <summary>
-        /// Gets the cards for the bottom Player, in this location.
-        ///
-        /// Note that this includes unrevealed cards, out of what might be a misguided attempt to keep things efficient.
-        /// </summary>
-        public IReadOnlyList<ICard> BottomCardsIncludingUnrevealed => Kernel[Column, Side.Bottom];
-
-        /// <summary>
-        /// Gets all cards in the location.
-        ///
-        /// Note that this includes unrevealed cards, for consistency.
-        /// </summary>
-        public IEnumerable<ICard> AllCardsIncludingUnrevealed => TopCardsIncludingUnrevealed.Concat(BottomCardsIncludingUnrevealed);
-
-        public IEnumerable<Sensor<ICard>> TopSensors
-        {
-            get
-            {
-                switch (Column)
-                {
-                    case Column.Left:
-                        return Kernel.TopLeftSensors.Select(id => Kernel.Sensors[id]);
-                    case Column.Middle:
-                        return Kernel.TopMiddleSensors.Select(id => Kernel.Sensors[id]);
-                    case Column.Right:
-                        return Kernel.TopRightSensors.Select(id => Kernel.Sensors[id]);
-                    default:
-                        throw new NotImplementedException();
-                }
-            }
-        }
-
-        public IEnumerable<Sensor<ICard>> BottomSensors
-        {
-            get
-            {
-                switch (Column)
-                {
-                    case Column.Left:
-                        return Kernel.BottomLeftSensors.Select(id => Kernel.Sensors[id]);
-                    case Column.Middle:
-                        return Kernel.BottomMiddleSensors.Select(id => Kernel.Sensors[id]);
-                    case Column.Right:
-                        return Kernel.BottomRightSensors.Select(id => Kernel.Sensors[id]);
-                    default:
-                        throw new NotImplementedException();
-                }
-            }
-        }
-
-        public IEnumerable<Sensor<ICard>> AllSensors => TopSensors.Concat(BottomSensors);
+        public IEnumerable<ICard> AllCardsIncludingUnrevealed =>
+            this.TopCardsIncludingUnrevealed.Concat(this.BottomCardsIncludingUnrevealed);
 
         Column? IObjectWithPossibleColumn.Column => Column;
+
+        /// <summary>
+        /// Adds a <see cref="CardInstance"/> to the given location.
+        ///
+        /// Note that this does not apply any other game logic - it should be called
+        /// by something that's orchestrating whatever is supposed to happen with the <see cref="CardInstance"/>.
+        /// </summary>
+        public Location WithCard(ICard card)
+        {
+            var cardInPlay = card.InPlayAt(this.Column);
+
+            // TODO: Consider checking that the Card.State is correct
+            switch (cardInPlay.Side)
+            {
+                case Side.Top:
+                    return this with
+                    {
+                        TopCardsIncludingUnrevealed = this.TopCardsIncludingUnrevealed.Add(
+                            cardInPlay
+                        )
+                    };
+                case Side.Bottom:
+                    return this with
+                    {
+                        BottomCardsIncludingUnrevealed = this.BottomCardsIncludingUnrevealed.Add(
+                            cardInPlay
+                        )
+                    };
+                default:
+                    throw new NotImplementedException();
+            }
+        }
+
+        /// <summary>
+        /// Removes a <see cref="Card"/> from the given location.
+        ///
+        /// Note that this does not apply any other game logic - it should be called
+        /// by something that's orchestrating whatever is supposed to happen with the <see cref="Card"/>.
+        /// </summary>
+        public Location WithoutCard(ICardInstance card)
+        {
+            // TODO: Consider checking that the Card.State is correct
+            switch (card.Side)
+            {
+                case Side.Top:
+                    return this with
+                    {
+                        TopCardsIncludingUnrevealed = this.TopCardsIncludingUnrevealed.RemoveAll(
+                            c => c.Id == card.Id
+                        )
+                    };
+                case Side.Bottom:
+                    return this with
+                    {
+                        BottomCardsIncludingUnrevealed =
+                            this.BottomCardsIncludingUnrevealed.RemoveAll(c => c.Id == card.Id)
+                    };
+                default:
+                    throw new NotImplementedException();
+            }
+        }
+
+        /// <summary>
+        /// Removes a given <see cref="ICard"/> from the Location.
+        ///
+        /// Note that this does not apply any other game logic - it should be called
+        /// by something that's orchestrating whatever is supposed to happen with the <see cref="Card"/>.
+        ///
+        /// Note also that the <see cref="ICard"/> is matched by Id to ensure nothing weird happens.
+        /// </summary>
+        public Location WithRemovedCard(ICard card)
+        {
+            // TODO: Consider checking that the Card.State is correct
+            switch (card.Side)
+            {
+                case Side.Top:
+                    return this with
+                    {
+                        TopCardsIncludingUnrevealed = this.TopCardsIncludingUnrevealed.RemoveAll(
+                            c => c.Id == card.Id
+                        )
+                    };
+                case Side.Bottom:
+                    return this with
+                    {
+                        BottomCardsIncludingUnrevealed =
+                            this.BottomCardsIncludingUnrevealed.RemoveAll(c => c.Id == card.Id)
+                    };
+                default:
+                    throw new NotImplementedException();
+            }
+        }
+
+        public Location WithSensor(Sensor<ICard> sensor)
+        {
+            return this with { Sensors = this.Sensors.Add(sensor) };
+        }
+
+        public Location WithSensorDeleted(long sensorId)
+        {
+            return this with { Sensors = this.Sensors.RemoveAll(t => t.Id == sensorId) };
+        }
     }
 }

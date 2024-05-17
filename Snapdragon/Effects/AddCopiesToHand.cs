@@ -4,8 +4,11 @@ using Snapdragon.Fluent;
 namespace Snapdragon.Effects
 {
     // TODO: Fix name
-    public record AddCopiesToHand(ICardInstance Card, ICardTransform? Transform = null, Side? Side = null)
-        : IEffect
+    public record AddCopiesToHand(
+        ICardInstance Card,
+        ICardTransform? Transform = null,
+        Side? Side = null
+    ) : IEffect
     {
         public Game Apply(Game game)
         {
@@ -20,7 +23,7 @@ namespace Snapdragon.Effects
             }
 
             var card = game.GetCard(Card.Id);
-            return game.WithCopyInHand(card, Side ?? card.Side, Transform);
+            return game.WithCopyInHandUnsafe(card, Side ?? card.Side, Transform);
         }
     }
 }

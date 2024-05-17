@@ -81,31 +81,32 @@ namespace Snapdragon.Tests
 
         public static Game WithCardsInHand(this Game game, Side side, params string[] cardNames)
         {
-            var cards = GetCards(cardNames);
-
-            return game.WithCardsInHand(side, cards.ToArray());
+            return game.WithCardsInHand(
+                side,
+                cardNames.Select(cn => SnapCards.ByName[cn]).ToArray()
+            );
         }
 
-        public static Game WithCardsInHand(this Game game, Side side, params CardDefinition[] cards)
+        public static Game WithCardsInHand(
+            this Game game,
+            Side side,
+            params CardDefinition[] cardDefinitions
+        )
         {
-            var kernel = game.Kernel;
-
-            foreach (var card in cards)
+            foreach (var cardDefinition in cardDefinitions)
             {
-                kernel = kernel.AddNewCardToHand(card, side, out long newCardId);
+                game = game.WithNewCardInHandUnsafe(cardDefinition, side);
             }
 
-            return game with
-            {
-                Kernel = kernel
-            };
+            return game;
         }
 
         public static Game WithCardsInDeck(this Game game, Side side, params string[] cardNames)
         {
-            var cards = GetCards(cardNames);
+            var cards = GetCards(side, cardNames)
+                .Select(c => c with { State = CardState.InLibrary });
 
-            return game.WithCardsInDeck(side, cards.ToArray());
+            return game.WithCardsInDeck(side, cardNames.Select(n => SnapCards.ByName[n]).ToArray());
         }
 
         public static Game WithCardsInDeck(
@@ -114,17 +115,7 @@ namespace Snapdragon.Tests
             params CardDefinition[] cardDefinitions
         )
         {
-            var kernel = game.Kernel;
-
-            foreach (var cardDef in cardDefinitions)
-            {
-                kernel = kernel.AddNewCardToLibrary(cardDef, side, out long newCardId);
-            }
-
-            return game with
-            {
-                Kernel = kernel
-            };
+            return cardDefinitions.Aggregate(game, (g, cd) => g.WithNewCardInDeckUnsafe(cd, side));
         }
 
         /// <summary>
@@ -168,7 +159,7 @@ namespace Snapdragon.Tests
         /// <returns></returns>
         public static Game PlayCards(Side side, Column column, params string[] cardNames)
         {
-            var cards = GetCards(cardNames);
+            var cards = GetCards(side, cardNames);
 
             var turn = cards.Select(c => c.Cost).Sum();
 
@@ -194,7 +185,7 @@ namespace Snapdragon.Tests
             params string[] cardNames
         )
         {
-            var cards = GetCards(cardNames);
+            var cards = GetCards(side, cardNames);
 
             var turn = cards
                 .Select(c =>
@@ -239,7 +230,7 @@ namespace Snapdragon.Tests
         public static Game PlayCards(Side side, params (string CardName, Column Column)[] cards)
         {
             var cardsToPlay = cards.ToList();
-            var turn = GetCards(cards.Select(c => c.CardName)).Select(c => c.Cost).Sum();
+            var turn = GetCards(side, cards.Select(c => c.CardName)).Select(c => c.Cost).Sum();
 
             return PlayCards(turn, side, cards);
         }
@@ -293,18 +284,21 @@ namespace Snapdragon.Tests
 
             game = game.StartNextTurn();
 
-            game = GetPlayerWithCardsToPlay(
-                topPlayerCards,
-                (TestPlayerController)game[Side.Top].Controller,
-                Side.Top,
-                game
-            );
-            game = GetPlayerWithCardsToPlay(
-                bottomPlayerCards,
-                (TestPlayerController)game[Side.Bottom].Controller,
-                Side.Bottom,
-                game
-            );
+            game = game with
+            {
+                Top = GetPlayerWithCardsToPlay(
+                    topPlayerCards,
+                    (TestPlayerController)game[Side.Top].Controller,
+                    Side.Top,
+                    game
+                ),
+                Bottom = GetPlayerWithCardsToPlay(
+                    bottomPlayerCards,
+                    (TestPlayerController)game[Side.Bottom].Controller,
+                    Side.Bottom,
+                    game
+                )
+            };
 
             game = game.PlayAlreadyStartedTurn();
 
@@ -333,18 +327,21 @@ namespace Snapdragon.Tests
 
             game = game.StartNextTurn();
 
-            game = GetPlayerWithCardsToPlay(
-                topPlayerCards,
-                (TestPlayerController)game[Side.Top].Controller,
-                Side.Top,
-                game
-            );
-            game = GetPlayerWithCardsToPlay(
-                bottomPlayerCards,
-                (TestPlayerController)game[Side.Bottom].Controller,
-                Side.Bottom,
-                game
-            );
+            game = game with
+            {
+                Top = GetPlayerWithCardsToPlay(
+                    topPlayerCards,
+                    (TestPlayerController)game[Side.Top].Controller,
+                    Side.Top,
+                    game
+                ),
+                Bottom = GetPlayerWithCardsToPlay(
+                    bottomPlayerCards,
+                    (TestPlayerController)game[Side.Bottom].Controller,
+                    Side.Bottom,
+                    game
+                )
+            };
 
             game = game.PlayAlreadyStartedTurn();
 
@@ -378,11 +375,11 @@ namespace Snapdragon.Tests
 
             game = game with
             {
-                TopPlayer = game.TopPlayer with
+                Top = game.Top with
                 {
                     Configuration = game.Top.Configuration with { Controller = topController }
                 },
-                BottomPlayer = game.BottomPlayer with
+                Bottom = game.Bottom with
                 {
                     Configuration = game.Bottom.Configuration with { Controller = bottomController }
                 }
@@ -395,8 +392,16 @@ namespace Snapdragon.Tests
 
             game = game.StartNextTurn();
 
-            game = GetPlayerWithCardsToPlay(topPlayerCards, topController, Side.Top, game);
-            game = GetPlayerWithCardsToPlay(bottomPlayerCards, bottomController, Side.Bottom, game);
+            game = game with
+            {
+                Top = GetPlayerWithCardsToPlay(topPlayerCards, topController, Side.Top, game),
+                Bottom = GetPlayerWithCardsToPlay(
+                    bottomPlayerCards,
+                    bottomController,
+                    Side.Bottom,
+                    game
+                )
+            };
 
             game = game.PlayAlreadyStartedTurn();
 
@@ -431,32 +436,41 @@ namespace Snapdragon.Tests
 
         private static int GetTotalCost(params (string CardName, Column Column)[] cardsToPlay)
         {
-            return GetCards(cardsToPlay.Select(c => c.CardName).ToList()).Sum(c => c.Cost);
+            return GetCards(Side.Top, cardsToPlay.Select(c => c.CardName).ToList())
+                .Sum(c => c.Cost);
         }
 
         private static int GetTotalCost(params string[] cardNames)
         {
-            return GetCards(cardNames.ToList()).Sum(c => c.Cost);
+            return GetCards(Side.Top, cardNames.ToList()).Sum(c => c.Cost);
         }
 
         /// <summary>
-        /// Gets cards to be played.
+        /// Gets cards to be played (so, <see cref="CardInstance.State"/> is set to <see cref="CardState.InHand"/>).
         /// </summary>
+        /// <param name="side">Player side that will play the cards.</param>
         /// <param name="cardNames">Names of the cards.</param>
-        private static IReadOnlyList<CardDefinition> GetCards(params string[] cardNames)
+        /// <returns></returns>
+        private static IReadOnlyList<CardInstance> GetCards(Side side, params string[] cardNames)
         {
             // Somewhat pointless cast, but I didn't want to independently implement both methods.
-            return GetCards((IEnumerable<string>)cardNames);
+            return GetCards(side, cardNames.ToList());
         }
 
         /// <summary>
-        /// Gets cards to be played.
+        /// Gets cards to be played (so, <see cref="CardInstance.State"/> is set to <see cref="CardState.InHand"/>).
         /// </summary>
+        /// <param name="side">Player side that will play the cards.</param>
         /// <param name="cardNames">Names of the cards.</param>
-        private static IReadOnlyList<CardDefinition> GetCards(IEnumerable<string> cardNames)
+        /// <returns></returns>
+        private static IReadOnlyList<CardInstance> GetCards(
+            Side side,
+            IEnumerable<string> cardNames
+        )
         {
-            // Somewhat pointless cast, but I didn't want to independently implement both methods.
-            return cardNames.Select(name => SnapCards.ByName[name]).ToList();
+            return cardNames
+                .Select(name => new CardInstance(SnapCards.ByName[name], side, CardState.InHand))
+                .ToList();
         }
 
         /// <summary>
@@ -466,14 +480,14 @@ namespace Snapdragon.Tests
         /// This will leave the player's current hand, which in some cases may violate the assumption
         /// that no player has more than <see cref="Max.HandSize"/> (7) cards in their hand.
         /// </summary>
-        private static Game GetPlayerWithCardsToPlay(
+        private static Player GetPlayerWithCardsToPlay(
             IEnumerable<(string CardName, Column Column)> cardsToPlay,
             TestPlayerController controller,
             Side side,
             Game game
         )
         {
-            var playerHand = game[side].Hand;
+            var playerHand = game[side].Hand.ToList();
             var playerActions = new List<IPlayerAction>();
 
             var cardsNeeded = cardsToPlay.Where(nameAndLocation =>
@@ -484,17 +498,13 @@ namespace Snapdragon.Tests
 
             foreach (var absentCard in cardsNeeded)
             {
-                game = game with
-                {
-                    Kernel = game.Kernel.AddNewCardToHand(
-                        SnapCards.ByName[absentCard.CardName],
-                        side,
-                        out long _
-                    )
-                };
+                var card = new CardInstance(
+                    SnapCards.ByName[absentCard.CardName],
+                    side,
+                    CardState.InHand
+                );
+                playerHand.Add(card);
             }
-
-            playerHand = game[side].Hand;
 
             foreach (var play in cardsToPlay)
             {
@@ -505,7 +515,10 @@ namespace Snapdragon.Tests
 
             controller.Actions = playerActions;
 
-            return game;
+            return game[side] with
+            {
+                Hand = playerHand.ToImmutableList()
+            };
         }
     }
 }

@@ -6,7 +6,11 @@
     /// Optionally also performs a transformation on the card.
     /// </summary>
     /// <param name="Card"></param>
-    public record ReturnCardToHand(ICardInstance Card, Func<CardBase, CardBase>? Transform = null) : IEffect
+    public record ReturnCardToHand(
+        // TODO: Clean up if possible
+        ICardInstance Card //,
+    // Func<ICardInstance, ICardInstance>? Transform = null
+    ) : IEffect
     {
         public Game Apply(Game game)
         {
@@ -41,7 +45,7 @@
                 return game;
             }
 
-            return game.ReturnCardToHand(actualCard);
+            return game.ReturnCardToHandUnsafe(actualCard);
         }
     }
 }

@@ -7,7 +7,7 @@
             // TODO: Handle restrictions on slots
             if (game[Column][Side].Count < Max.CardsPerLocation)
             {
-                return game.WithNewCardInPlay(Definition, Column, Side);
+                return game.WithNewCardInPlayUnsafe(Definition, Column, Side);
             }
 
             return game;

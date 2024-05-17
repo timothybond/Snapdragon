@@ -9,8 +9,11 @@ namespace Snapdragon.Effects
     /// <param name="Transform">An optional transform.</param>
     /// <param name="Player">The <see cref="Snapdragon.Player"/> to give the card to.
     /// If unset, defaults to the side of <see cref="Card"/>.</param>
-    public record AddCopyToHand(ICardInstance Card, ICardTransform? Transform = null, Player? Player = null)
-        : IEffect
+    public record AddCopyToHand(
+        ICardInstance Card,
+        ICardTransform? Transform = null,
+        Player? Player = null
+    ) : IEffect
     {
         public Game Apply(Game game)
         {
@@ -22,13 +25,13 @@ namespace Snapdragon.Effects
                 return game;
             }
 
-            var card = game.GetCard(Card.Id);
+            var card = game.GetCardInstance(Card.Id);
             if (card == null)
             {
                 return game;
             }
 
-            return game.WithCopyInHand(card, player.Side, Transform);
+            return game.WithCopyInHandUnsafe(card, player.Side, Transform);
         }
     }
 }

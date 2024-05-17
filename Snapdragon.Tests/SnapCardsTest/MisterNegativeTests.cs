@@ -14,7 +14,7 @@
                 .WithCardsInDeck(side, "Mister Negative", "Iron Man", "White Tiger")
                 .PlayCards(side, column, "Mister Negative");
 
-            var cardsInDeck = game[side].Library;
+            var cardsInDeck = game[side].Library.Cards;
 
             Assert.That(cardsInDeck, Has.Exactly(2).Items);
 
@@ -96,7 +96,7 @@
                 .WithCardsInDeck(side.Other(), "Mister Negative", "Iron Man", "White Tiger")
                 .PlayCards(side, column, "Mister Negative");
 
-            var cardsInDeck = game[side.Other()].Library;
+            var cardsInDeck = game[side.Other()].Library.Cards;
 
             Assert.That(cardsInDeck, Has.Exactly(2).Items);
 
@@ -121,7 +121,7 @@
                 .WithCardsInDeck(side, "Mister Negative", "Green Goblin", "Hobgoblin")
                 .PlayCards(side, column, "Mister Negative");
 
-            var cardsInDeck = game[side].Library;
+            var cardsInDeck = game[side].Library.Cards;
 
             Assert.That(cardsInDeck, Has.Exactly(2).Items);
 

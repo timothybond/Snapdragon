@@ -4,7 +4,7 @@
     {
         public Player GetOrDefault(CardEvent e, TContext context, Game game)
         {
-            return game[e.Card.Side].Player;
+            return game[e.Card.Side];
         }
     }
 }

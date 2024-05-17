@@ -14,7 +14,7 @@
                 return game;
             }
 
-            return game.WithNewCardInHand(Definition, Side);
+            return game.WithNewCardInHandUnsafe(Definition, Side);
         }
     }
 }

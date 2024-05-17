@@ -99,8 +99,8 @@ namespace Snapdragon
 
             game = game with
             {
-                TopPlayer = game.TopPlayer.WithController(topController),
-                BottomPlayer = game.BottomPlayer.WithController(bottomController),
+                Top = game.Top.WithController(topController),
+                Bottom = game.Bottom.WithController(bottomController),
                 Logger = new NullLogger()
             };
 

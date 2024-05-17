@@ -9,5 +9,7 @@
         bool WhenDiscardedOrDestroyed { get; }
         bool WhenInHand { get; }
         bool WhenInDeck { get; }
+
+        bool AppliesInState(CardState state);
     }
 }

@@ -4,8 +4,8 @@
     {
         public IEnumerable<Player> Get(object context, Game game)
         {
-            yield return game.TopPlayer;
-            yield return game.BottomPlayer;
+            yield return game.Top;
+            yield return game.Bottom;
         }
 
         public bool Selects(Player item, object context, Game game)

@@ -1,6 +1,4 @@
-﻿using Snapdragon.Fluent.Ongoing;
-using Snapdragon.GameKernelAccessors;
-using Snapdragon.PlayerActions;
+﻿using Snapdragon.PlayerActions;
 
 namespace Snapdragon
 {
@@ -25,11 +23,11 @@ namespace Snapdragon
 
                 if (card.Ongoing != null)
                 {
-                    if (card.Ongoing is OngoingBlockLocationEffect<ICard>)
+                    if (card.Ongoing.Type == OngoingAbilityType.BlockLocationEffects)
                     {
                         cardsWithLocationEffectBlocks.Add(card);
                     }
-                    else if (card.Ongoing is OngoingBlockCardEffect<ICard>)
+                    else if (card.Ongoing.Type == OngoingAbilityType.BlockCardEffects)
                     {
                         cardsWithCardEffectBlocks.Add(card);
                     }
@@ -38,10 +36,7 @@ namespace Snapdragon
 
             foreach (var location in game.Locations)
             {
-                if (
-                    location.Definition.Ongoing != null
-                    && location.Definition.Ongoing is OngoingBlockLocationEffect<Location>
-                )
+                if (location.Definition.Ongoing?.Type == OngoingAbilityType.BlockLocationEffects)
                 {
                     locationsWithLocationEffectBlocks.Add(location);
                 }
@@ -108,8 +103,11 @@ namespace Snapdragon
                 .AllSensors.Where(s => s.MoveAbility != null)
                 .ToList();
 
-            foreach (var card in game.Left[side])
+            // This got unrolled to reduce enumerations as a performance boost.
+            // I feel like it might have gone too far and may test to see if it matters much.
+            for (var i = 0; i < game.Left[side].Count; i++)
             {
+                var card = game.Left[side][i];
                 if (
                     game.CanMove(
                         card,
@@ -133,8 +131,9 @@ namespace Snapdragon
                 }
             }
 
-            foreach (var card in game.Middle[side])
+            for (var i = 0; i < game.Middle[side].Count; i++)
             {
+                var card = game.Middle[side][i];
                 if (
                     game.CanMove(
                         card,
@@ -158,8 +157,9 @@ namespace Snapdragon
                 }
             }
 
-            foreach (var card in game.Right[side])
+            for (var i = 0; i < game.Right[side].Count; i++)
             {
+                var card = game.Right[side][i];
                 if (
                     game.CanMove(
                         card,
@@ -310,7 +310,7 @@ namespace Snapdragon
         )
         {
             var cardsWithLocationEffectBlocks = game
-                .AllCards.Where(c => c.Ongoing is OngoingBlockLocationEffect<ICard>)
+                .AllCards.Where(c => c.Ongoing?.Type == OngoingAbilityType.BlockLocationEffects)
                 .ToList();
 
             foreach (var playableCardSet in playableCardSets)
@@ -616,9 +616,7 @@ namespace Snapdragon
         ///
         /// Public for testing purposes.
         /// </summary>
-        public static IReadOnlyList<IReadOnlyList<ICardInstance>> GetPlayableCardSets(
-            IPlayerAccessor player
-        )
+        public static IReadOnlyList<IReadOnlyList<ICardInstance>> GetPlayableCardSets(Player player)
         {
             return GetPlayableCardSets(player.Energy, player.Hand);
         }

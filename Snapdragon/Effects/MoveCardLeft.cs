@@ -64,7 +64,7 @@
                 return game;
             }
 
-            return game.MoveCard(actualCard, destination);
+            return game.MoveCardUnsafe(actualCard, destination);
         }
     }
 }
