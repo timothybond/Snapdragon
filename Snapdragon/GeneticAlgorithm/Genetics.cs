@@ -156,49 +156,48 @@ namespace Snapdragon.GeneticAlgorithm
 
             try
             {
-                // TODO: Re-enable parallelism
-                //await pairs.ForEachAsync(
-                //    async pair =>
-                //    {
-                //        return await PlayGameAndGetWinnerIndex(
-                //            population,
-                //            pair,
-                //            repository,
-                //            experimentId,
-                //            generation
-                //        );
-                //    },
-                //    (pair, winner) =>
-                //    {
-                //        if (winner >= 0)
-                //        {
-                //            lock (totalGamesWon)
-                //            {
-                //                totalGamesWon[winner] += 1;
-                //            }
-                //        }
-                //    }
-                //);
-
-                // TODO: Use this if you need to test with a single thread
-                foreach (var pair in pairs)
-                {
-                    var winner = await PlayGameAndGetWinnerIndex(
-                        population,
-                        pair,
-                        repository,
-                        experimentId,
-                        generation
-                    );
-
-                    if (winner >= 0)
+                await pairs.ForEachAsync(
+                    async pair =>
                     {
-                        lock (totalGamesWon)
+                        return await PlayGameAndGetWinnerIndex(
+                            population,
+                            pair,
+                            repository,
+                            experimentId,
+                            generation
+                        );
+                    },
+                    (pair, winner) =>
+                    {
+                        if (winner >= 0)
                         {
-                            totalGamesWon[winner] += 1;
+                            lock (totalGamesWon)
+                            {
+                                totalGamesWon[winner] += 1;
+                            }
                         }
                     }
-                }
+                );
+
+                // TODO: Use this if you need to test with a single thread
+                //foreach (var pair in pairs)
+                //{
+                //    var winner = await PlayGameAndGetWinnerIndex(
+                //        population,
+                //        pair,
+                //        repository,
+                //        experimentId,
+                //        generation
+                //    );
+
+                //    if (winner >= 0)
+                //    {
+                //        lock (totalGamesWon)
+                //        {
+                //            totalGamesWon[winner] += 1;
+                //        }
+                //    }
+                //}
 
                 return totalGamesWon;
             }
