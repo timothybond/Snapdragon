@@ -112,6 +112,14 @@ namespace Snapdragon
                 )
             ),
             new("America Chavez", 2, 3, OnReveal.Then(My.Library.First().ModifyPower(2))),
+            new(
+                "Bucky Barnes",
+                2,
+                1,
+                null,
+                null,
+                When.Destroyed.Then(Here.AddCard(new CardDefinition("Winter Soldier", 2, 6)))
+            ),
             new("Hazmat", 2, 2, OnReveal.Then(Fluent.Selectors.All.OtherCards.ModifyPower(-1))),
             new(
                 "Mantis",
