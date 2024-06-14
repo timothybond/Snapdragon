@@ -300,6 +300,7 @@ namespace Snapdragon
             ),
             new("Hobgoblin", 5, -8, OnReveal.Then(Self.SwitchSides())),
             new("Klaw", 5, 4, null, Ongoing.AdjustLocationPower(new LocationToTheRight(), 6)),
+            new("Modok", 5, 8, OnReveal.Discard(My.Hand)),
             new(
                 "White Tiger",
                 5,
@@ -315,7 +316,7 @@ namespace Snapdragon
             new(
                 "Apocalypse",
                 6,
-                8,
+                6,
                 null,
                 null,
                 When.Discarded.Then(Self.ModifyPower(4).And(Self.ReturnToHand()))
