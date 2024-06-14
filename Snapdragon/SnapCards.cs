@@ -338,6 +338,28 @@ namespace Snapdragon
                         .Times(My.Discards.Count())
                 )
             ),
+            new(
+                "Helicarrier",
+                6,
+                10,
+                null,
+                null,
+                // TODO: Find some way to reduce the length of this declaration
+                When.Discarded.Then(
+                    (
+                        (IEffectBuilder<ICardInstance>)
+                            new AddCardToHandBuilder<ICardInstance>(
+                                new FilteredSingleItemSelector<CardDefinition, ICardInstance>(
+                                    new SnapCardsSelector<ICardInstance>(),
+                                    new RandomSingleItem<CardDefinition, ICardInstance>()
+                                ),
+                                My.Self
+                            )
+                    )
+                        .ForEvent<CardDiscardedEvent>()
+                        .Times(7)
+                )
+            ),
             new("Hulk", 6, 12),
             new("Onslaught", 6, 7, null, new OngoingDoubleOtherOngoing<ICard>())
         }
