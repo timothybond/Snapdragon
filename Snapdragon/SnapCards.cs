@@ -1,4 +1,5 @@
-﻿using Snapdragon.Events;
+﻿using System.Collections.Immutable;
+using Snapdragon.Events;
 using Snapdragon.Fluent;
 using Snapdragon.Fluent.EffectBuilders;
 using Snapdragon.Fluent.Filters;
@@ -7,7 +8,6 @@ using Snapdragon.Fluent.Selectors;
 using Snapdragon.Fluent.Transforms;
 using Snapdragon.MoveAbilities;
 using Snapdragon.PlayRestrictions;
-using System.Collections.Immutable;
 
 namespace Snapdragon
 {
@@ -278,6 +278,7 @@ namespace Snapdragon
             ),
             new("The Thing", 4, 6),
             new("Wong", 4, 2, null, new OngoingDoubleOnReveal<ICard>()),
+            new("Black Panther", 5, 4, OnReveal.Then(Self.DoublePower())),
             new("Blue Marvel", 5, 3, null, Ongoing.AdjustPower(My.OtherCards, 1)),
             new(
                 "Gamora",
